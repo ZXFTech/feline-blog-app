@@ -1,4 +1,4 @@
-import React, { FC, HTMLAttributes } from "react";
+import React, { CSSProperties, FC, HTMLAttributes } from "react";
 import classnames from "classnames";
 
 export type ThemeProps =
@@ -40,13 +40,10 @@ const Icon: FC<IconProps> = (props) => {
   // 如果theme是primary，添加类 icon-primary
   const { className, theme, icon, ...restProps } = props;
   const classes = classnames("icon", "material-symbols-outlined", className);
+  const style = theme ? { color: themeColor[theme] } : {};
 
   return (
-    <span
-      style={{ color: themeColor[theme || "primary"] }}
-      className={classes}
-      {...restProps}
-    >
+    <span style={style} className={classes} {...restProps}>
       {icon}
     </span>
   );

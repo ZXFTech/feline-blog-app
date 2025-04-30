@@ -1,0 +1,44 @@
+@use "../../styles/mixin";
+@use "../../styles/neu";
+@use "../../styles/variables";
+
+// 先暂定按钮背景颜色和阴影颜色都跟随主题色走
+.btn-embossed-normal {
+  box-sizing: content-box;
+  background-color: inherit;
+  margin: 0.8rem;
+  padding: 0.3rem;
+  @include neu.neu-embossed-normal;
+  // transition: box-shadow 0.1s;
+  &:active,
+  &[active] {
+    @include neu.neu-embossed-sm;
+    scale: 99%;
+  }
+  &:hover,
+  &[hover] {
+    background: inherit;
+  }
+}
+
+.neu-btn-primary {
+  @include mixin.neu-button-style(variables.$primary, variables.$white);
+  @include mixin.neu-button-theme(
+    variables.$shadow-size-normal,
+    variables.$shadow-blur-normal,
+    variables.$primary
+  );
+}
+
+.neu-btn-danger {
+  @include mixin.neu-button-style(variables.$danger, variables.$white);
+  @include mixin.neu-button-theme(
+    variables.$shadow-size-normal,
+    variables.$shadow-blur-normal,
+    variables.$danger
+  );
+}
+
+.neu-btn-link {
+  text-decoration: underline;
+}

@@ -1,0 +1,20 @@
+// config
+@use "./variables";
+
+// layout
+@use "./reboot.scss";
+
+// global
+@use "./global.scss";
+
+// mixin
+@use "./_mixin.scss";
+
+// neu
+@use "./_neu.scss";
+
+// components
+@use "./componets";
+
+// tailwindcss
+@import "tailwindcss";

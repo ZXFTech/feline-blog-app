@@ -1,0 +1,46 @@
+@mixin neu-embossed-sm {
+  box-shadow: calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
+      var(--shadow-blur-sm) var(--neu-light-shadow),
+    var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm)
+      var(--neu-dark-shadow);
+  // box-shadow: -0.2rem -0.2rem $shadow-blur var(--neu-light-shadow),
+  //   0.2rem 0.2rem $shadow-blur var(--neu-dark-shadow);
+}
+
+@mixin neu-embossed-normal {
+  // transform-origin: 50% 0%;
+  // font-size: 103%;
+  box-shadow: calc(var(--shadow-size-normal) * -1)
+      calc(var(--shadow-size-normal) * -1) var(--shadow-blur-normal)
+      var(--neu-light-shadow),
+    var(--shadow-size-normal) var(--shadow-size-normal)
+      var(--shadow-blur-normal) var(--neu-dark-shadow);
+  // box-shadow: -0.2rem -0.2rem $shadow-blur var(--neu-light-shadow),
+  //   0.2rem 0.2rem $shadow-blur var(--neu-dark-shadow);
+  // & > * {
+  //   scale: 103%;
+  // }
+}
+
+@mixin neu-embossed-lg {
+  box-shadow: calc(var(--shadow-size-lg) * -1) calc(var(--shadow-size-lg) * -1)
+      var(--shadow-blur-lg) var(--neu-light-shadow),
+    var(--shadow-size-lg) var(--shadow-size-lg) var(--shadow-blur-lg)
+      var(--neu-dark-shadow);
+  // box-shadow: -0.2rem -0.2rem $shadow-blur var(--neu-light-shadow),
+  //   0.2rem 0.2rem $shadow-blur var(--neu-dark-shadow);
+}
+
+@mixin neu-flat {
+  font-size: 100%;
+  box-shadow: none;
+}
+
+@mixin neu-debossed-normal {
+  // font-size: 97%;
+  box-shadow: inset calc(var(--shadow-size-normal) * -1)
+      calc(var(--shadow-size-normal) * -1) var(--shadow-blur-normal)
+      var(--neu-light-shadow),
+    inset var(--shadow-size-normal) var(--shadow-size-normal)
+      var(--shadow-blur-normal) var(--neu-dark-shadow);
+}

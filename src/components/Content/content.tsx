@@ -15,10 +15,13 @@ const Content: FC<ContentProps> = ({
 }) => {
   const combineClassnames = classNames("content", className);
   return (
-    <div className={combineClassnames} {...restProps}>
-      {leftSideBar && <div className="left-side-bar">{leftSideBar}</div>}
-      <div className="main">{children}</div>
-      {rightSideBar && <div className="right-side-bar">{rightSideBar}</div>}
+    <div
+      className={`w-full flex justify-center !p-0.5 ${combineClassnames}`}
+      {...restProps}
+    >
+      <div className="hidden xl:block w-[25%]">{leftSideBar}</div>
+      <div className="w-full md:w-[70%] xl:w-[50%]">{children}</div>
+      <div className="hidden md:block w-[25%]">{rightSideBar}</div>
     </div>
   );
 };

@@ -21,7 +21,7 @@ const NeuDiv: FC<NeuContainerProps> = (props) => {
   });
   return (
     <div
-      className={`p-1.5 m-3 transition duration-100 border rounded-lg ${configClassNames}`}
+      className={`py-2 px-3 m-3 transition duration-100 border rounded-lg ${configClassNames}`}
       {...restProps}
     >
       {children}

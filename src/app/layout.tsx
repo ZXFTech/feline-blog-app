@@ -32,7 +32,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased neu-light`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased neu-light body-content`}
       >
         <Navbar leftSlot={<IconNeonCat />} routeList={routeList} />
         <Content>

@@ -31,15 +31,6 @@
   color: var(--neu-font-color);
   transition: background-color 0.618s;
   overflow: hidden;
-
-  // display: flex;
-  // align-items: center;
-  // justify-content: center;
-  & > * {
-    // margin: 5%;
-    display: inline-block;
-    vertical-align: middle;
-  }
 }
 
 .neu-light {

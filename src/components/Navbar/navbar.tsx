@@ -11,7 +11,7 @@ interface NavbarProps {
 
 const Navbar: FC<NavbarProps> = ({ leftSlot, rightSlot, routeList }) => {
   return (
-    <NeuDiv className="flex items-center justify-between mx-0 mt-0">
+    <NeuDiv className="fixed top-0 left-0 right-0 flex items-center justify-between mx-0 mt-0 z-999 neu-light">
       <div className="items-center justify-center hidden p-1 md:flex">
         {leftSlot}
       </div>

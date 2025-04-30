@@ -16,7 +16,7 @@ const Content: FC<ContentProps> = ({
   const combineClassnames = classNames("content", className);
   return (
     <div
-      className={`w-full flex justify-center !p-0.5 ${combineClassnames}`}
+      className={`mt-15 md:mt-20 w-full flex justify-center ${combineClassnames}`}
       {...restProps}
     >
       <div className="hidden xl:block w-[25%]">{leftSideBar}</div>

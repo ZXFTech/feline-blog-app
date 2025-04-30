@@ -9,3 +9,12 @@
 
 // NeuDiv
 @use "../components/NeuDiv/style" as NeuDivStyle;
+
+// navbar
+@use "../components/Navbar/styles" as NavbarStyle;
+
+// content
+@use "../components/Content/style" as ContentStyle;
+
+// footer
+@use "../components/Footer/style" as FooterStyle;

@@ -1,0 +1,54 @@
+.content {
+  width: 100vw;
+  display: flex;
+  justify-content: center;
+  padding: 0.8rem;
+  margin-top: 0;
+  overflow-y: hidden;
+  height: calc(100vh - 4rem);
+}
+
+.left-side-bar {
+  float: left;
+}
+
+.right-side-bar {
+  float: right;
+}
+
+.left-side-bar,
+.right-side-bar {
+  min-width: 20rem;
+  text-align: center;
+}
+
+.main {
+  max-width: 82.5rem;
+  width: 65rem;
+  margin: 0 0.5rem;
+  padding: 0 0 5rem;
+  height: 100%;
+  overflow: auto;
+
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1680px) {
+  .right-side-bar {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 1440px) {
+  .left-side-bar {
+    display: none;
+  }
+  .content {
+    margin: 0;
+  }
+  .main {
+  }
+}

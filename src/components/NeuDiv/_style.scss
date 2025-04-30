@@ -1,0 +1,53 @@
+@use "../../styles/neu";
+
+.neu-div {
+  // box-sizing: border-box;
+  // // @include neu-embossed-normal;
+  // $normal-radius: 0.4rem;
+  // padding: 0.5rem;
+  // // padding: var(--shadow-blur-normal);
+  // margin: 0.5rem;
+  // border-radius: $normal-radius;
+  // border: 1px solid var(--neu-border-color);
+  // transition: all 0.1s;
+  // margin: var(--shadow-size-normal);
+  // content: "";
+  border-color: var(--neu-border-color);
+}
+
+.neu-embossed-normal {
+  @include neu.neu-embossed-normal;
+}
+
+.neu-embossed-sm {
+  @include neu.neu-embossed-sm;
+}
+
+.neu-raised-sm {
+  @include neu.neu-flat;
+  &:hover {
+    @include neu.neu-embossed-sm;
+    scale: 100.5%;
+  }
+}
+
+.neu-raised-normal {
+  // @include neu-embossed-lg;
+  @include neu.neu-flat;
+  &:hover {
+    @include neu.neu-embossed-normal;
+    scale: 101%;
+  }
+}
+
+.neu-debossed-normal {
+  @include neu.neu-debossed-normal;
+}
+
+.neu-recessed-normal {
+  @include neu.neu-flat;
+  &:hover {
+    @include neu.neu-debossed-normal;
+    scale: 99%;
+  }
+}

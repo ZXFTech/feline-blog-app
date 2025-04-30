@@ -5,6 +5,7 @@ import "../styles/index.scss";
 import Navbar from "@/components/Navbar/navbar";
 import Footer from "@/components/Footer/footer";
 import Content from "@/components/Content/content";
+import { IconNeonCat } from "@/components/Icon/presetIcon";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -33,7 +34,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased neu-light`}
       >
-        <Navbar routeList={routeList} />
+        <Navbar leftSlot={<IconNeonCat />} routeList={routeList} />
         <Content>
           <main> {children}</main>
         </Content>

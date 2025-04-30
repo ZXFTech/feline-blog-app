@@ -1,0 +1,93 @@
+@use "../../styles/variables";
+
+@each $key, $val in variables.$theme-colors {
+  .icon-#{$key} {
+    color: $val;
+  }
+}
+
+.icon-neon-cat {
+  display: flex;
+  align-items: center;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-shadow: 2px 2px 2px #00ffff;
+  margin: 0;
+  height: auto;
+  padding: 0.8rem;
+  & > span {
+    color: var(--neu-font-color);
+  }
+}
+
+.neon-light {
+  height: 2.5rem;
+  color: var(--theme-customize-color);
+  animation: colorFlash 5s infinite ease-in-out;
+  scale: 120%;
+}
+$neon-light-blur: 2px;
+$neon-light-size: 3px;
+$neon-light-reverse-size: -1 * $neon-light-size;
+$neon-light-shadow-size: 1px;
+
+@keyframes colorFlash {
+  0% {
+    filter: drop-shadow(
+        $neon-light-size $neon-light-size $neon-light-blur #ff00ff
+      )
+      drop-shadow(
+        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
+          #00ffff
+      );
+  }
+  20% {
+    filter: drop-shadow(2px 2px 2px #00ffff) drop-shadow(-2px -2px 2px #8a2be2);
+  }
+  30% {
+    filter: drop-shadow(
+        $neon-light-size $neon-light-size $neon-light-blur #5d00ff
+      )
+      drop-shadow(
+        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
+          #ea00ff
+      );
+  }
+  31% {
+    filter: drop-shadow(
+        $neon-light-size $neon-light-size $neon-light-blur #00ced1
+      )
+      drop-shadow(
+        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
+          #00ffff
+      );
+  }
+  32% {
+    filter: drop-shadow(
+        $neon-light-size $neon-light-size $neon-light-blur #5d00ff
+      )
+      drop-shadow(
+        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
+          #ea00ff
+      );
+  }
+  60% {
+    filter: drop-shadow(
+        $neon-light-size $neon-light-size $neon-light-blur #00ced1
+      )
+      drop-shadow(
+        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
+          #5d00ff
+      );
+  }
+  100% {
+    filter: drop-shadow(
+        $neon-light-size $neon-light-size $neon-light-blur #8a2be2
+      )
+      drop-shadow(
+        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
+          #ff00ff
+      );
+  }
+}

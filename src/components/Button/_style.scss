@@ -1,0 +1,119 @@
+@use "../../styles/mixin";
+@use "../../styles/variables";
+
+.btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: baseline;
+  font-weight: variables.$btn-font-weight;
+  line-height: variables.$btn-line-height;
+  color: var(--neu-font-color);
+  white-space: nowrap;
+  background-image: none;
+  // border: $btn-border-width solid transparent;
+  border: none;
+  outline: none;
+  @include mixin.button-size(
+    variables.$btn-padding-x,
+    variables.$btn-padding-y,
+    variables.$btn-font-size,
+    variables.$border-radius
+  );
+  box-shadow: variables.$btn-box-shadow;
+  cursor: pointer;
+  transition: variables.$btn-transition;
+  &.disabled,
+  &[disabled] {
+    cursor: not-allowed;
+    opacity: variables.$btn-disabled-opacity;
+    box-shadow: none;
+    > * {
+      pointer-events: none;
+    }
+  }
+}
+
+.btn-loading {
+  animation: spin 1.5s linear infinite;
+}
+
+.btn-icon,
+.btn-loading {
+  margin: 0 0.2rem 0 0;
+  display: inline-block;
+  font-size: 1rem;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-lg {
+  @include mixin.button-size(
+    variables.$btn-padding-x-lg,
+    variables.$btn-padding-y-lg,
+    variables.$btn-font-size-lg,
+    variables.$border-radius-lg
+  );
+}
+.btn-sm {
+  @include mixin.button-size(
+    variables.$btn-padding-x-sm,
+    variables.$btn-padding-y-sm,
+    variables.$btn-font-size-sm,
+    variables.$border-radius-sm
+  );
+}
+.btn-xs {
+  @include mixin.button-size(
+    variables.$btn-padding-x-xs,
+    variables.$btn-padding-y-xs,
+    variables.$btn-font-size-xs,
+    variables.$border-radius-xs
+  );
+}
+
+.btn-primary {
+  @include mixin.button-style(variables.$primary, variables.$white);
+}
+
+.btn-danger {
+  @include mixin.button-style(variables.$danger, variables.$white);
+}
+
+.btn-default {
+  @include mixin.button-style(
+    variables.$white,
+    variables.$gray-800,
+    variables.$white,
+    variables.$primary,
+    variables.$primary
+  );
+}
+
+.btn-link {
+  font-weight: variables.$font-weight-normal;
+  color: variables.$btn-link-color;
+  text-decoration: variables.$link-decoration;
+  box-shadow: none;
+  &:hover {
+    color: variables.$btn-link-hover-color;
+    text-decoration: variables.$link-hover-decoration;
+  }
+  &:focus,
+  &.focus {
+    text-decoration: variables.$link-hover-decoration;
+    box-shadow: none;
+  }
+  &:disabled,
+  &.disabled {
+    color: variables.$btn-link-disabled-color;
+    pointer-events: none;
+  }
+}

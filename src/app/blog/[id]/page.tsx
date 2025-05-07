@@ -54,7 +54,7 @@ const PostLayout = ({
           </ul>
         )}
       </div>
-      <div className="blog-content">
+      <div className="text-left">
         {!contentList.length ? (
           <div className="blog-empty-content">
             <NeuDiv className="blog-empty-title">
@@ -76,7 +76,11 @@ const PostLayout = ({
         ) : (
           contentList.map((content) => {
             if (content.type in NotionBlock) {
-              return (NotionBlock as any)[content.type](content);
+              return (
+                <section className="">
+                  {(NotionBlock as any)[content.type](content)}
+                </section>
+              );
             }
           })
         )}

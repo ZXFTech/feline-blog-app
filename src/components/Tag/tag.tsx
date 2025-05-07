@@ -35,7 +35,7 @@ const Tag: FC<TagProps> = ({
       <span
         className={`${icon ? "ml-0.5" : "ml-2"} ${
           closable ? "mr-0.5" : "mr-2"
-        }`}
+        } text-xs font-medium`}
       >
         {children}
       </span>

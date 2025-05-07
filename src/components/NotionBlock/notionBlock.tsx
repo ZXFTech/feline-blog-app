@@ -21,7 +21,7 @@ const CodeBlock: FC<{ title?: string; code: string; language: string }> = ({
   language,
 }) => {
   return (
-    <NeuDiv neuType="debossed" className="w-full !mx-0">
+    <NeuDiv neuType="debossed" className="w-full mx-0">
       <div suppressHydrationWarning className="flex justify-between">
         <div className="flex gap-1">
           {title && <Tag>{title}</Tag>}
@@ -44,36 +44,25 @@ const CodeBlock: FC<{ title?: string; code: string; language: string }> = ({
 
 const NotionBlock = {
   heading_1: (block: any) => {
-    return (
-      <h1 key={block.id} className="blog-heading-1">
-        {combineRichText(block.heading_1.rich_text)}
-      </h1>
-    );
+    return <h1 key={block.id}>{combineRichText(block.heading_1.rich_text)}</h1>;
   },
 
   heading_2: (block: any) => {
-    return (
-      <h2 key={block.id} className="blog-heading-2">
-        {combineRichText(block.heading_2.rich_text)}
-      </h2>
-    );
+    return <h2 key={block.id}>{combineRichText(block.heading_2.rich_text)}</h2>;
   },
   heading_3: (block: any) => {
-    return (
-      <h3 key={block.id} className="blog-heading-3">
-        {combineRichText(block.heading_3.rich_text)}
-      </h3>
-    );
+    return <h3 key={block.id}>{combineRichText(block.heading_3.rich_text)}</h3>;
   },
   paragraph: (block: any) => {
-    return (
-      <p key={block.id} className="blog-paragraph">
-        {combineRichText(block.paragraph.rich_text)}
-      </p>
-    );
+    return <p key={block.id}>{combineRichText(block.paragraph.rich_text)}</p>;
   },
   divider: (block: any) => {
-    return <br key={block.id} className="blog-divider" />;
+    return (
+      <hr
+        key={block.id}
+        className="border-t-1 my-0.5 text-gray-500 scale-y-50"
+      />
+    );
   },
   bulleted_list_item: (block: any) => {
     return (
@@ -90,30 +79,34 @@ const NotionBlock = {
     );
   },
   image: (block: any) => {
+    // todo: 可手动缩放图片大小
     switch (block.image.type) {
       case "external":
         return (
-          <div key={block.id} className="blog-image-container">
+          <NeuDiv key={block.id} className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5">
             <Image
-              className="blog-image"
-              fill
-              objectFit="contain"
+              className="m-0 rounded-md object-contain"
+              width={2000}
+              height={2000}
               src={block.image.external.url}
               alt={block.image.caption.join(" ")}
             />
-          </div>
+          </NeuDiv>
         );
       case "file":
         return (
-          <div key={block.id} className="blog-image-container">
+          <NeuDiv
+            key={block.id}
+            className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5  "
+          >
             <Image
-              className="blog-image"
-              objectFit="contain"
-              fill
+              className="m-0 rounded-md !object-cover"
+              width={2000}
+              height={2000}
               src={block.image.file.url}
               alt={block.image.caption.join(" ")}
             />
-          </div>
+          </NeuDiv>
         );
     }
   },

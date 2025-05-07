@@ -15,11 +15,11 @@ const combineRichText = (richText: any[]) => {
   return richText.map((item) => item.plain_text).join(" ");
 };
 
-const CodeBlock: FC<{ title?: string; code: string; language: string }> = ({
-  code,
-  title,
-  language,
-}) => {
+export const CodeBlock: FC<{
+  title?: string;
+  code: string;
+  language: string;
+}> = ({ code, title, language }) => {
   return (
     <NeuDiv neuType="debossed" className="w-full mx-0">
       <div suppressHydrationWarning className="flex justify-between">
@@ -34,7 +34,7 @@ const CodeBlock: FC<{ title?: string; code: string; language: string }> = ({
         wrapLines
         style={dracula}
         wrapLongLines
-        language={language}
+        language={language.toLowerCase()}
       >
         {code.trim()}
       </Highlighter>

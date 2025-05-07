@@ -9,11 +9,13 @@ import Link from "next/link";
 export function Blog() {
   return (
     <div className="mt-7">
-      <NeuDiv className="top-panel w-[95%] mx-[auto] flex flex-wrap">
+      <div className="top-panel mx-3 my-1 flex-row-reverse py-1 flex flex-wrap">
         <Link href="/blog/new" className="hover:no-underline!">
-          <NeuButton className="">新建</NeuButton>
+          <NeuButton icon="add_box" className="">
+            新建
+          </NeuButton>
         </Link>
-      </NeuDiv>
+      </div>
       <BlogList
         dataSource={dataSource as any}
         pageBean={{ pageNum: 0, pageSize: 20, total: 5 }}

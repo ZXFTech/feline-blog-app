@@ -6,6 +6,7 @@ import NeuButton from "../NeuButton/neuButton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CodeBlock } from "../NotionBlock/notionBlock";
+import Link from "next/link";
 
 const MarkdownEditor = () => {
   // blog state
@@ -16,8 +17,6 @@ const MarkdownEditor = () => {
 
   // 编辑页面状态 state
   const [preview, setPreview] = useState(false);
-  const [fullScreenPreview, setFullScreenPreview] = useState(false);
-  const [content, setContent] = useState("");
   const [fullScreen, setFullScreen] = useState(false);
   const onContentChange: ChangeEventHandler<HTMLTextAreaElement> = (value) =>
     setBlogData((prev) => ({
@@ -34,13 +33,23 @@ const MarkdownEditor = () => {
       }`}
     >
       <div className="top-panel mx-0! mt-1! flex justify-between items-center">
-        <div className="left"></div>
+        <div className="left">
+          <Link href="/blog" className="hover:no-underline!">
+            <NeuButton icon="arrow_back_ios">退出编辑</NeuButton>
+          </Link>
+        </div>
         <div className="right flex wrap">
-          <NeuButton onClick={() => setFullScreen((prev) => !prev)}>
+          <NeuButton
+            icon={fullScreen ? "fullScreen_exit" : "fullScreen"}
+            onClick={() => setFullScreen((prev) => !prev)}
+          >
             {`${fullScreen ? "退出全屏" : "全屏"}`}
           </NeuButton>
-          <NeuButton onClick={() => setFullScreenPreview((prev) => !prev)}>
-            预览
+          <NeuButton
+            icon={preview ? "visibility_off" : "visibility"}
+            onClick={() => setPreview((prev) => !prev)}
+          >
+            {preview ? "关闭预览" : "预览"}
           </NeuButton>
         </div>
       </div>
@@ -62,14 +71,14 @@ const MarkdownEditor = () => {
             <textarea
               className="p-3 resize-none! grow bg-black/3 focus:outline-none rounded-md focus:bg-white/10"
               placeholder="输入Markdown内容..."
-              value={content}
+              value={blogData.content}
               onChange={onContentChange}
             />
           </NeuDiv>
         </div>
         <NeuDiv
           className={`m-0! break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
-            fullScreenPreview
+            preview
               ? "p-3! ml-3! grow! w-full md:static md:w-[50%]"
               : "w-0 p-0! overflow-hidden! border-none! "
           }`}
@@ -93,7 +102,7 @@ const MarkdownEditor = () => {
             }}
             remarkPlugins={[remarkGfm]}
           >
-            {content}
+            {blogData.content}
           </ReactMarkdown>
         </NeuDiv>
       </div>

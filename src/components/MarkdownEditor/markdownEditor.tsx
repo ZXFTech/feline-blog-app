@@ -12,51 +12,29 @@ import { useRouter } from "next/navigation";
 import { createBlog } from "@/db/blogAction";
 import { title } from "process";
 
-const MarkdownEditor = () => {
-  const router = useRouter();
-  // blog state
-  const [blogData, setBlogData] = useState({
-    title: "",
-    content: "",
-  });
+interface Props {
+  handleSubmit: () => void;
+  blogData: { title: string; content: string };
+  onTitleChange: ChangeEventHandler<HTMLInputElement>;
+  onContentChange: ChangeEventHandler<HTMLTextAreaElement>;
+}
 
-  useEffect(() => {
-    console.log("blogData.content", JSON.stringify(blogData));
-  }, [blogData]);
-
-  const handleSubmit = async () => {
-    const res = await createBlog({
-      title: blogData.title.trim() ? blogData.title.trim() : "无标题",
-      content: blogData.content,
-    });
-    if (res.error) {
-      message.error("创建失败!" + res.message);
-      return;
-    }
-    message.success("创建成功!");
-    setBlogData({
-      title: "",
-      content: "",
-    });
-    router.push(`/blog/${res.data?.blogId}`);
-  };
-
+const MarkdownEditor = ({
+  handleSubmit,
+  blogData,
+  onTitleChange,
+  onContentChange,
+}: Props) => {
   // 编辑页面状态 state
   const [preview, setPreview] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
-  const onContentChange: ChangeEventHandler<HTMLTextAreaElement> = (value) =>
-    setBlogData((prev) => ({
-      ...prev,
-      content: value.target.value.replaceAll(/(?<!\s\s)\n/g, "  \n"),
-    }));
-  const onTitleChange: ChangeEventHandler<HTMLInputElement> = (e) =>
-    setBlogData((prev) => ({ ...prev, title: e.target.value }));
+
   return (
     <NeuDiv
       className={`flex flex-col gap-2.5 transition-all duration-200 ease-in-out ${
         fullScreen
           ? "fixed z-99999999 top-0 bottom-0 left-0 right-0 "
-          : "static h-full"
+          : "h-[calc(100vh-10rem))]"
       }`}
     >
       <div className="top-panel mx-0! mt-1! flex justify-between items-center">

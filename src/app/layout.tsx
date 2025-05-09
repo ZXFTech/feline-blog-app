@@ -6,6 +6,9 @@ import Navbar from "@/components/Navbar/navbar";
 import Footer from "@/components/Footer/footer";
 import Content from "@/components/Content/content";
 import { IconNeonCat } from "@/components/Icon/presetIcon";
+import { MessageProvider } from "@/contexts/message/context";
+import { MessageContainer } from "@/components/Message";
+import { MessageInstanceInitializer } from "@/contexts/message/instance";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -34,9 +37,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased neu-light body-content`}
       >
-        <Navbar leftSlot={<IconNeonCat />} routeList={routeList} />
-        <Content>{children}</Content>
-        <Footer></Footer>
+        <MessageProvider>
+          <MessageInstanceInitializer />
+          <Navbar leftSlot={<IconNeonCat />} routeList={routeList} />
+          <Content>{children}</Content>
+          <Footer></Footer>
+          <MessageContainer />
+        </MessageProvider>
       </body>
     </html>
   );

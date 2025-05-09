@@ -1,12 +1,13 @@
 "use client";
 
+import Content from "@/components/Content/content";
 import MarkdownEditor from "@/components/MarkdownEditor/markdownEditor";
 
 const New = () => {
   return (
-    <div className="mt-7">
+    <Content>
       <MarkdownEditor />
-    </div>
+    </Content>
   );
 };
 

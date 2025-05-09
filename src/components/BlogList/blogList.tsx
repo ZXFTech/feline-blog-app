@@ -28,10 +28,7 @@ export interface BlogListProps {
 
 const BlogList: FC<BlogListProps> = ({ dataSource }) => {
   return (
-    <NeuDiv
-      neuType="debossed"
-      className="scale-100% mx-3 my-0 h-[calc(100vh-8.5rem)] md:h-[calc(100vh-10rem)] overflow-auto hidden-scrollbar"
-    >
+    <div className="scale-100% m-3">
       {dataSource.map((item) => {
         return (
           <Link
@@ -47,7 +44,7 @@ const BlogList: FC<BlogListProps> = ({ dataSource }) => {
         );
       })}
       {/* <div>{Object.prototype.toString.call(pageBean)}</div> */}
-    </NeuDiv>
+    </div>
   );
 };
 

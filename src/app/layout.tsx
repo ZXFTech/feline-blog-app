@@ -4,7 +4,6 @@ import "material-symbols";
 import "../styles/index.scss";
 import Navbar from "@/components/Navbar/navbar";
 import Footer from "@/components/Footer/footer";
-import Content from "@/components/Content/content";
 import { IconNeonCat } from "@/components/Icon/presetIcon";
 import { MessageProvider } from "@/contexts/message/context";
 import { MessageContainer } from "@/components/Message";
@@ -39,9 +38,9 @@ export default function RootLayout({
       >
         <MessageProvider>
           <MessageInstanceInitializer />
-          <Navbar leftSlot={<IconNeonCat />} routeList={routeList} />
-          <Content>{children}</Content>
-          <Footer></Footer>
+          <Navbar routeList={routeList} />
+          {children}
+          <Footer />
           <MessageContainer />
         </MessageProvider>
       </body>

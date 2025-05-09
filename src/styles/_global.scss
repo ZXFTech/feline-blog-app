@@ -25,12 +25,9 @@
 }
 
 .body-content {
-  max-height: 100vh;
   width: 100vw;
-  text-align: center;
   color: var(--neu-font-color);
   transition: background-color 0.618s;
-  overflow: hidden;
 }
 
 .neu-light {
@@ -49,7 +46,7 @@
   background: variables.$dark;
 }
 
-.hidden-scrollbar {
+.hide-scrollbar {
   scrollbar-width: none;
   &::-webkit-scrollbar {
     display: none;

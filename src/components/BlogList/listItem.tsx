@@ -14,7 +14,7 @@ const ListItem: FC<NotionBlogProperties> = ({ properties }) => {
     <NeuDiv
       neuType="raised"
       style={{ border: "2px solid var(--neu-border-color)" }}
-      className="text-left transition-all group duration-618 hover:transition-none"
+      className="blog-list-item mb-2! text-left transition-all group duration-618 hover:transition-none"
     >
       <div className="px-1 py-0 text-2xl font-bold">
         {Page.title[0].plain_text}

@@ -16,12 +16,18 @@ const NeuDiv: FC<NeuContainerProps> = (props) => {
     ...restProps
   } = props;
 
-  const configClassNames = classNames("neu-div", className, {
-    [`neu-${neuType}-${intensity}`]: neuType && intensity,
-  });
+  const configClassNames = classNames(
+    "neu-div",
+    {
+      [`neu-${neuType}-${intensity}`]: neuType && intensity,
+      "m-4 p-1": neuType === "embossed",
+    },
+    className
+  );
+
   return (
     <div
-      className={`py-2 px-3 m-3 transition duration-100 border rounded-lg ${configClassNames}`}
+      className={`p-2 transition duration-100 border rounded-lg ${configClassNames}`}
       {...restProps}
     >
       {children}

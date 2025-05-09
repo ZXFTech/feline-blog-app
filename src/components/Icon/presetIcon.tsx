@@ -13,18 +13,18 @@ export const IconSpinner: FC<Partial<IconProps>> = (props) => {
   return <Icon icon={icon || "progress_activity"} {...restProps} />;
 };
 
-export const IconNeonCat: FC = () => {
+export const IconNeonCat = () => {
   return (
-    <NeuDiv neuType="embossed" className="cursor-pointer icon-neon-cat">
+    <div className="cursor-pointer icon-neon-cat">
       <Link href="/">
         <Image
           src="/neoncat.svg"
-          alt=""
+          alt="neoncat-icon"
           width={48}
           height={48}
           className="w-10 neon-light"
         />
       </Link>
-    </NeuDiv>
+    </div>
   );
 };

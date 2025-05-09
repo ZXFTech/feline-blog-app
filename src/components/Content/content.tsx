@@ -19,7 +19,9 @@ const Content: FC<ContentProps> = ({
       <div className="w-full md:w-[70%] xl:w-[50%] h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10 ">
         {children}
       </div>
-      <div className="hidden md:block w-[25%]">{rightSideBar}</div>
+      <div className="hidden md:block w-[25%] h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10">
+        {rightSideBar}
+      </div>
     </div>
   );
 };

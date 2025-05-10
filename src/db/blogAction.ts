@@ -1,25 +1,29 @@
 "use server";
 
-import db from "./client";
+import { ApiResponse } from "@/lib/response/ApiResponse";
+import db, { testUserId } from "./client";
+import logger from "@/lib/logger/Logger";
 export async function createBlog({
   title,
   content,
+  authorId,
 }: {
   title: string;
   content: string;
+  authorId?: string;
 }) {
   try {
     const res = await db.blog.create({
       data: {
         title,
         content: content,
-        authorId: "test-user",
+        authorId: authorId || testUserId,
       },
     });
-    return { data: { blogId: res.id }, error: false };
+    return ApiResponse.success({ blogId: res.id });
   } catch (err) {
-    console.log("Create blog failed!", err);
-    return { error: true, message: "Create blog failed!" + err };
+    logger.error("Create blog failed!", err);
+    return ApiResponse.error("Create blog failed!" + err);
   }
 }
 
@@ -34,10 +38,10 @@ export async function getBlogById(blogId: number) {
         author: true,
       },
     });
-    return { data: res, error: false };
+    return ApiResponse.success({ res });
   } catch (err) {
-    console.log("Find blog failed!", err);
-    return { error: true, message: "Find blog failed!" + err };
+    logger.error("Find blog failed!", err);
+    return ApiResponse.error("Find blog failed!" + err);
   }
 }
 
@@ -55,17 +59,17 @@ export async function updateBlogById(
         content: content,
       },
     });
-    return { data: { blogId: res.id }, error: false };
+    return ApiResponse.success({ blogId: res.id });
   } catch (err) {
-    console.log("Update blog failed!", err);
-    return { error: true, message: "Update blog failed!" + err };
+    logger.error("Update blog failed!", err);
+    return ApiResponse.error("Update blog failed!" + err);
   }
 }
 
 export async function getBlogList(
   pageNum: number,
   pageSize: number,
-  userId: string
+  userId?: string
 ) {
   try {
     const [blogs, total] = await db.$transaction([
@@ -84,16 +88,16 @@ export async function getBlogList(
         skip: (pageNum - 1) * pageSize,
       }),
       db.blog.count({
-        where: { authorId: userId },
+        where: { authorId: userId || testUserId },
       }),
     ]);
-
-    return {
-      error: false,
-      data: { blogs: blogs, pageBean: { pageNum, pageSize }, total },
-    };
+    return ApiResponse.success({
+      blogs: blogs,
+      pageBean: { pageNum, pageSize },
+      total,
+    });
   } catch (err) {
-    console.log("err", err);
-    return { error: true, message: "Query blog list failed!" + err };
+    logger.error("err", err);
+    return ApiResponse.error("Query blog list failed!" + err);
   }
 }

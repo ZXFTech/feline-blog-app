@@ -35,6 +35,7 @@ model Blog {
   updatedAt  DateTime     @updatedAt
   Comment    Comment[]
   TagsOnBlog TagsOnBlog[]
+  delete     Boolean      @default(false)
 }
 
 model Comment {

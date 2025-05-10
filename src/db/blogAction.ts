@@ -38,7 +38,7 @@ export async function getBlogById(blogId: number) {
         author: true,
       },
     });
-    return ApiResponse.success({ res });
+    return ApiResponse.success({ blog: res });
   } catch (err) {
     logger.error("Find blog failed!", err);
     return ApiResponse.error("Find blog failed!" + err);

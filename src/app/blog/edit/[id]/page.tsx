@@ -38,9 +38,10 @@ const Edit = () => {
 
   useEffect(() => {
     getBlogData(Number(blogId)).then((res) => {
+      const { blog } = res!;
       setBlogData({
-        title: res?.title || "",
-        content: res?.content || "",
+        title: blog?.title || "",
+        content: blog?.content || "",
       });
     });
   }, []);

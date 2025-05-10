@@ -1,8 +1,7 @@
 import React, { FC } from "react";
 import ListItem from "./listItem";
-import NeuDiv from "../NeuDiv/NeuDiv";
 import Link from "next/link";
-import { NotionBlogProperties } from "@/lib/notion/types";
+import { Blog, User } from "../../../generated/prisma";
 
 export interface BlogListItem {
   id: number;
@@ -22,8 +21,8 @@ export interface pageBean {
 }
 
 export interface BlogListProps {
-  dataSource: NotionBlogProperties[];
-  pageBean: pageBean;
+  dataSource: (Blog & { author: User })[];
+  pageBean?: pageBean;
 }
 
 const BlogList: FC<BlogListProps> = ({ dataSource }) => {

@@ -1,3 +1,5 @@
+"use server";
+
 import React from "react";
 import BlogList from "@/components/BlogList/blogList";
 import { Metadata } from "next";
@@ -6,8 +8,20 @@ import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import NeuButton from "@/components/NeuButton/neuButton";
 import Link from "next/link";
 import Content from "@/components/Content/content";
+import { getBlogList } from "@/db/blogAction";
+import { message } from "@/lib/message";
 
-export function Blog() {
+export default async function Blog() {
+  const {
+    data,
+    error,
+    message: errMessage,
+  } = await getBlogList(1, 20, "test-user");
+  if (error || !data) {
+    message.error("获取博客列表失败!" + errMessage);
+  }
+  console.log("data", data);
+  const { blogs, total, pageBean } = data!;
   return (
     <Content>
       {/* <div className="top-panel mx-3 my-1 flex-row-reverse py-1 flex flex-wrap">
@@ -17,15 +31,7 @@ export function Blog() {
           </NeuButton>
         </Link>
       </div> */}
-      <BlogList
-        dataSource={dataSource as any}
-        pageBean={{ pageNum: 0, pageSize: 20, total: 5 }}
-      />
+      <BlogList dataSource={blogs} />
     </Content>
   );
 }
-export const metadata: Metadata = {
-  title: "博客列表",
-};
-
-export default Blog;

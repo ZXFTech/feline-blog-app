@@ -9,3 +9,5 @@ export default db;
 if (process.env.NODE_ENV !== "production") {
   globalForDB.db = db;
 }
+
+export const testUserId = "test-user";

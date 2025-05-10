@@ -15,13 +15,17 @@ const Content: FC<ContentProps> = ({
 }) => {
   return (
     <div className={`content w-full flex  justify-center ${className || ""}`}>
-      <div className="hidden xl:block w-[25%]">{leftSideBar}</div>
-      <div className="w-full md:w-[70%] xl:w-[50%] h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10 ">
+      {leftSideBar && (
+        <div className="hidden lh:block w-[20%]]">{leftSideBar}</div>
+      )}
+      <div className="w-2xl md:w-2xl xl:w-2xl h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10 ">
         {children}
       </div>
-      <div className="hidden md:block w-[25%] h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10">
-        {rightSideBar}
-      </div>
+      {rightSideBar && (
+        <div className="hidden md:block w-[25%] h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10">
+          {rightSideBar}
+        </div>
+      )}
     </div>
   );
 };

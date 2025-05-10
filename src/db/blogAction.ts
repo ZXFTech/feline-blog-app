@@ -61,3 +61,39 @@ export async function updateBlogById(
     return { error: true, message: "Update blog failed!" + err };
   }
 }
+
+export async function getBlogList(
+  pageNum: number,
+  pageSize: number,
+  userId: string
+) {
+  try {
+    const [blogs, total] = await db.$transaction([
+      db.blog.findMany({
+        where: {
+          authorId: userId,
+          delete: false,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        include: {
+          author: true,
+        },
+        take: pageSize,
+        skip: (pageNum - 1) * pageSize,
+      }),
+      db.blog.count({
+        where: { authorId: userId },
+      }),
+    ]);
+
+    return {
+      error: false,
+      data: { blogs: blogs, pageBean: { pageNum, pageSize }, total },
+    };
+  } catch (err) {
+    console.log("err", err);
+    return { error: true, message: "Query blog list failed!" + err };
+  }
+}

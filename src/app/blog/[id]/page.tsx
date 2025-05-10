@@ -13,7 +13,7 @@ import { getBlogById } from "@/db/blogAction";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Content from "@/components/Content/content";
-import NeuButton from "@/components/NeuButton/neuButton";
+import BlogEditBar from "@/components/RightSideBar/BlogEditBar";
 
 // export async function getStaticProps({ params }: { params: { id: number } }) {
 //   const postData = await getBlogById(params.id);
@@ -22,11 +22,11 @@ import NeuButton from "@/components/NeuButton/neuButton";
 
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
-  const postData = await getBlogById(id);
+  const { data: postData } = await getBlogById(id);
 
   if (!postData) {
     return (
-      <div className="blog-empty-content mt-7">
+      <div className="blog-empty-content">
         <NeuDiv className="blog-empty-title">
           这篇博客没有内容, 所以给你看看我的小猫吧~
         </NeuDiv>
@@ -47,21 +47,19 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   }
 
   return (
-    <Content>
-      <div className="operation-bar">
-        <NeuButton icon="edit">编辑</NeuButton>
-      </div>
-      <NeuDiv
-        neuType="flat"
-        className="blog-content-container mt-3 p-5 border-inherit overflow-auto"
-      >
-        <Head>
-          <title>{postData.title}</title>
-        </Head>
-        <h1>{postData.title}</h1>
-        <div className="flex flex-wrap items-center justify-between mb-3">
-          <Tag className="ml-0">{postData.author.username}</Tag>
-          {/* {(postData.TagsOnBlog||[]).length && (
+    <Content rightSideBar={<BlogEditBar blogId={id} />}>
+      <div className="flex flex-col py-3">
+        <NeuDiv
+          neuType="flat"
+          className="blog-content-container p-5 overflow-auto"
+        >
+          <Head>
+            <title>{postData.title}</title>
+          </Head>
+          <h1>{postData.title}</h1>
+          <div className="flex flex-wrap items-center justify-between mb-3">
+            <Tag className="ml-0">{postData.author.username}</Tag>
+            {/* {(postData.TagsOnBlog||[]).length && (
           <ul className="flex flex-wrap gap-1 p-0 mx-0 my-3">
             {postData.TagsOnBlog.map((tag) => {
               return (
@@ -72,31 +70,32 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
             })}
           </ul>
         )} */}
-        </div>
-        <div className="blog-content text-left">
-          <ReactMarkdown
-            components={{
-              code({ node, className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || "");
-                return match ? (
-                  <CodeBlock
-                    title="test"
-                    code={children ? children.toString() : ""}
-                    language={match[1]}
-                  ></CodeBlock>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-            remarkPlugins={[remarkGfm]}
-          >
-            {JSON.parse(postData.content)}
-          </ReactMarkdown>
-        </div>
-      </NeuDiv>
+          </div>
+          <div className="blog-content text-left flex-1 overflow-scroll hide-scrollbar h-[calc(100vh-20rem))]">
+            <ReactMarkdown
+              components={{
+                code({ node, className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  return match ? (
+                    <CodeBlock
+                      title="test"
+                      code={children ? children.toString() : ""}
+                      language={match[1]}
+                    ></CodeBlock>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+              remarkPlugins={[remarkGfm]}
+            >
+              {postData.content}
+            </ReactMarkdown>
+          </div>
+        </NeuDiv>
+      </div>
     </Content>
   );
 };

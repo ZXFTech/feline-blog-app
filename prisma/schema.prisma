@@ -23,6 +23,7 @@ model User {
   Blog      Blog[]
   Comment   Comment[]
   Tag       Tag[]
+  Todo      Todo[]
 }
 
 model Blog {
@@ -69,4 +70,15 @@ model TagsOnBlog {
   assignedAt DateTime @default(now())
 
   @@id([blogId, tagId])
+}
+
+model Todo {
+  id       Int      @id @default(autoincrement())
+  content  String
+  finish   Boolean  @default(false)
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
+  finishAt DateTime @updatedAt
+  userId   String
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

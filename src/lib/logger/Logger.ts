@@ -17,7 +17,7 @@ class Logger {
     this.level = level;
   }
   private level: LogLevel;
-  private environment = !window ? "Node" : "Browser";
+  private environment = window ? "Browser" : "Node";
   private timeStamp = new Date().toISOString();
   private messageStatus = `[${this.environment}] [${this.timeStamp}]`;
 

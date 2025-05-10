@@ -12,7 +12,7 @@ export async function createBlog({
     const res = await db.blog.create({
       data: {
         title,
-        content: JSON.stringify(content),
+        content: content,
         authorId: "test-user",
       },
     });
@@ -34,8 +34,30 @@ export async function getBlogById(blogId: number) {
         author: true,
       },
     });
-    return res;
+    return { data: res, error: false };
   } catch (err) {
-    console.log("err", err);
+    console.log("Find blog failed!", err);
+    return { error: true, message: "Find blog failed!" + err };
+  }
+}
+
+export async function updateBlogById(
+  blogId: number,
+  { title, content }: { title: string; content: string }
+) {
+  try {
+    const res = await db.blog.update({
+      where: {
+        id: Number(blogId),
+      },
+      data: {
+        title,
+        content: content,
+      },
+    });
+    return { data: { blogId: res.id }, error: false };
+  } catch (err) {
+    console.log("Update blog failed!", err);
+    return { error: true, message: "Update blog failed!" + err };
   }
 }

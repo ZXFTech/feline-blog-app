@@ -79,6 +79,7 @@ model Todo {
   createAt DateTime @default(now())
   updateAt DateTime @updatedAt
   finishAt DateTime @updatedAt
+  delete   Boolean  @default(false)
   userId   String
   user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

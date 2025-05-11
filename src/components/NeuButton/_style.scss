@@ -5,7 +5,7 @@
 // 先暂定按钮背景颜色和阴影颜色都跟随主题色走
 .btn-embossed-normal {
   box-sizing: content-box;
-  background-color: inherit;
+  background-color: var(--theme-customize-color);
   margin: 0.3rem;
   padding: 0.3rem;
   @include neu.neu-embossed-normal;
@@ -17,7 +17,7 @@
   }
   &:hover,
   &[hover] {
-    background: inherit;
+    background: var(--theme-customize-color);
   }
 }
 

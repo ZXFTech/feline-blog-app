@@ -5,10 +5,18 @@
   --theme-neu-dark: #525252;
   --theme-light: $gray-100;
   --theme-dark: $gray-900;
-  --theme-customize-color: rgb(254, 223, 169, 1);
+  --theme-color-r: 254;
+  --theme-color-g: 223;
+  --theme-color-b: 168;
+  --theme-customize-color: rgba(
+    var(--theme-color-r),
+    var(--theme-color-g),
+    var(--theme-color-b),
+    1
+  );
   --neu-light-shadow-num: 255, 255, 194;
   --neu-light-shadow: rgb(var(--neu-light-shadow-num));
-  --neu-dark-shadow: #d8be90;
+  --neu-dark-shadow: rgb(216, 190, 144);
   // --theme-high-contrast:
   --neu-font-color: #3c095a;
   --neu-border-color: #ebce9c;

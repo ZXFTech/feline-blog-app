@@ -14,6 +14,7 @@ import { title } from "process";
 
 interface Props {
   handleSubmit: () => void;
+  loading: boolean;
   blogData: { title: string; content: string };
   onTitleChange: ChangeEventHandler<HTMLInputElement>;
   onContentChange: ChangeEventHandler<HTMLTextAreaElement>;
@@ -24,6 +25,7 @@ const MarkdownEditor = ({
   blogData,
   onTitleChange,
   onContentChange,
+  loading,
 }: Props) => {
   // 编辑页面状态 state
   const [preview, setPreview] = useState(false);
@@ -57,7 +59,11 @@ const MarkdownEditor = ({
             {preview ? "关闭预览" : "预览"}
           </NeuButton>
           <NeuButton icon="save">保存</NeuButton>
-          <NeuButton icon="drive_folder_upload" onClick={handleSubmit}>
+          <NeuButton
+            loading={loading}
+            icon="drive_folder_upload"
+            onClick={handleSubmit}
+          >
             提交
           </NeuButton>
         </div>
@@ -65,7 +71,8 @@ const MarkdownEditor = ({
       {/* TITLE */}
       <NeuDiv neuType="debossed" className="m-0! p-0!">
         <input
-          className="bg-black/3 font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3"
+          disabled={loading}
+          className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
           type="text"
           placeholder="无标题"
           value={blogData.title}
@@ -79,7 +86,8 @@ const MarkdownEditor = ({
             className="flex gap-1 flex-1 h-full mt-3 p-0! m-0!"
           >
             <textarea
-              className="p-3 resize-none! grow bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar"
+              disabled={loading}
+              className="p-3 resize-none! grow bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60"
               placeholder="输入Markdown内容..."
               value={blogData.content}
               onChange={onContentChange}

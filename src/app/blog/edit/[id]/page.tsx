@@ -2,9 +2,7 @@
 
 import Content from "@/components/Content/content";
 import MarkdownEditor from "@/components/MarkdownEditor/markdownEditor";
-import RightSideBar from "@/components/RightSideBar";
-import BlogEditBar from "@/components/RightSideBar/BlogEditBar";
-import { createBlog, getBlogById, updateBlogById } from "@/db/blogAction";
+import { getBlogById, updateBlogById } from "@/db/blogAction";
 import { message } from "@/lib/message";
 import { useParams, useRouter } from "next/navigation";
 import { useState, useEffect, ChangeEventHandler } from "react";
@@ -22,31 +20,38 @@ const Edit = () => {
   }
 
   // blog state
+  const [loading, setLoading] = useState(false);
   const [blogData, setBlogData] = useState({
     title: "",
     content: "",
   });
 
-  const getBlogData = async (id: number) => {
-    const res = await getBlogById(id);
-    if (res.error) {
-      message.error("获取博客失败!" + res.message);
-      router.push("/");
-    }
-    return res.data;
-  };
-
   useEffect(() => {
-    getBlogData(Number(blogId)).then((res) => {
-      const { blog } = res!;
+    setLoading(true);
+    getBlogById(blogId).then((res) => {
+      if (res.error) {
+        message.error("获取博客失败!" + res.message);
+        router.push("/");
+      }
+      const { data, error, message: errMessage } = res;
+
+      if (error) {
+        message.error(errMessage!);
+        router.back();
+        return;
+      }
+
+      const { blog } = data!;
       setBlogData({
         title: blog?.title || "",
         content: blog?.content || "",
       });
+      setLoading(false);
     });
   }, []);
 
   const handleSubmit = async () => {
+    setLoading(true);
     const res = await updateBlogById(blogId, {
       title: blogData.title.trim() ? blogData.title.trim() : "无标题",
       content: blogData.content.trim(),
@@ -56,10 +61,6 @@ const Edit = () => {
       return;
     }
     message.success("更新成功!");
-    setBlogData({
-      title: "",
-      content: "",
-    });
     router.push(`/blog/${res.data?.blogId}`);
   };
 
@@ -74,6 +75,7 @@ const Edit = () => {
   return (
     <Content>
       <MarkdownEditor
+        loading={loading}
         blogData={blogData}
         onContentChange={onContentChange}
         onTitleChange={onTitleChange}

@@ -1,41 +1,60 @@
-import { ApiResponse } from "@/lib/response/ApiResponse";
+import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 
-export async function addTodo(content: string, userId: string) {
+export async function addTodo(content: string, userId?: string) {
   try {
-    const todo = await db.todo.create({
+    const result = await db.user.update({
+      where: {
+        id: userId || testUserId,
+      },
       data: {
-        content,
-        userId: userId || testUserId,
+        Todo: {
+          create: {
+            content: content,
+            finished: false,
+          },
+        },
       },
     });
-    return ApiResponse.success({ todo });
+
+    return actionResponse.success();
   } catch (error) {
     const errorMessage = "Add todo failed! " + error;
     logger.error(errorMessage);
-    return ApiResponse.error(errorMessage);
+    return actionResponse.error(errorMessage);
   }
 }
 
-export async function updateTodo(todoId: number, finish: boolean) {
+export async function updateTodo({
+  todoId,
+  finished,
+  content,
+}: {
+  todoId: number;
+  finished?: boolean;
+  content?: string;
+}) {
   try {
+    const data = {} as any;
+    finished !== undefined && (data.finished = finished);
+    content !== undefined && (data.content = content);
     const res = await db.todo.update({
       where: {
         id: todoId,
       },
       data: {
-        finish,
+        ...data,
       },
     });
     if (!res) {
-      return ApiResponse.error("Todo not found!");
+      return actionResponse.error("Todo not found!");
     }
-    return ApiResponse.success({ todoId });
+    return actionResponse.success({ id: data.id });
   } catch (error) {
     const errorMessage = "Update todo failed! " + error;
     logger.error(errorMessage);
-    return ApiResponse.error(errorMessage);
+    return actionResponse.error(errorMessage);
   }
 }
 
@@ -50,13 +69,13 @@ export async function deleteTodo(todoId: number) {
       },
     });
     if (!res) {
-      return ApiResponse.error("Todo not found!");
+      return actionResponse.error("Todo not found!");
     }
-    return ApiResponse.success({ todoId });
+    return actionResponse.success({ todoId });
   } catch (error) {
     const errorMessage = "Delete todo failed! " + error;
     logger.error(errorMessage);
-    return ApiResponse.error(errorMessage);
+    return actionResponse.error(errorMessage);
   }
 }
 
@@ -67,14 +86,31 @@ export async function getTodoList(userId?: string) {
         userId: userId || testUserId,
       },
     });
-    return ApiResponse.success({
+    return actionResponse.success({
       todoList: res,
       total: res.length,
-      finished: res.filter((todo) => todo.finish).length,
+      finished: res.filter((todo) => todo.finished).length,
     });
   } catch (error) {
     const errorMessage = "Query todo list failed! " + error;
     logger.error(errorMessage);
-    return ApiResponse.error(errorMessage);
+    return actionResponse.error(errorMessage);
+  }
+}
+
+export async function getTodoById(todoId: number, userId?: string) {
+  try {
+    const res = await db.todo.findFirst({
+      where: {
+        id: todoId,
+        userId: userId || testUserId,
+      },
+    });
+
+    return actionResponse.success({ todo: res });
+  } catch (error) {
+    const errorMessage = "Get todo failed!";
+    logger.error(errorMessage);
+    return actionResponse.error(errorMessage);
   }
 }

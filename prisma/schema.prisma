@@ -73,13 +73,13 @@ model TagsOnBlog {
 }
 
 model Todo {
-  id       Int      @id @default(autoincrement())
-  content  String
-  finish   Boolean  @default(false)
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
-  finishAt DateTime @updatedAt
-  delete   Boolean  @default(false)
-  userId   String
-  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id         Int      @id @default(autoincrement())
+  content    String
+  finished   Boolean  @default(false)
+  createAt   DateTime @default(now())
+  updateAt   DateTime @updatedAt
+  finishedAt DateTime @updatedAt
+  delete     Boolean  @default(false)
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

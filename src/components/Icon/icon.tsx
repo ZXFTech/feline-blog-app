@@ -18,9 +18,22 @@ export type IconType =
   | "file_copy"
   | string;
 
+export type IconSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
+
+export const iconSizeMap = {
+  xs: "8",
+  sm: "12",
+  md: "16",
+  lg: "20",
+  xl: "24",
+  "2xl": "28",
+  "3xl": "32",
+};
+
 export interface IconProps extends HTMLAttributes<HTMLElement> {
   theme?: ThemeProps;
   icon: IconType | string;
+  size?: IconSize;
 }
 
 const themeColor = {
@@ -38,12 +51,18 @@ const themeColor = {
 
 const Icon: FC<IconProps> = (props) => {
   // 如果theme是primary，添加类 icon-primary
-  const { className, theme, icon, ...restProps } = props;
+  const { className, theme, icon, size = "md", ...restProps } = props;
+
   const classes = classnames("icon", "material-symbols-outlined", className);
+
   const style = theme ? { color: themeColor[theme] } : {};
 
   return (
-    <span style={style} className={classes} {...restProps}>
+    <span
+      style={{ ...style, fontSize: iconSizeMap[size] + "px" }}
+      className={`${classes}`}
+      {...restProps}
+    >
       {icon}
     </span>
   );

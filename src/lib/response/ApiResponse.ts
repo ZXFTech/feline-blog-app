@@ -25,7 +25,7 @@ export const actionResponse = {
     };
   },
 
-  success: (data: any) => {
+  success: (data?: any) => {
     return {
       error: false,
       message: "",

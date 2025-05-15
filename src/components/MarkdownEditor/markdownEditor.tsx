@@ -7,10 +7,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CodeBlock } from "../NotionBlock/notionBlock";
 import Link from "next/link";
-import { message } from "@/lib/message";
-import { useRouter } from "next/navigation";
-import { createBlog } from "@/db/blogAction";
-import { title } from "process";
+import NeuInput from "@/components/NeuInput";
 
 interface Props {
   handleSubmit: () => void;
@@ -69,8 +66,8 @@ const MarkdownEditor = ({
         </div>
       </div>
       {/* TITLE */}
-      <NeuDiv neuType="debossed" className="m-0! p-0!">
-        <input
+      <div>
+        <NeuInput
           disabled={loading}
           className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
           type="text"
@@ -78,21 +75,19 @@ const MarkdownEditor = ({
           value={blogData.title}
           onChange={onTitleChange}
         />
-      </NeuDiv>
+      </div>
       <div className="full-screen-content flex grow mb-1 relative">
         <div className="grow h-full w-[50%]">
-          <NeuDiv
-            neuType="debossed"
-            className="flex gap-1 flex-1 h-full mt-3 p-0! m-0!"
-          >
-            <textarea
+          <div className="flex gap-1 flex-1 h-full">
+            <NeuInput
+              textArea
               disabled={loading}
               className="p-3 resize-none! grow bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60"
               placeholder="输入Markdown内容..."
               value={blogData.content}
               onChange={onContentChange}
             />
-          </NeuDiv>
+          </div>
         </div>
         <NeuDiv
           className={`preview-part m-0! break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${

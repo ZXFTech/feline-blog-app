@@ -41,7 +41,7 @@ function CopyButton({ code }: CopyButtonPros) {
   return (
     <NeuButton
       icon={copyState ? "check" : "file_copy"}
-      className={`${btnClassName}`}
+      className={`${btnClassName} p-1!`}
       onClick={() => clickToCopy()}
     ></NeuButton>
   );

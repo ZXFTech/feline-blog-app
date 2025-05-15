@@ -24,8 +24,14 @@ export const CodeBlock: FC<{
     <NeuDiv neuType="debossed" className="w-full mx-0">
       <div suppressHydrationWarning className="flex justify-between">
         <div className="flex gap-1">
-          {title && <Tag>{title}</Tag>}
-          <Tag>{language}</Tag>
+          {title && (
+            <Tag>
+              <span className="font-bold">{title}</span>
+            </Tag>
+          )}
+          <Tag className="font-bold!">
+            <span className="font-bold">{language}</span>
+          </Tag>
         </div>
         <CopyButton code={code} />
       </div>

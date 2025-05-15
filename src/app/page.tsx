@@ -18,10 +18,16 @@ export default function Home() {
         </NeuDiv>
         <NeuDiv className="flex flex-wrap items-center gap-2 m-0!">
           <span className="text-sm">button:</span>
-          <Button icon="search" loading>
+          <NeuButton size="xs" icon="search" loading>
             测试
-          </Button>
+          </NeuButton>
+          <NeuButton size="sm" icon="search" loading>
+            测试
+          </NeuButton>
           <NeuButton icon="search" loading>
+            测试
+          </NeuButton>
+          <NeuButton size="lg" icon="search" loading>
             测试
           </NeuButton>
         </NeuDiv>

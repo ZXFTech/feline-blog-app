@@ -9,18 +9,9 @@ import classNames from "classnames";
 import { IconSpinner } from "../Icon/presetIcon";
 import Icon, { IconType } from "../Icon/icon";
 
-export enum ButtonSize {
-  Large = "lg",
-  Small = "sm",
-  Mini = "xs",
-}
+export type ButtonSize = "lg" | "sm" | "xs";
 
-export enum ButtonType {
-  Primary = "primary",
-  Default = "default",
-  Danger = "danger",
-  Link = "link",
-}
+export type ButtonType = "primary" | "default" | "danger" | "link";
 
 interface BaseButtonProps {
   className: string;
@@ -43,7 +34,7 @@ const Button: FC<ButtonProps> = (props) => {
   const {
     className,
     disabled,
-    size,
+    size = "md",
     type,
     href,
     children,
@@ -55,7 +46,7 @@ const Button: FC<ButtonProps> = (props) => {
   // 配置 classnames
   const configClassNames = classNames("btn", className, {
     [`btn-${type}`]: type,
-    [`${size}`]: size,
+    [`btn-${size}`]: size,
     disabled: disabled,
     loading: loading,
   });
@@ -67,10 +58,11 @@ const Button: FC<ButtonProps> = (props) => {
       </a>
     );
   }
+
   return (
     <button className={configClassNames} {...restProps}>
-      {loading && <IconSpinner className="btn-loading" />}
-      {icon && <Icon icon={icon} className="btn-icon" />}
+      {loading && <IconSpinner size={size} className="btn-loading" />}
+      {icon && <Icon icon={icon} size={size} className="btn-icon" />}
       <span className="break-all text-wrap text-left">{children}</span>
     </button>
   );

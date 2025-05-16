@@ -37,9 +37,7 @@ export default function Home() {
           className="flex flex-wrap items-center gap-2"
         >
           <span className="text-sm">button:</span>
-          <Button icon="search" loading>
-            测试
-          </Button>
+          <NeuButton loading>测试</NeuButton>
           <NeuButton icon="search" loading>
             测试
           </NeuButton>

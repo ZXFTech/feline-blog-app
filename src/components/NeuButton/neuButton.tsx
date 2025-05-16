@@ -15,13 +15,13 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
     neuType = "embossed",
     intensity = "normal",
     className,
-    type,
+    buttonType,
     ...restProps
   } = props;
 
   const classnames = classNames("neu-btn", className, {
     [`btn-${neuType}-${intensity}`]: neuType && intensity,
-    [`neu-btn-${type}`]: type,
+    [`neu-btn-${buttonType}`]: buttonType,
   });
 
   // const [combineStyle, setCombineStyle] = useState<React.CSSProperties>({});

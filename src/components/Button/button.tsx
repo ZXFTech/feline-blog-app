@@ -11,13 +11,19 @@ import Icon, { IconType } from "../Icon/icon";
 
 export type ButtonSize = "lg" | "sm" | "xs";
 
-export type ButtonType = "primary" | "default" | "danger" | "link";
+export type ButtonType =
+  | "primary"
+  | "default"
+  | "danger"
+  | "link"
+  | "success"
+  | "warn";
 
 interface BaseButtonProps {
   className: string;
   disabled?: boolean;
   size?: ButtonSize;
-  type?: ButtonType;
+  buttonType?: ButtonType;
   href?: string;
   children?: ReactNode;
   loading?: boolean;
@@ -35,23 +41,27 @@ const Button: FC<ButtonProps> = (props) => {
     className,
     disabled,
     size = "md",
-    type,
     href,
     children,
     loading,
     icon,
+    buttonType,
     ...restProps
   } = props;
 
   // 配置 classnames
-  const configClassNames = classNames("btn", className, {
-    [`btn-${type}`]: type,
-    [`btn-${size}`]: size,
-    disabled: disabled,
-    loading: loading,
-  });
+  const configClassNames = classNames(
+    "btn",
+    {
+      [`btn-${buttonType}`]: buttonType,
+      [`btn-${size}`]: size,
+      disabled: disabled,
+      loading: loading,
+    },
+    className
+  );
 
-  if (type === "link") {
+  if (buttonType === "link") {
     return (
       <a className={configClassNames} href={href} {...restProps}>
         {children}

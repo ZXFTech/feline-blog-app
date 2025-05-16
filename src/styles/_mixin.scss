@@ -37,14 +37,14 @@
 @mixin neu-button-style(
   $background,
   $color,
-  $hover-background: color.adjust($background, $lightness: -5%),
+  $hover-background: color.adjust($background, $lightness: 5%),
   // $hover-background: darken($background, 5%),
   $hover-color: $color,
-  $active-background: color.adjust($background, $lightness: -10%)
+  $active-background: color.adjust($background, $lightness: -5%)
     // $active-background: darken($background, 10%)
 ) {
   color: $color;
-  background: $background;
+  background-color: $background;
   outline: none;
   &:hover {
     background-color: $hover-background;
@@ -53,26 +53,26 @@
   &:active,
   &.active {
     // color: $active-color;
-    background: $active-background;
+    background-color: $active-background;
   }
   &.disabled,
   &:disabled {
     color: $color;
-    background: $background;
+    background-color: $background;
   }
 }
 
 @mixin neu-button-theme($shadow-size, $shadow-blur, $shadow-color) {
-  &:hover {
-    border: 1px solid $shadow-color;
-    // 注：先不要阴影了 感觉不是很搭，没有立体拟态的效果了
-    // box-shadow: $shadow-size-normal * -1 $shadow-size-normal * -1
-    //     $shadow-blur-normal var(--neu-light-shadow),
-    //   $shadow-size $shadow-size $shadow-blur
-    //     // lighten($color: $shadow-color, $amount: 10%);
-    //   rgba($color: $shadow-color, $alpha: 1);
-    // // box-shadow: 0 0 $shadow-blur * 1.5 rgba($color: $shadow-color, $alpha: 1);
-  }
+  // &:hover {
+  // border: 1px solid $shadow-color;
+  // 注：先不要阴影了 感觉不是很搭，没有立体拟态的效果了
+  // box-shadow: $shadow-size-normal * -1 $shadow-size-normal * -1
+  //     $shadow-blur-normal var(--neu-light-shadow),
+  //   $shadow-size $shadow-size $shadow-blur
+  //     // lighten($color: $shadow-color, $amount: 10%);
+  //   rgba($color: $shadow-color, $alpha: 1);
+  // // box-shadow: 0 0 $shadow-blur * 1.5 rgba($color: $shadow-color, $alpha: 1);
+  // }
   &:active {
     box-shadow: none;
   }

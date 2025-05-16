@@ -22,20 +22,38 @@
 }
 
 .neu-btn-primary {
-  @include mixin.neu-button-style(variables.$primary, variables.$white);
+  @include mixin.neu-button-style(variables.$neu-primary, variables.$white);
   @include mixin.neu-button-theme(
     variables.$shadow-size-normal,
     variables.$shadow-blur-normal,
-    variables.$primary
+    variables.$neu-primary
   );
 }
 
 .neu-btn-danger {
-  @include mixin.neu-button-style(variables.$danger, variables.$white);
+  @include mixin.neu-button-style(variables.$neu-danger, variables.$white);
   @include mixin.neu-button-theme(
     variables.$shadow-size-normal,
     variables.$shadow-blur-normal,
-    variables.$danger
+    variables.$neu-danger
+  );
+}
+
+.neu-btn-success {
+  @include mixin.neu-button-style(variables.$neu-success, variables.$white);
+  @include mixin.neu-button-theme(
+    variables.$shadow-size-normal,
+    variables.$shadow-blur-normal,
+    variables.$neu-success
+  );
+}
+
+.neu-btn-warn {
+  @include mixin.neu-button-style(variables.$neu-warning, variables.$white);
+  @include mixin.neu-button-theme(
+    variables.$shadow-size-normal,
+    variables.$shadow-blur-normal,
+    variables.$neu-warning
   );
 }
 

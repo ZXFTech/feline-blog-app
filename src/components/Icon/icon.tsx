@@ -32,7 +32,7 @@ export const iconSizeMap = {
 
 export interface IconProps extends HTMLAttributes<HTMLElement> {
   theme?: ThemeProps;
-  icon: IconType | string;
+  icon: IconType;
   size?: IconSize;
 }
 

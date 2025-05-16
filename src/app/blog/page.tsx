@@ -26,13 +26,13 @@ export default async function Blog() {
   return (
     <Suspense fallback={<Loading />}>
       <Content>
-        {/* <div className="top-panel mx-3 my-1 flex-row-reverse py-1 flex flex-wrap">
-        <Link href="/blog/new" className="hover:no-underline!">
-          <NeuButton icon="add_box" className="">
-            新建
-          </NeuButton>
-        </Link>
-      </div> */}
+        <div className="top-panel mx-3 my-1 flex-row-reverse py-1 flex flex-wrap">
+          <Link href="/blog/new" className="hover:no-underline!">
+            <NeuButton icon="add_box" className="">
+              新建
+            </NeuButton>
+          </Link>
+        </div>
         <BlogList dataSource={blogs} />
       </Content>
     </Suspense>

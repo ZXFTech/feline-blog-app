@@ -3,6 +3,7 @@ import React, {
   ButtonHTMLAttributes,
   ReactNode,
   AnchorHTMLAttributes,
+  forwardRef,
 } from "react";
 
 import classNames from "classnames";
@@ -36,7 +37,10 @@ type AnchorButtonProps = BaseButtonProps & AnchorHTMLAttributes<HTMLElement>;
 
 export type ButtonProps = Partial<NativeButtonProps & AnchorButtonProps>;
 
-const Button: FC<ButtonProps> = (props) => {
+const Button: FC<ButtonProps> = forwardRef<
+  HTMLButtonElement & HTMLAnchorElement,
+  ButtonProps
+>((props, ref) => {
   const {
     className,
     disabled,
@@ -70,12 +74,12 @@ const Button: FC<ButtonProps> = (props) => {
   }
 
   return (
-    <button className={configClassNames} {...restProps}>
+    <button ref={ref} className={configClassNames} {...restProps}>
       {loading && <IconSpinner size={size} className="btn-loading" />}
       {icon && <Icon icon={icon} size={size} className="btn-icon" />}
       <span className="break-all text-wrap text-left">{children}</span>
     </button>
   );
-};
+});
 
 export default Button;

@@ -1,13 +1,16 @@
 import { NeuIntensity, NeuType } from "@/types";
 import classNames from "classnames";
-import React, { FC, HTMLAttributes } from "react";
+import React, { FC, forwardRef, HTMLAttributes } from "react";
 
 interface NeuContainerProps extends HTMLAttributes<HTMLDivElement> {
   neuType?: NeuType;
   intensity?: NeuIntensity;
 }
 
-const NeuDiv: FC<NeuContainerProps> = (props) => {
+const NeuDiv: FC<NeuContainerProps> = forwardRef<
+  HTMLDivElement,
+  NeuContainerProps
+>((props, ref) => {
   const {
     neuType = "embossed",
     intensity = "normal",
@@ -27,12 +30,13 @@ const NeuDiv: FC<NeuContainerProps> = (props) => {
 
   return (
     <div
+      ref={ref}
       className={`p-2 transition duration-100 border rounded-lg ${configClassNames}`}
       {...restProps}
     >
       {children}
     </div>
   );
-};
+});
 
 export default NeuDiv;

@@ -85,6 +85,9 @@ export async function getTodoList(userId?: string) {
       where: {
         userId: userId || testUserId,
       },
+      orderBy: {
+        createAt: "desc",
+      },
     });
     return actionResponse.success({
       todoList: res,

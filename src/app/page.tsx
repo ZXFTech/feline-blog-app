@@ -7,6 +7,7 @@ import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import Tag from "@/components/Tag/tag";
 import { message } from "@/lib/message";
 import Content from "@/components/Content/content";
+import NeuInput from "@/components/NeuInput";
 
 export default function Home() {
   return (
@@ -83,6 +84,19 @@ export default function Home() {
           <NeuButton buttonType="danger" onClick={() => message.error("错误")}>
             错误
           </NeuButton>
+        </NeuDiv>
+        <NeuDiv
+          neuType="debossed"
+          className="flex flex-wrap items-center gap-2"
+        >
+          <span className="text-sm">输入框</span>
+          <NeuInput inputSize="xs" defaultValue={"这是一段默认文字"} />
+          <NeuInput inputSize="sm" defaultValue={"这是一段默认文字"} />
+          <NeuInput inputSize="md" defaultValue={"这是一段默认文字"} />
+          <NeuInput inputSize="lg" defaultValue={"这是一段默认文字"} />
+          <NeuInput inputSize="xl" defaultValue={"这是一段默认文字"} />
+          <NeuInput inputSize="2xl" defaultValue={"这是一段默认文字"} />
+          <NeuInput inputSize="3xl" defaultValue={"这是一段默认文字"} />
         </NeuDiv>
       </div>
     </Content>

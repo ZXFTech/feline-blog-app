@@ -14,17 +14,13 @@ interface Props {
 }
 
 const TodoDatePart = ({ todoList, dateKey, handleClick }: Props) => {
-  console.log("in", todoList.length);
   return (
-    <div className="flex flex-col item-start gap-2 mb-2">
+    <div className="flex flex-col item-start gap-4 mb-3">
       <Tag>{new Date(dateKey).toLocaleDateString("zh-CN")}</Tag>
       {todoList.map((todo, index) => {
         console.log("todo", todo, index);
         return (
-          <div
-            key={todo.id}
-            className="flex items-start justify-center gap-2 mb-4"
-          >
+          <div key={todo.id} className="flex items-start justify-center gap-2">
             <NeuDiv
               style={{ fontSize: "20px" }}
               className="p-1! m-0! leading-0"

@@ -13,7 +13,7 @@ export const IconSpinner: FC<Partial<IconProps>> = (props) => {
   return (
     <Icon
       icon={icon || "progress_activity"}
-      className="animate-spin motion-reduce:animate-[spin_1.5s_linear_infinite]"
+      className="animate-spin"
       {...restProps}
     />
   );

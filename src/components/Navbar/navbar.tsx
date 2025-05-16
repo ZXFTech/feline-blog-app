@@ -19,11 +19,7 @@ const Navbar: FC<NavbarProps> = ({ leftSlot, rightSlot, routeList }) => {
       <ul className="flex flex-row items-center justify-center p-0! gap-2 xs:mx-0!">
         {routeList.map((route) => {
           return (
-            <NeuDiv
-              className="!p-0 mx-0 my-2 h-10"
-              neuType="raised"
-              key={route}
-            >
+            <NeuDiv className="!p-0 mx-0 my-2" neuType="raised" key={route}>
               <Link
                 className="block px-4 py-1 mx-2 my-1 font-medium rounded-md navbar-link"
                 href={`/${route === "home" ? "" : route}`}

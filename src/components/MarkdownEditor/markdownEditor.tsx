@@ -30,10 +30,10 @@ const MarkdownEditor = ({
 
   return (
     <NeuDiv
-      className={`flex flex-col gap-2.5 transition-all duration-200 ease-in-out ${
+      className={`flex flex-col px-3! m-2! gap-2.5 transition-all duration-200 ease-in-out ${
         fullScreen
           ? "fixed z-99999999 top-0 bottom-0 left-0 right-0 "
-          : "h-[calc(100vh-10rem))]"
+          : "h-[calc(100vh-9rem))]"
       }`}
     >
       <div className="top-panel mx-0! mt-1! flex justify-between items-center">
@@ -66,33 +66,29 @@ const MarkdownEditor = ({
         </div>
       </div>
       {/* TITLE */}
-      <div>
-        <NeuInput
-          disabled={loading}
-          className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
-          type="text"
-          placeholder="无标题"
-          value={blogData.title}
-          onChange={onTitleChange}
-        />
-      </div>
+      <NeuInput
+        disabled={loading}
+        className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
+        type="text"
+        placeholder="无标题"
+        value={blogData.title}
+        onChange={onTitleChange}
+      />
       <div className="full-screen-content flex grow mb-1 relative">
-        <div className="grow h-full w-[50%]">
-          <div className="flex gap-1 flex-1 h-full">
-            <NeuInput
-              textArea
-              disabled={loading}
-              className="p-3 resize-none! grow bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60"
-              placeholder="输入Markdown内容..."
-              value={blogData.content}
-              onChange={onContentChange}
-            />
-          </div>
-        </div>
+        <NeuInput
+          textArea
+          disabled={loading}
+          className={`p-3 transition-all duration-400 ease-in-out ${
+            preview ? "w-[49%]" : "w-full"
+          } h-full resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60`}
+          placeholder="输入Markdown内容..."
+          value={blogData.content}
+          onChange={onContentChange}
+        />
         <NeuDiv
-          className={`preview-part m-0! break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
+          className={`preview-part m-0! overflow-scroll hide-scrollbar break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
             preview
-              ? "p-3! ml-3! grow! w-full md:static md:w-[50%]"
+              ? "p-3! ml-3! grow! w-full md:w-[49%]"
               : "w-0 p-0! overflow-hidden! border-none! "
           }`}
         >

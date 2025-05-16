@@ -10,7 +10,7 @@ import classNames from "classnames";
 import { IconSpinner } from "../Icon/presetIcon";
 import Icon, { IconType } from "../Icon/icon";
 
-export type ButtonSize = "lg" | "sm" | "xs";
+export type ButtonSize = "sm" | "xs" | "md" | "lg" | "xl" | "2xl" | "3xl";
 
 export type ButtonType =
   | "primary"
@@ -23,7 +23,7 @@ export type ButtonType =
 interface BaseButtonProps {
   className: string;
   disabled?: boolean;
-  size?: ButtonSize;
+  btnSize?: ButtonSize;
   buttonType?: ButtonType;
   href?: string;
   children?: ReactNode;
@@ -44,7 +44,7 @@ const Button: FC<ButtonProps> = forwardRef<
   const {
     className,
     disabled,
-    size = "md",
+    btnSize = "md",
     href,
     children,
     loading,
@@ -56,9 +56,10 @@ const Button: FC<ButtonProps> = forwardRef<
   // 配置 classnames
   const configClassNames = classNames(
     "btn",
+    "flex items-center justify-start gap-1",
     {
       [`btn-${buttonType}`]: buttonType,
-      [`btn-${size}`]: size,
+      [`btn-${btnSize}`]: btnSize,
       disabled: disabled,
       loading: loading,
     },
@@ -75,8 +76,8 @@ const Button: FC<ButtonProps> = forwardRef<
 
   return (
     <button ref={ref} className={configClassNames} {...restProps}>
-      {loading && <IconSpinner size={size} className="btn-loading" />}
-      {icon && <Icon icon={icon} size={size} className="btn-icon" />}
+      {loading && <IconSpinner size={btnSize} className="btn-loading" />}
+      {icon && <Icon icon={icon} size={btnSize} className="btn-icon" />}
       <span className="break-all text-wrap text-left">{children}</span>
     </button>
   );

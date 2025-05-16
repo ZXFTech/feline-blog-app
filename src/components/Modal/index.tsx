@@ -1,15 +1,34 @@
 "use client";
 
-import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+  ChangeEventHandler,
+  MouseEventHandler,
+  ReactElement,
+  ReactNode,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import { createPortal, flushSync } from "react-dom";
-import Icon, { IconType } from "../Icon/icon";
+import Icon, { IconProps, IconType } from "../Icon/icon";
+import NeuButton from "../NeuButton/neuButton";
+import { ButtonType } from "../Button/button";
+
+type FooterType = "ok" | "cancel" | "default" | "none";
 
 interface Props {
   visible: boolean;
   title?: string;
   onClose: () => void;
   onOk: () => void;
+  footer?: FooterType;
+  okText?: string;
+  cancelText?: string;
+  okType?: ButtonType;
+  okIcon?: IconType;
+  okLoading?: boolean;
+  cancelType?: ButtonType;
   closeIcon?: boolean | IconType | string;
   children?: ReactNode;
 }
@@ -20,14 +39,18 @@ const Model = ({
   onOk,
   children,
   title,
+  okLoading,
+  okIcon,
+  footer = "default",
+  okText = "确定",
+  cancelText = "取消",
+  okType = "primary",
+  cancelType = "default",
   closeIcon = true,
 }: Props) => {
+  const mouseDownRef = useRef<EventTarget | null>(null);
   const [show, setShow] = useState(false);
   const [mounted, setMounted] = useState(true);
-
-  const handleClose = () => {
-    setShow(false);
-  };
 
   useEffect(() => {
     if (visible) {
@@ -49,15 +72,54 @@ const Model = ({
     }
   }, [visible]);
 
+  const handleMouseDown: MouseEventHandler<HTMLDivElement> = (e) => {
+    mouseDownRef.current = e.target;
+  };
+
+  const handleMaskClick: MouseEventHandler<HTMLDivElement> = (e) => {
+    if (e.target === mouseDownRef.current) {
+      onClose();
+    }
+  };
+
   useEffect(() => {
     if (!show) {
     }
   }, [show]);
 
+  const Footer = (): ReactElement | null => {
+    if (footer === "none") {
+      return null;
+    }
+
+    return (
+      <>
+        {footer === "ok" ||
+          (footer === "default" && (
+            <NeuButton
+              icon={okIcon}
+              loading={okLoading}
+              buttonType={okType}
+              onClick={onOk}
+            >
+              {okText || "确认"}
+            </NeuButton>
+          ))}
+        {footer === "cancel" ||
+          (footer === "default" && (
+            <NeuButton buttonType={cancelType} onClick={onClose}>
+              {cancelText || "取消"}
+            </NeuButton>
+          ))}
+      </>
+    );
+  };
+
   if (mounted && document) {
     return createPortal(
       <div
-        onClick={onClose}
+        onClick={handleMaskClick}
+        onMouseDown={handleMouseDown}
         className={`model-mask ${
           mounted ? "fixed" : "hidden"
         } z-999999999 transition-all duration-300 ease-in-out right-0 top-0  bottom-0 left-0 flex items-center justify-center flex-col ${
@@ -66,7 +128,7 @@ const Model = ({
       >
         <NeuDiv
           onClick={(e) => e.stopPropagation()}
-          className={`model-main min-w-100 min-h-50 ${
+          className={`model-main flex flex-col min-w-100 min-h-50 ${
             !show ? "scale-99 opacity-0" : "scale-100 opacity-100"
           } transition-all duration-300 ease-in-out`}
         >
@@ -83,7 +145,10 @@ const Model = ({
               ) : null}
             </div>
           </div>
-          {children}
+          <div className="flex-1">{children}</div>
+          <div className="modal-footer flex items-center justify-end">
+            <Footer />
+          </div>
         </NeuDiv>
       </div>,
       document.body

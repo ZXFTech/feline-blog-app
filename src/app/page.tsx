@@ -65,12 +65,24 @@ export default function Home() {
           className="flex flex-wrap items-center gap-2"
         >
           <span className="text-sm">消息提示</span>
-          <NeuButton onClick={() => message.info("普通消息")}>
+          <NeuButton
+            buttonType="primary"
+            onClick={() => message.info("普通消息")}
+          >
             普通消息
           </NeuButton>
-          <NeuButton onClick={() => message.success("成功")}>成功</NeuButton>
-          <NeuButton onClick={() => message.warning("警告")}>警告</NeuButton>
-          <NeuButton onClick={() => message.error("错误")}>错误</NeuButton>
+          <NeuButton
+            buttonType="success"
+            onClick={() => message.success("成功")}
+          >
+            成功
+          </NeuButton>
+          <NeuButton buttonType="warn" onClick={() => message.warning("警告")}>
+            警告
+          </NeuButton>
+          <NeuButton buttonType="danger" onClick={() => message.error("错误")}>
+            错误
+          </NeuButton>
         </NeuDiv>
       </div>
     </Content>

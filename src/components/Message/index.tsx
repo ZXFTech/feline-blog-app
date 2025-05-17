@@ -63,7 +63,6 @@ export function MessageContainer() {
           timerList.current.delete(msg.id);
         }, msg.remaining);
         timerList.current.set(msg.id, timer);
-        console.log("timerList.current.size", timerList.current.keys());
       }
     });
 
@@ -75,10 +74,6 @@ export function MessageContainer() {
 
   const handleMouseEnter = () => {
     messages.forEach((msg) => {
-      console.log(
-        "msg.duration - (Date.now() - msg.start",
-        msg.duration - (Date.now() - msg.start)
-      );
       const remaining = msg.remaining - (Date.now() - msg.start);
       updateMessageState(msg.id, remaining, Date.now());
       clearTimeout(timerList.current.get(msg.id));

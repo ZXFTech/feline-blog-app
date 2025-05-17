@@ -14,8 +14,6 @@ const ListItem: FC<Blog & { author: User }> = ({
   updatedAt,
   author,
 }) => {
-  // console.log(id);
-
   return (
     <NeuDiv
       neuType="raised"

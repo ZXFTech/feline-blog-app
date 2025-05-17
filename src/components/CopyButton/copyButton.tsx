@@ -3,6 +3,7 @@
 import classNames from "classnames";
 import React, { useEffect, useState } from "react";
 import NeuButton from "../NeuButton/neuButton";
+import logger from "@/lib/logger/Logger";
 
 export interface CopyButtonPros {
   code: string;
@@ -19,7 +20,7 @@ function CopyButton({ code }: CopyButtonPros) {
       await navigator.clipboard.writeText(code);
       setCopyState(true);
     } catch (error) {
-      console.log("copy error:", error);
+      logger.error("Copy error: " + error);
     }
   };
 

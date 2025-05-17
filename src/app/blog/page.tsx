@@ -21,7 +21,6 @@ export default async function Blog() {
   if (error || !data) {
     message.error("获取博客列表失败!" + errMessage);
   }
-  console.log("data", data);
   const { blogs, total, pageBean } = data!;
   return (
     <Suspense fallback={<Loading />}>

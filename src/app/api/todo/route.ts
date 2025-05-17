@@ -15,6 +15,5 @@ export async function POST(req: NextRequest, res: NextResponse) {
 export async function PATCH(req: NextRequest, res: NextResponse) {
   // 更新 Todo
   const data = await req.json();
-  console.log("data", data);
   return NextResponse.json(await updateTodo(data));
 }

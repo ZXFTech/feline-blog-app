@@ -11,8 +11,6 @@ const Edit = () => {
   const router = useRouter();
   const params = useParams();
 
-  console.log("params", params);
-
   const blogId = Number((params as { id: string }).id);
   if (!blogId) {
     message.error("未找到博客!");

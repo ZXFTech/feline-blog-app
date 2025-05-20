@@ -1,34 +1,81 @@
 "use client";
 
 import NeuButton from "@/components/NeuButton/neuButton";
-import Button from "../components/Button/button";
 import Icon from "../components/Icon/icon";
 import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import Tag from "@/components/Tag/tag";
-import { message } from "@/lib/message";
 import Content from "@/components/Content/content";
 import NeuInput from "@/components/NeuInput";
+import { useState } from "react";
+import { toast, Toaster } from "@/components/ProMessage";
+import { message } from "@/lib/message";
 
 export default function Home() {
   return (
     <Content>
-      <div className="neu-light px-4! py-4! flex flex-col gap-4">
+      <div className="neu-light px-4! py-4! flex flex-col gap-4 overflow-scroll hide-scrollbar h-full">
+        <NeuDiv
+          neuType="debossed"
+          className="flex flex-wrap items-center gap-2"
+        >
+          <span className="text-sm">toast</span>
+          <NeuButton
+            buttonType="primary"
+            onClick={() => {
+              toast("普通消息");
+            }}
+          >
+            普通消息
+          </NeuButton>
+          <NeuButton
+            buttonType="default"
+            onClick={() => {
+              toast.info("通知");
+            }}
+          >
+            通知
+          </NeuButton>
+          <NeuButton
+            buttonType="danger"
+            onClick={() => {
+              toast.error("错误/危险");
+            }}
+          >
+            错误/危险
+          </NeuButton>
+          <NeuButton
+            buttonType="warn"
+            onClick={() => {
+              toast.warning("警告");
+            }}
+          >
+            警告
+          </NeuButton>
+          <NeuButton
+            buttonType="success"
+            onClick={() => {
+              toast.success("成功");
+            }}
+          >
+            成功
+          </NeuButton>
+        </NeuDiv>
         <NeuDiv className="flex flex-wrap items-center gap-2 m-0!">
           <span className="text-sm">icon:</span>
           <Icon theme="danger" icon="search" />
         </NeuDiv>
         <NeuDiv className="flex flex-wrap items-center gap-2 m-0!">
           <span className="text-sm">button:</span>
-          <NeuButton size="xs" icon="search" loading>
+          <NeuButton btnSize="xs" icon="search" loading>
             测试
           </NeuButton>
-          <NeuButton size="sm" icon="search" loading>
+          <NeuButton btnSize="sm" icon="search" loading>
             测试
           </NeuButton>
           <NeuButton icon="search" loading>
             测试
           </NeuButton>
-          <NeuButton size="lg" icon="search" loading>
+          <NeuButton btnSize="lg" icon="search" loading>
             测试
           </NeuButton>
         </NeuDiv>

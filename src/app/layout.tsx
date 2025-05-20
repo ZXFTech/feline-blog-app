@@ -9,6 +9,7 @@ import { MessageProvider } from "@/contexts/message/context";
 import { MessageContainer } from "@/components/Message";
 import { MessageInstanceInitializer } from "@/contexts/message/instance";
 import Head from "next/head";
+import { Toaster } from "@/components/ProMessage";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,13 +41,10 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased neu-light body-content`}
       >
-        <MessageProvider>
-          <MessageInstanceInitializer />
-          <Navbar routeList={routeList} />
-          {children}
-          <Footer />
-          <MessageContainer />
-        </MessageProvider>
+        <Toaster richColors visibleToasts={5} />
+        <Navbar routeList={routeList} />
+        {children}
+        <Footer />
       </body>
     </html>
   );

@@ -44,10 +44,10 @@ $dark: $gray-800 !default;
 // 新拟态色板
 $neu-primary: #046582 !default;
 $neu-secondary: $gray-600 !default;
-$neu-success: #a1d76f !default;
-$neu-info: #00879e !default;
-$neu-warning: #ffc700 !default;
-$neu-danger: #bb3e00 !default;
+$neu-success: hsl(140, 100%, 35%) !default;
+$neu-info: hsl(200, 100%, 35%) !default;
+$neu-warning: hsl(31, 92%, 50%) !default;
+$neu-danger: hsl(20, 100%, 47%) !default;
 $neu-light: $gray-100 !default;
 $neu-dark: $gray-800 !default;
 

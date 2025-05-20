@@ -20,7 +20,6 @@ export default function Home() {
         >
           <span className="text-sm">toast</span>
           <NeuButton
-            buttonType="primary"
             onClick={() => {
               toast("普通消息");
             }}
@@ -28,7 +27,7 @@ export default function Home() {
             普通消息
           </NeuButton>
           <NeuButton
-            buttonType="default"
+            buttonType="primary"
             onClick={() => {
               toast.info("通知");
             }}

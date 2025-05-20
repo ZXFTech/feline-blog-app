@@ -4,10 +4,6 @@ import "material-symbols";
 import "../styles/index.scss";
 import Navbar from "@/components/Navbar/navbar";
 import Footer from "@/components/Footer/footer";
-import { IconNeonCat } from "@/components/Icon/presetIcon";
-import { MessageProvider } from "@/contexts/message/context";
-import { MessageContainer } from "@/components/Message";
-import { MessageInstanceInitializer } from "@/contexts/message/instance";
 import Head from "next/head";
 import { Toaster } from "@/components/ProMessage";
 

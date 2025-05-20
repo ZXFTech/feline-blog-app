@@ -109,30 +109,6 @@ export default function Home() {
           neuType="debossed"
           className="flex flex-wrap items-center gap-2"
         >
-          <span className="text-sm">消息提示</span>
-          <NeuButton
-            buttonType="primary"
-            onClick={() => message.info("普通消息")}
-          >
-            普通消息
-          </NeuButton>
-          <NeuButton
-            buttonType="success"
-            onClick={() => message.success("成功")}
-          >
-            成功
-          </NeuButton>
-          <NeuButton buttonType="warn" onClick={() => message.warning("警告")}>
-            警告
-          </NeuButton>
-          <NeuButton buttonType="danger" onClick={() => message.error("错误")}>
-            错误
-          </NeuButton>
-        </NeuDiv>
-        <NeuDiv
-          neuType="debossed"
-          className="flex flex-wrap items-center gap-2"
-        >
           <span className="text-sm">输入框</span>
           <NeuInput inputSize="xs" defaultValue={"这是一段默认文字"} />
           <NeuInput inputSize="sm" defaultValue={"这是一段默认文字"} />

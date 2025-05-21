@@ -5,7 +5,7 @@ import Head from "next/head";
 import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import Tag from "@/components/Tag/tag";
 
-import NotionBlock, { CodeBlock } from "@/components/NotionBlock/notionBlock";
+import { CodeBlock } from "@/components/NotionBlock/notionBlock";
 
 import Image from "next/image";
 
@@ -84,7 +84,7 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
             <div className="blog-content text-left flex-1 overflow-scroll hide-scrollbar h-[calc(100vh-20rem))]">
               <ReactMarkdown
                 components={{
-                  code({ node, className, children, ...props }) {
+                  code({ className, children, ...props }) {
                     const match = /language-(\w+)/.exec(className || "");
                     return match ? (
                       <CodeBlock

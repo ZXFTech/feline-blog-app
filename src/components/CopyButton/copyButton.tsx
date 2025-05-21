@@ -1,7 +1,7 @@
 "use client";
 
 import classNames from "classnames";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import NeuButton from "../NeuButton/neuButton";
 import logger from "@/lib/logger/Logger";
 
@@ -13,7 +13,7 @@ function CopyButton({ code }: CopyButtonPros) {
   const [copyState, setCopyState] = useState<boolean>(false);
   const [lastClick, setLastClick] = useState<number>(0);
 
-  let timer: NodeJS.Timeout | undefined = undefined;
+  const timer = useRef<NodeJS.Timeout | null>(null);
   const clickToCopy = async () => {
     try {
       setLastClick(Date.now());
@@ -25,13 +25,15 @@ function CopyButton({ code }: CopyButtonPros) {
   };
 
   useEffect(() => {
-    timer = setTimeout(() => {
+    timer.current = setTimeout(() => {
       if (Date.now() - lastClick > 1000) {
         setCopyState(false);
       }
     }, 1000);
     return () => {
-      clearTimeout(timer);
+      if (timer.current) {
+        clearTimeout(timer.current);
+      }
     };
   }, [copyState, lastClick]);
 

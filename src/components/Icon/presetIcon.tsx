@@ -1,9 +1,7 @@
 import { FC } from "react";
 
-import SvgNeonCat from "../../../public/neoncat.svg";
 // import NextSvg from "../../../public/next.svg";
 import Icon, { IconProps } from "./icon";
-import NeuDiv from "../NeuDiv/NeuDiv";
 import Image from "next/image";
 import Link from "next/link";
 

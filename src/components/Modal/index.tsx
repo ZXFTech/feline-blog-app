@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  ChangeEventHandler,
   MouseEventHandler,
   ReactElement,
   ReactNode,
@@ -10,8 +9,8 @@ import {
   useState,
 } from "react";
 import NeuDiv from "../NeuDiv/NeuDiv";
-import { createPortal, flushSync } from "react-dom";
-import Icon, { IconProps, IconType } from "../Icon/icon";
+import { createPortal } from "react-dom";
+import Icon, { IconType } from "../Icon/icon";
 import NeuButton from "../NeuButton/neuButton";
 import { ButtonType } from "../Button/button";
 

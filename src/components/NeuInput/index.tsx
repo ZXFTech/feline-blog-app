@@ -8,8 +8,9 @@ interface BaseNeuInputProps {
 }
 
 // 配置联合类型
-type InputProps = BaseNeuInputProps & InputHTMLAttributes<HTMLElement>;
-type TextareaProps = BaseNeuInputProps & TextareaHTMLAttributes<HTMLElement>;
+type InputProps = BaseNeuInputProps & InputHTMLAttributes<HTMLInputElement>;
+type TextareaProps = BaseNeuInputProps &
+  TextareaHTMLAttributes<HTMLTextAreaElement>;
 
 export type NeuInputProps = Partial<InputProps & TextareaProps>;
 
@@ -24,7 +25,6 @@ const inputSizeMap = {
 };
 
 const NeuInput = ({
-  loading,
   className,
   textArea,
   inputSize = "md",

@@ -18,5 +18,7 @@ export default defineConfig([
   },
   globalIgnores([
     ".next/**/*", // ignore next build file
+    "generated/prisma", // ignore prisma generate
+    "node_modules",
   ]),
 ]);

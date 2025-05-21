@@ -1,8 +1,6 @@
 "use client";
 
-import { MouseEventHandler } from "react";
 import { Todo } from "../../../generated/prisma/client";
-import Button from "../Button/button";
 import Icon from "../Icon/icon";
 import NeuButton from "../NeuButton/neuButton";
 import NeuDiv from "../NeuDiv/NeuDiv";
@@ -17,7 +15,7 @@ const TodoDatePart = ({ todoList, dateKey, handleClick }: Props) => {
   return (
     <div className="flex flex-col item-start gap-4 mb-3">
       <Tag>{new Date(dateKey).toLocaleDateString("zh-CN")}</Tag>
-      {todoList.map((todo, index) => {
+      {todoList.map((todo) => {
         return (
           <div key={todo.id} className="flex items-start justify-center gap-2">
             <NeuDiv

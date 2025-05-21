@@ -1,6 +1,16 @@
 "use client";
 
-import React from "react";
+import React, {
+  CSSProperties,
+  forwardRef,
+  isValidElement,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import ReactDOM from "react-dom";
 
 import { CloseIcon, getAsset, Loader } from "./assets";
@@ -9,6 +19,7 @@ import { toast, ToastState } from "./state";
 import {
   isAction,
   SwipeDirection,
+  ToastIcons,
   type ExternalToast,
   type HeightT,
   type ToasterProps,
@@ -88,49 +99,47 @@ const Toast = (props: ToastProps) => {
     icons,
     closeButtonAriaLabel = "Close toast",
   } = props;
-  const [swipeDirection, setSwipeDirection] = React.useState<"x" | "y" | null>(
-    null
-  );
-  const [swipeOutDirection, setSwipeOutDirection] = React.useState<
+  const [swipeDirection, setSwipeDirection] = useState<"x" | "y" | null>(null);
+  const [swipeOutDirection, setSwipeOutDirection] = useState<
     "left" | "right" | "up" | "down" | null
   >(null);
-  const [mounted, setMounted] = React.useState(false);
-  const [removed, setRemoved] = React.useState(false);
-  const [swiping, setSwiping] = React.useState(false);
-  const [swipeOut, setSwipeOut] = React.useState(false);
-  const [isSwiped, setIsSwiped] = React.useState(false);
-  const [offsetBeforeRemove, setOffsetBeforeRemove] = React.useState(0);
-  const [initialHeight, setInitialHeight] = React.useState(0);
-  const remainingTime = React.useRef(
+  const [mounted, setMounted] = useState(false);
+  const [removed, setRemoved] = useState(false);
+  const [swiping, setSwiping] = useState(false);
+  const [swipeOut, setSwipeOut] = useState(false);
+  const [isSwiped, setIsSwiped] = useState(false);
+  const [offsetBeforeRemove, setOffsetBeforeRemove] = useState(0);
+  const [initialHeight, setInitialHeight] = useState(0);
+  const remainingTime = useRef(
     toast.duration || durationFromToaster || TOAST_LIFETIME
   );
-  const dragStartTime = React.useRef<Date | null>(null);
-  const toastRef = React.useRef<HTMLLIElement>(null);
+  const dragStartTime = useRef<Date | null>(null);
+  const toastRef = useRef<HTMLLIElement>(null);
   const isFront = index === 0;
   const isVisible = index + 1 <= visibleToasts;
-  const toastType = toast.type;
+  const toastType = toast.type!;
   const dismissible = toast.dismissible !== false;
   const toastClassname = toast.className || "";
   const toastDescriptionClassname = toast.descriptionClassName || "";
   // Height index is used to calculate the offset as it gets updated before the toast array, which means we can calculate the new layout faster.
-  const heightIndex = React.useMemo(
+  const heightIndex = useMemo(
     () => heights.findIndex((height) => height.toastId === toast.id) || 0,
     [heights, toast.id]
   );
-  const closeButton = React.useMemo(
+  const closeButton = useMemo(
     () => toast.closeButton ?? closeButtonFromToaster,
     [toast.closeButton, closeButtonFromToaster]
   );
-  const duration = React.useMemo(
+  const duration = useMemo(
     () => toast.duration || durationFromToaster || TOAST_LIFETIME,
     [toast.duration, durationFromToaster]
   );
-  const closeTimerStartTimeRef = React.useRef(0);
-  const offset = React.useRef(0);
-  const lastCloseTimerStartTimeRef = React.useRef(0);
-  const pointerStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const closeTimerStartTimeRef = useRef(0);
+  const offset = useRef(0);
+  const lastCloseTimerStartTimeRef = useRef(0);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
   const [y, x] = position.split("-");
-  const toastsHeightBefore = React.useMemo(() => {
+  const toastsHeightBefore = useMemo(() => {
     return heights.reduce((prev, curr, reducerIndex) => {
       // Calculate offset up until current toast
       if (reducerIndex >= heightIndex) {
@@ -145,28 +154,28 @@ const Toast = (props: ToastProps) => {
   const invert = toast.invert || ToasterInvert;
   const disabled = toastType === "loading";
 
-  offset.current = React.useMemo(
-    () => heightIndex * gap + toastsHeightBefore,
-    [heightIndex, toastsHeightBefore]
+  offset.current = useMemo(
+    () => heightIndex * gap! + toastsHeightBefore,
+    [heightIndex, toastsHeightBefore, gap]
   );
 
-  React.useEffect(() => {
+  useEffect(() => {
     remainingTime.current = duration;
   }, [duration]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Trigger enter animation without using CSS animation
     setMounted(true);
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const toastNode = toastRef.current;
     if (toastNode) {
       const height = toastNode.getBoundingClientRect().height;
       // Add toast height to heights array after the toast is mounted
       setInitialHeight(height);
       setHeights((h) => [
-        { toastId: toast.id, height, position: toast.position },
+        { toastId: toast.id, height, position: toast.position! },
         ...h,
       ]);
       return () =>
@@ -174,9 +183,9 @@ const Toast = (props: ToastProps) => {
     }
   }, [setHeights, toast.id]);
 
-  React.useLayoutEffect(() => {
+  useLayoutEffect(() => {
     if (!mounted) return;
-    const toastNode = toastRef.current;
+    const toastNode = toastRef.current!;
     const originalHeight = toastNode.style.height;
     toastNode.style.height = "auto";
     const newHeight = toastNode.getBoundingClientRect().height;
@@ -190,7 +199,7 @@ const Toast = (props: ToastProps) => {
       );
       if (!alreadyExists) {
         return [
-          { toastId: toast.id, height: newHeight, position: toast.position },
+          { toastId: toast.id, height: newHeight, position: toast.position! },
           ...heights,
         ];
       } else {
@@ -203,7 +212,7 @@ const Toast = (props: ToastProps) => {
     });
   }, [mounted, toast.title, toast.description, setHeights, toast.id]);
 
-  const deleteToast = React.useCallback(() => {
+  const deleteToast = useCallback(() => {
     // Save the offset for the exit swipe animation
     setRemoved(true);
     setOffsetBeforeRemove(offset.current);
@@ -214,7 +223,7 @@ const Toast = (props: ToastProps) => {
     }, TIME_BEFORE_UNMOUNT);
   }, [toast, removeToast, setHeights, offset]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       (toast.promise && toastType === "loading") ||
       toast.duration === Infinity ||
@@ -260,7 +269,7 @@ const Toast = (props: ToastProps) => {
     return () => clearTimeout(timeoutId);
   }, [expanded, interacting, toast, toastType, isDocumentHidden, deleteToast]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (toast.delete) {
       deleteToast();
     }
@@ -290,7 +299,8 @@ const Toast = (props: ToastProps) => {
     );
   }
 
-  const icon = toast.icon || icons?.[toastType] || getAsset(toastType);
+  const icon =
+    toast.icon || icons?.[toastType as keyof ToastIcons] || getAsset(toastType);
 
   return (
     <li
@@ -333,7 +343,7 @@ const Toast = (props: ToastProps) => {
           "--initial-height": expandByDefault ? "auto" : `${initialHeight}px`,
           ...style,
           ...toast.style,
-        } as React.CSSProperties
+        } as CSSProperties
       }
       onDragEnd={() => {
         setSwiping(false);
@@ -365,7 +375,7 @@ const Toast = (props: ToastProps) => {
             .replace("px", "") || 0
         );
         const timeTaken =
-          new Date().getTime() - dragStartTime.current?.getTime();
+          new Date().getTime() - dragStartTime.current!.getTime();
 
         const swipeAmount =
           swipeDirection === "x" ? swipeAmountX : swipeAmountY;
@@ -397,7 +407,7 @@ const Toast = (props: ToastProps) => {
       onPointerMove={(event) => {
         if (!pointerStartRef.current || !dismissible) return;
 
-        const isHighlighted = window.getSelection()?.toString().length > 0;
+        const isHighlighted = window.getSelection()!.toString().length > 0;
         if (isHighlighted) return;
 
         const yDelta = event.clientY - pointerStartRef.current.y;
@@ -411,7 +421,7 @@ const Toast = (props: ToastProps) => {
           setSwipeDirection(Math.abs(xDelta) > Math.abs(yDelta) ? "x" : "y");
         }
 
-        let swipeAmount = { x: 0, y: 0 };
+        const swipeAmount = { x: 0, y: 0 };
 
         const getDampening = (delta: number) => {
           const factor = Math.abs(delta) / 20;
@@ -503,7 +513,7 @@ const Toast = (props: ToastProps) => {
       {/* TODO: This can be cleaner */}
       {(toastType || toast.icon || toast.promise) &&
       toast.icon !== null &&
-      (icons?.[toastType] !== null || toast.icon) ? (
+      (icons?.[toastType as keyof ToastIcons] !== null || toast.icon) ? (
         <div
           data-icon=""
           className={cn(classNames?.icon, toast?.classNames?.icon)}
@@ -545,7 +555,7 @@ const Toast = (props: ToastProps) => {
           </div>
         ) : null}
       </div>
-      {React.isValidElement(toast.cancel) ? (
+      {isValidElement(toast.cancel) ? (
         toast.cancel
       ) : toast.cancel && isAction(toast.cancel) ? (
         <button
@@ -567,7 +577,7 @@ const Toast = (props: ToastProps) => {
           {toast.cancel.label}
         </button>
       ) : null}
-      {React.isValidElement(toast.action) ? (
+      {isValidElement(toast.action) ? (
         toast.action
       ) : toast.action && isAction(toast.action) ? (
         <button
@@ -607,11 +617,13 @@ function getDocumentDirection(): ToasterProps["dir"] {
   return dirAttribute as ToasterProps["dir"];
 }
 
+type OffsetKeys = "top" | "right" | "bottom" | "left";
+
 function assignOffset(
   defaultOffset: ToasterProps["offset"],
   mobileOffset: ToasterProps["mobileOffset"]
 ) {
-  const styles = {} as React.CSSProperties;
+  const styles = {} as { [key: string]: unknown };
 
   [defaultOffset, mobileOffset].forEach((offset, index) => {
     const isMobile = index === 1;
@@ -628,7 +640,7 @@ function assignOffset(
     if (typeof offset === "number" || typeof offset === "string") {
       assignAll(offset);
     } else if (typeof offset === "object") {
-      ["top", "right", "bottom", "left"].forEach((key) => {
+      (["top", "right", "bottom", "left"] as OffsetKeys[]).forEach((key) => {
         if (offset[key] === undefined) {
           styles[`${prefix}-${key}`] = defaultValue;
         } else {
@@ -645,9 +657,9 @@ function assignOffset(
 }
 
 function useSonner() {
-  const [activeToasts, setActiveToasts] = React.useState<ToastT[]>([]);
+  const [activeToasts, setActiveToasts] = useState<ToastT[]>([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return ToastState.subscribe((toast) => {
       if ((toast as ToastToDismiss).dismiss) {
         setTimeout(() => {
@@ -677,7 +689,7 @@ function useSonner() {
               ];
             }
 
-            return [toast, ...toasts];
+            return [toast as ToastT, ...toasts];
           });
         });
       });
@@ -689,7 +701,7 @@ function useSonner() {
   };
 }
 
-const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
+const Toaster = forwardRef<HTMLElement, ToasterProps>(function Toaster(
   props,
   ref
 ) {
@@ -713,16 +725,16 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
     icons,
     containerAriaLabel = "Notifications",
   } = props;
-  const listRef = React.useRef<HTMLOListElement>(null);
-  const lastFocusedElementRef = React.useRef<HTMLElement>(null);
-  const isFocusWithinRef = React.useRef(false);
+  const listRef = useRef<HTMLOListElement>(null);
+  const lastFocusedElementRef = useRef<HTMLElement>(null);
+  const isFocusWithinRef = useRef(false);
 
-  const [interacting, setInteracting] = React.useState(false);
-  const [toasts, setToasts] = React.useState<ToastT[]>([]);
-  const [heights, setHeights] = React.useState<HeightT[]>([]);
-  const [expanded, setExpanded] = React.useState(false);
+  const [interacting, setInteracting] = useState(false);
+  const [toasts, setToasts] = useState<ToastT[]>([]);
+  const [heights, setHeights] = useState<HeightT[]>([]);
+  const [expanded, setExpanded] = useState(false);
 
-  const possiblePositions = React.useMemo(() => {
+  const possiblePositions = useMemo(() => {
     return Array.from(
       new Set(
         [position].concat(
@@ -734,7 +746,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
     );
   }, [toasts, position]);
 
-  const [actualTheme, setActualTheme] = React.useState(
+  const [actualTheme, setActualTheme] = useState(
     theme !== "system"
       ? theme
       : typeof window !== "undefined"
@@ -750,7 +762,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
     .replace(/Key/g, "")
     .replace(/Digit/g, "");
 
-  const removeToast = React.useCallback((toastToRemove: ToastT) => {
+  const removeToast = useCallback((toastToRemove: ToastT) => {
     setToasts((toasts) => {
       if (!toasts.find((toast) => toast.id === toastToRemove.id)?.delete) {
         ToastState.dismiss(toastToRemove.id);
@@ -760,7 +772,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
     });
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     return ToastState.subscribe((toast) => {
       if ((toast as ToastToDismiss).dismiss) {
         // Prevent batching of other state updates
@@ -789,14 +801,14 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
               ];
             }
 
-            return [toast, ...toasts];
+            return [toast as ToastT, ...toasts];
           });
         });
       });
     });
   }, [toasts]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (theme !== "system") {
       setActualTheme(theme);
       return;
@@ -828,7 +840,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
           setActualTheme("light");
         }
       });
-    } catch (error) {
+    } catch {
       // Safari < 14
       darkMediaQuery.addListener(({ matches }) => {
         try {
@@ -844,17 +856,17 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
     }
   }, [theme]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Ensure expanded is always false when no toasts are present / only one left
     if (toasts.length <= 1) {
       setExpanded(false);
     }
   }, [toasts]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const isHotkeyPressed = hotkey.every(
-        (key) => (event as any)[key] || event.code === key
+        (key) => event[key as keyof KeyboardEvent] || event.code === key
       );
 
       if (isHotkeyPressed) {
@@ -875,7 +887,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [hotkey]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (listRef.current) {
       return () => {
         if (lastFocusedElementRef.current) {
@@ -885,7 +897,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
         }
       };
     }
-  }, [listRef.current]);
+  }, []);
 
   return (
     // Remove item from normal navigation flow, only available via hotkey
@@ -922,7 +934,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
                 "--gap": `${gap}px`,
                 ...style,
                 ...assignOffset(offset, mobileOffset),
-              } as React.CSSProperties
+              } as CSSProperties
             }
             onBlur={(event) => {
               if (
@@ -984,9 +996,9 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
                   duration={toastOptions?.duration ?? duration}
                   className={toastOptions?.className}
                   descriptionClassName={toastOptions?.descriptionClassName}
-                  invert={invert}
+                  invert={invert!}
                   visibleToasts={visibleToasts}
-                  closeButton={toastOptions?.closeButton ?? closeButton}
+                  closeButton={toastOptions?.closeButton ?? closeButton!}
                   interacting={interacting}
                   position={position}
                   style={toastOptions?.style}
@@ -999,7 +1011,7 @@ const Toaster = React.forwardRef<HTMLElement, ToasterProps>(function Toaster(
                   toasts={toasts.filter((t) => t.position == toast.position)}
                   heights={heights.filter((h) => h.position == toast.position)}
                   setHeights={setHeights}
-                  expandByDefault={expand}
+                  expandByDefault={expand!}
                   gap={gap}
                   expanded={expanded}
                   swipeDirections={props.swipeDirections}

@@ -2,12 +2,10 @@
 
 import Content from "@/components/Content/content";
 import MarkdownEditor from "@/components/MarkdownEditor/markdownEditor";
-import RightSideBar from "@/components/RightSideBar";
-import BlogEditBar from "@/components/RightSideBar/BlogEditBar";
 import { createBlog } from "@/db/blogAction";
 import { message } from "@/lib/message";
 import { useRouter } from "next/navigation";
-import { useState, useEffect, ChangeEventHandler } from "react";
+import { useState, ChangeEventHandler } from "react";
 
 const New = () => {
   const router = useRouter();

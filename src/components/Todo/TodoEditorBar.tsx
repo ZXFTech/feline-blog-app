@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import NeuButton from "../NeuButton/neuButton";
 import dynamic from "next/dynamic";
 import { message } from "@/lib/message";
-import { useRouter } from "next/navigation";
 import NeuInput from "../NeuInput";
 import { Todo } from "../../../generated/prisma";
 import Icon from "../Icon/icon";
@@ -55,7 +54,7 @@ const TodoEditorBar = ({ refresh }: { refresh: () => void }) => {
       setValidateMessage("待办内容不能为空!");
       return;
     }
-    validateMessage && setValidateMessage("");
+    if (validateMessage) setValidateMessage("");
     await addTodo();
   };
   return (
@@ -73,7 +72,7 @@ const TodoEditorBar = ({ refresh }: { refresh: () => void }) => {
           disabled={loading}
           className="w-full"
           value={todoData.content}
-          onChange={(value: any) => onDataChange("content", value.target.value)}
+          onChange={(value) => onDataChange("content", value.target.value)}
         />
         {validateMessage && (
           <span className="text-red-500">{validateMessage}</span>

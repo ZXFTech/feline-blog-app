@@ -1,7 +1,7 @@
 "use client";
 
 import { useMessage, Message } from "@/contexts/message/context";
-import React, { CSSProperties, useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef } from "react";
 
 interface ToastProps {
   message: Message;
@@ -9,7 +9,7 @@ interface ToastProps {
   removeMessage: (id: string) => void;
 }
 
-const Toast = ({ message, index, removeMessage }: ToastProps) => {
+const Toast = ({ message, removeMessage }: ToastProps) => {
   return (
     <div
       className={`message flex items-center p-4 min-w-[300px] rounded-lg shadow-lg 

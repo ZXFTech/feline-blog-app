@@ -1,4 +1,4 @@
-import React, { CSSProperties, FC, HTMLAttributes } from "react";
+import React, { FC, HTMLAttributes } from "react";
 import classnames from "classnames";
 
 export type ThemeProps =

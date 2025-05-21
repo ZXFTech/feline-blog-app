@@ -2,9 +2,6 @@
 
 import React, { Suspense } from "react";
 import BlogList from "@/components/BlogList/blogList";
-import { Metadata } from "next";
-import { dataSource } from "./data";
-import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import NeuButton from "@/components/NeuButton/neuButton";
 import Link from "next/link";
 import Content from "@/components/Content/content";
@@ -21,7 +18,7 @@ export default async function Blog() {
   if (error || !data) {
     message.error("获取博客列表失败!" + errMessage);
   }
-  const { blogs, total, pageBean } = data!;
+  const { blogs } = data!;
   return (
     <Suspense fallback={<Loading />}>
       <Content>

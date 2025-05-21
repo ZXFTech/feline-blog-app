@@ -38,5 +38,5 @@ const NeuDiv: FC<NeuContainerProps> = forwardRef<
     </div>
   );
 });
-
+NeuDiv.displayName = "NeuDIv";
 export default NeuDiv;

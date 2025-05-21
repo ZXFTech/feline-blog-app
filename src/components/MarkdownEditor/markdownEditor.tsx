@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEventHandler, FormEvent, useEffect, useState } from "react";
+import { ChangeEventHandler, useState } from "react";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import NeuButton from "../NeuButton/neuButton";
 import ReactMarkdown from "react-markdown";
@@ -11,7 +11,7 @@ import NeuInput from "@/components/NeuInput";
 
 interface Props {
   handleSubmit: () => void;
-  loading: boolean;
+  loading?: boolean;
   blogData: { title: string; content: string };
   onTitleChange: ChangeEventHandler<HTMLInputElement>;
   onContentChange: ChangeEventHandler<HTMLTextAreaElement>;
@@ -72,7 +72,7 @@ const MarkdownEditor = ({
         type="text"
         placeholder="无标题"
         value={blogData.title}
-        onChange={onTitleChange}
+        onChange={onTitleChange as ChangeEventHandler}
       />
       <div className="full-screen-content flex grow mb-1 relative">
         <NeuInput
@@ -83,7 +83,7 @@ const MarkdownEditor = ({
           } h-full resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60`}
           placeholder="输入Markdown内容..."
           value={blogData.content}
-          onChange={onContentChange}
+          onChange={onContentChange as ChangeEventHandler}
         />
         <NeuDiv
           className={`preview-part m-0! overflow-scroll hide-scrollbar break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
@@ -94,7 +94,7 @@ const MarkdownEditor = ({
         >
           <ReactMarkdown
             components={{
-              code({ node, className, children, ...props }) {
+              code({ className, children, ...props }) {
                 const match = /language-(\w+)/.exec(className || "");
                 return match ? (
                   <CodeBlock

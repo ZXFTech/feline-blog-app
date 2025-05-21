@@ -1,5 +1,5 @@
 import { NeuType } from "@/types";
-import React, { FC, HTMLAttributes, ReactNode } from "react";
+import React, { FC, HTMLAttributes } from "react";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import Icon from "../Icon/icon";
 import classNames from "classnames";

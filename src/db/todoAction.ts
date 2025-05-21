@@ -1,6 +1,7 @@
 import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
+import { Todo } from "../../generated/prisma";
 
 export async function addTodo(content: string, userId?: string) {
   try {
@@ -18,7 +19,7 @@ export async function addTodo(content: string, userId?: string) {
       },
     });
 
-    return actionResponse.success();
+    return actionResponse.success({ result });
   } catch (error) {
     const errorMessage = "Add todo failed! " + error;
     logger.error(errorMessage);
@@ -36,9 +37,9 @@ export async function updateTodo({
   content?: string;
 }) {
   try {
-    const data = {} as any;
-    finished !== undefined && (data.finished = finished);
-    content !== undefined && (data.content = content);
+    const data = {} as Todo;
+    if (finished !== undefined) data.finished = finished;
+    if (content !== undefined) data.content = content;
     const res = await db.todo.update({
       where: {
         id: todoId,
@@ -112,7 +113,7 @@ export async function getTodoById(todoId: number, userId?: string) {
 
     return actionResponse.success({ todo: res });
   } catch (error) {
-    const errorMessage = "Get todo failed!";
+    const errorMessage = "Get todo failed! " + error;
     logger.error(errorMessage);
     return actionResponse.error(errorMessage);
   }

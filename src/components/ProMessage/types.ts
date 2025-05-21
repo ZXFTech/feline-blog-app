@@ -1,26 +1,24 @@
 import React from "react";
 
 export type ToastTypes =
-  | "normal"
-  | "action"
+  | "default"
   | "success"
   | "info"
   | "warning"
   | "error"
-  | "loading"
-  | "default";
+  | "loading";
 
-export type PromiseT<Data = any> = Promise<Data> | (() => Promise<Data>);
+export type PromiseT<Data = unknown> = Promise<Data> | (() => Promise<Data>);
 
 export interface PromiseIExtendedResult extends ExternalToast {
   message: React.ReactNode;
 }
 
-export type PromiseTExtendedResult<Data = any> =
+export type PromiseTExtendedResult<Data = unknown> =
   | PromiseIExtendedResult
   | ((data: Data) => PromiseIExtendedResult | Promise<PromiseIExtendedResult>);
 
-export type PromiseTResult<Data = any> =
+export type PromiseTResult<Data = unknown> =
   | string
   | React.ReactNode
   | ((
@@ -29,7 +27,7 @@ export type PromiseTResult<Data = any> =
 
 export type PromiseExternalToast = Omit<ExternalToast, "description">;
 
-export type PromiseData<ToastData = any> = PromiseExternalToast & {
+export type PromiseData<ToastData = unknown> = PromiseExternalToast & {
   loading?: string | React.ReactNode;
   success?: PromiseTResult<ToastData> | PromiseTExtendedResult<ToastData>;
   error?: PromiseTResult | PromiseTExtendedResult;
@@ -142,7 +140,7 @@ export interface ToasterProps {
   invert?: boolean;
   theme?: "light" | "dark" | "system";
   position?: Position;
-  hotkey?: string[];
+  hotkey?: { key: keyof KeyboardEvent }[];
   richColors?: boolean;
   expand?: boolean;
   duration?: number;
@@ -209,5 +207,5 @@ export type ExternalToast = Omit<
   ToastT,
   "id" | "type" | "title" | "jsx" | "delete" | "promise"
 > & {
-  id: number | string;
+  id?: number | string;
 };

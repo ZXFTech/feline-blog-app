@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { addTodo, getTodoList, updateTodo } from "@/db/todoAction";
 
-export async function GET(req: NextRequest, params: never) {
+export async function GET() {
   // 获取所有 Todo
   return NextResponse.json(await getTodoList());
 }

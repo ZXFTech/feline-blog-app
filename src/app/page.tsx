@@ -6,9 +6,7 @@ import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import Tag from "@/components/Tag/tag";
 import Content from "@/components/Content/content";
 import NeuInput from "@/components/NeuInput";
-import { useState } from "react";
-import { toast, Toaster } from "@/components/ProMessage";
-import { message } from "@/lib/message";
+import { toast } from "@/components/ProMessage";
 
 export default function Home() {
   return (

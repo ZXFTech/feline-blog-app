@@ -8,10 +8,35 @@ import { Prism as Highlighter } from "react-syntax-highlighter";
 import { dracula } from "react-syntax-highlighter/dist/cjs/styles/prism";
 
 export interface BlockFormatterProps {
-  block: any;
+  block: unknown;
 }
 
-const combineRichText = (richText: any[]) => {
+export interface Block {
+  id: string;
+  heading_1: { rich_text: { plain_text: string }[] };
+  heading_2: { rich_text: { plain_text: string }[] };
+  heading_3: { rich_text: { plain_text: string }[] };
+  paragraph: { rich_text: { plain_text: string }[] };
+  bulleted_list_item: { rich_text: { plain_text: string }[] };
+  numbered_list_item: { rich_text: { plain_text: string }[] };
+  image: {
+    type: string;
+    external: { url: string };
+    file: { url: string };
+    caption: string[];
+  };
+  code: {
+    caption: { plain_text: string }[];
+    rich_text: { plain_text: string }[];
+    language: string;
+  };
+  to_do: {
+    checked: boolean;
+    rich_text: { plain_text: string }[];
+  };
+}
+
+const combineRichText = (richText: { plain_text: string }[]) => {
   return richText.map((item) => item.plain_text).join(" ");
 };
 
@@ -49,20 +74,20 @@ export const CodeBlock: FC<{
 };
 
 const NotionBlock = {
-  heading_1: (block: any) => {
+  heading_1: (block: Block) => {
     return <h1 key={block.id}>{combineRichText(block.heading_1.rich_text)}</h1>;
   },
 
-  heading_2: (block: any) => {
+  heading_2: (block: Block) => {
     return <h2 key={block.id}>{combineRichText(block.heading_2.rich_text)}</h2>;
   },
-  heading_3: (block: any) => {
+  heading_3: (block: Block) => {
     return <h3 key={block.id}>{combineRichText(block.heading_3.rich_text)}</h3>;
   },
-  paragraph: (block: any) => {
+  paragraph: (block: Block) => {
     return <p key={block.id}>{combineRichText(block.paragraph.rich_text)}</p>;
   },
-  divider: (block: any) => {
+  divider: (block: Block) => {
     return (
       <hr
         key={block.id}
@@ -70,21 +95,21 @@ const NotionBlock = {
       />
     );
   },
-  bulleted_list_item: (block: any) => {
+  bulleted_list_item: (block: Block) => {
     return (
       <li key={block.id}>
         {combineRichText(block.bulleted_list_item.rich_text)}
       </li>
     );
   },
-  numbered_list_item: (block: any) => {
+  numbered_list_item: (block: Block) => {
     return (
       <li key={block.id}>
         {combineRichText(block.numbered_list_item.rich_text)}
       </li>
     );
   },
-  image: (block: any) => {
+  image: (block: Block) => {
     // todo: 可手动缩放图片大小
     switch (block.image.type) {
       case "external":
@@ -116,7 +141,7 @@ const NotionBlock = {
         );
     }
   },
-  code: (block: any) => {
+  code: (block: Block) => {
     return (
       <CodeBlock
         key={block.id}
@@ -126,7 +151,7 @@ const NotionBlock = {
       />
     );
   },
-  to_do: (block: any) => {
+  to_do: (block: Block) => {
     const data = block.to_do;
     return (
       <div key={block.id}>

@@ -21,25 +21,25 @@ class Logger {
   private timeStamp = new Date().toISOString();
   private messageStatus = `[${this.environment}] [${this.timeStamp}]`;
 
-  error(...args: any[]): void {
+  error(...args: unknown[]): void {
     console.log(
       `${this.messageStatus} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`
     );
   }
-  log(...args: any[]): void {
+  log(...args: unknown[]): void {
     console.log(
       `${this.messageStatus} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`
     );
   }
-  warning(...args: any[]): void {
+  warning(...args: unknown[]): void {
     console.log(
       `${this.messageStatus} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`
     );
   }
-  success(...args: any[]): void {
+  success(...args: unknown[]): void {
     console.log(
       `${this.messageStatus} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`

@@ -24,8 +24,8 @@
 //   const { last_edited_time, properties } = blogData.pageProps.blogRes;
 //   const { Page, authors, tags } = properties;
 
-//   const contentList: any[] =
-//     (blogData.pageProps.contentRes?.results as any[]) || [];
+//   const contentList: unknown[] =
+//     (blogData.pageProps.contentRes?.results as unknown[]) || [];
 //   return (
 //     <div className="px-[5%] pt-10 pb-15 border-x overflow-auto h-[calc(100vh-5rem)] hide-scrollbar">
 //       <Head>
@@ -76,7 +76,7 @@
 //             if (content.type in NotionBlock) {
 //               return (
 //                 <section key={content.id} className="">
-//                   {(NotionBlock as any)[content.type](content)}
+//                   {(NotionBlock as unknown)[content.type](content)}
 //                 </section>
 //               );
 //             }

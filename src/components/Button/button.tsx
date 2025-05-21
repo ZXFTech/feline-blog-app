@@ -82,5 +82,6 @@ const Button: FC<ButtonProps> = forwardRef<
     </button>
   );
 });
+Button.displayName = "Button";
 
 export default Button;

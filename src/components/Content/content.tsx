@@ -1,4 +1,3 @@
-import classNames from "classnames";
 import React, { FC, HTMLAttributes, ReactNode } from "react";
 
 interface ContentProps extends HTMLAttributes<HTMLDivElement> {
@@ -14,7 +13,10 @@ const Content: FC<ContentProps> = ({
   ...restProps
 }) => {
   return (
-    <div className={`content w-full flex  justify-center ${className || ""}`}>
+    <div
+      {...restProps}
+      className={`content w-full flex  justify-center ${className || ""}`}
+    >
       {leftSideBar && (
         <div className="hidden lh:block w-[20%]]">{leftSideBar}</div>
       )}

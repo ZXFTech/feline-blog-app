@@ -3,15 +3,12 @@ import React, { FC } from "react";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import Tag from "../Tag/tag";
 
-import { NotionBlogProperties } from "@/lib/notion/types";
 import { Blog, User } from "../../../generated/prisma";
 
 const ListItem: FC<Blog & { author: User }> = ({
-  id,
   title,
   content,
   createdAt,
-  updatedAt,
   author,
 }) => {
   return (

@@ -1,6 +1,3 @@
-import { error } from "console";
-import { message } from "../message";
-
 export class ApiResponse<T> {
   constructor(
     public error: boolean,
@@ -16,8 +13,14 @@ export class ApiResponse<T> {
   }
 }
 
+type ActionResponse<T = unknown> = {
+  error: boolean;
+  message: string;
+  data: T | null;
+};
+
 export const actionResponse = {
-  error: (message: string) => {
+  error: (message: string): ActionResponse<null> => {
     return {
       error: true,
       message,
@@ -25,11 +28,11 @@ export const actionResponse = {
     };
   },
 
-  success: (data?: any) => {
+  success: <T = unknown>(data?: T): ActionResponse<T> => {
     return {
       error: false,
       message: "",
-      data,
+      data: data ?? null,
     };
   },
 };

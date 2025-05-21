@@ -46,7 +46,7 @@ const Edit = () => {
       });
       setLoading(false);
     });
-  }, []);
+  }, [blogId, router]);
 
   const handleSubmit = async () => {
     setLoading(true);

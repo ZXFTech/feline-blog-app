@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import "material-symbols";
+import "material-symbols/outlined.css";
 import "../styles/index.scss";
 import Navbar from "@/components/Navbar/navbar";
 import Footer from "@/components/Footer/footer";

@@ -56,7 +56,7 @@ class Observer {
   ) => {
     const { message, ...rest } = data;
     const id =
-      typeof data?.id === "number" || data.id!.length > 0
+      typeof data?.id === "number" || (data.id?.length || 0) > 0
         ? data.id
         : toastsCounter++;
     const alreadyExists = this.toasts.find((toast) => {

@@ -2,10 +2,12 @@
 
 on:
   push:
-    branches: ["master"]
+    branches: ["master", "release/**"]
   pull_request:
     branches: ["master"]
 
+env:
+  SERVER: production
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -25,4 +27,13 @@ jobs:
       - run: npm i pnpm -g
       - name: install dependencies
       - run: pnpm install --frozen-lockfile
-      - run: npm build
+      - run: npm run build
+      - uses: actions/checkout@v4
+      - name: Copy files via SSH
+        uses: appleboy/scp-action@v1
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          port: ${{ secrets.PORT }}
+          source: "./dist/*"
+          target: /var/www/

@@ -2,13 +2,19 @@
   "name": "feline-blog-app",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "ts-node": {
+    "esm": true
+  },
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
     "start": "next start",
     "lint": "next lint",
     "prisma-migrate": "npx prisma migrate dev --name init",
-    "prisma-generate": "npx prisma generate"
+    "prisma-generate": "npx prisma generate",
+    "build": "node --loader ts-node/esm ./bin/build.ts",
+    "build-dev": "node --loader ts-node/esm ./bin/build.ts --dev",
+    "next-build": "next build"
   },
   "dependencies": {
     "@prisma/client": "6.7.0",
@@ -23,15 +29,23 @@
     "sass": "^1.87.0"
   },
   "devDependencies": {
+    "@alicloud/credentials": "^2.4.3",
+    "@alicloud/ecs20140526": "7.0.6",
+    "@alicloud/openapi-client": "^0.4.14",
+    "@alicloud/tea-console": "^1.0.0",
+    "@alicloud/tea-typescript": "^1.7.1",
+    "@alicloud/tea-util": "^1.4.9",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/react-syntax-highlighter": "^15.5.13",
+    "cross-env": "^7.0.3",
     "eslint": "^9",
     "eslint-config-next": "15.3.2",
     "prisma": "6.7.0",
     "tailwindcss": "^4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

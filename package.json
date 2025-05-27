@@ -10,6 +10,7 @@
     "dev": "next dev --turbopack",
     "start": "next start",
     "lint": "next lint",
+    "prisma-migrate-build": "npx prisma migrate deploy",
     "prisma-migrate": "npx prisma migrate dev --name init",
     "prisma-generate": "npx prisma generate",
     "build": "node --loader ts-node/esm ./bin/build.ts",

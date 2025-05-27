@@ -7,11 +7,57 @@ import Tag from "@/components/Tag/tag";
 import Content from "@/components/Content/content";
 import NeuInput from "@/components/NeuInput";
 import { toast } from "@/components/ProMessage";
+import TagEditor from "@/components/TagEditor";
+import { useState } from "react";
+import { Tag as ITag } from "../../generated/prisma";
 
+export type TagData = Pick<ITag, "content" | "color"> & { id?: number };
+export interface TagsCollection {
+  originTags: TagData[];
+  addedTags: TagData[];
+  removedTags: TagData[];
+  updatedTags: TagData[];
+}
+
+const fakeTags = [
+  {
+    content: "test1",
+    color: "red",
+  },
+  {
+    content: "test2",
+    color: "green",
+  },
+  {
+    content: "test3",
+    color: "blue",
+  },
+  {
+    content: "test4",
+    color: "yellow",
+  },
+  {
+    content: "test5",
+    color: "orange",
+  },
+];
 export default function Home() {
+  const [tags, setTags] = useState<TagsCollection>({
+    originTags: fakeTags,
+    updatedTags: [],
+    addedTags: [],
+    removedTags: [],
+  });
+  const [tagColor, setTagColor] = useState("");
   return (
     <Content>
       <div className="neu-light px-4! py-4! flex flex-col gap-4 overflow-scroll hide-scrollbar h-full">
+        <NeuDiv
+          neuType="debossed"
+          className="flex flex-wrap items-center gap-2"
+        >
+          <TagEditor value={tags} setValue={setTags} />
+        </NeuDiv>
         <NeuDiv
           neuType="debossed"
           className="flex flex-wrap items-center gap-2"

@@ -56,7 +56,8 @@ const Button: FC<ButtonProps> = forwardRef<
   // 配置 classnames
   const configClassNames = classNames(
     "btn",
-    "flex items-center justify-start gap-1",
+    "flex items-center justify-start",
+    `${children ? "gap-1" : "gap-0"}`,
     {
       [`btn-${buttonType}`]: buttonType,
       [`btn-${btnSize}`]: btnSize,
@@ -77,7 +78,7 @@ const Button: FC<ButtonProps> = forwardRef<
   return (
     <button ref={ref} className={configClassNames} {...restProps}>
       {loading && <IconSpinner size={btnSize} className="btn-loading" />}
-      {icon && <Icon icon={icon} size={btnSize} className="btn-icon" />}
+      {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
       <span className="break-all text-wrap text-left">{children}</span>
     </button>
   );

@@ -32,7 +32,7 @@ interface Props {
   children?: ReactNode;
 }
 
-const Model = ({
+const Modal = ({
   visible,
   onClose,
   onOk,
@@ -132,7 +132,7 @@ const Model = ({
           } transition-all duration-300 ease-in-out`}
         >
           <div className="modal-title-bar flex items-center justify-between mb-3 px-1">
-            <div className="text-lg font-medium">{title || "123"}</div>
+            <div className="text-lg font-medium">{title || ""}</div>
             <div className="leading-0">
               {closeIcon ? (
                 <Icon
@@ -156,4 +156,4 @@ const Model = ({
   return null;
 };
 
-export default Model;
+export default Modal;

@@ -9,24 +9,37 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
 
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
 
     steps:
-      - name: setup pnpm cache
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 10.11.0
+
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
-      - name: install pnpm
-        run: npm i pnpm -g
+
+      - name: echo secret
+        run: echo env(DATABASE_URL)
+
       - name: install dependencies
         run: pnpm install --frozen-lockfile
-      - name: build
+
+      - name: generate prisma
+        run: npm run prisma-generate
+
+      - name: build project
         run: npm run build
+
       - name: Verify artifacts
         run: ls -la ./dist
   deploy:

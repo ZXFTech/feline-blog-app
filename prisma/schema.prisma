@@ -60,6 +60,7 @@ model Tag {
   userId     String
   user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   TagsOnBlog TagsOnBlog[]
+  TagsOnTodo TagsOnTodo[]
 }
 
 model TagsOnBlog {
@@ -73,13 +74,24 @@ model TagsOnBlog {
 }
 
 model Todo {
-  id         Int      @id @default(autoincrement())
+  id         Int          @id @default(autoincrement())
   content    String
-  finished   Boolean  @default(false)
-  createAt   DateTime @default(now())
-  updateAt   DateTime @updatedAt
-  finishedAt DateTime @updatedAt
-  delete     Boolean  @default(false)
+  finished   Boolean      @default(false)
+  createAt   DateTime     @default(now())
+  updateAt   DateTime     @updatedAt
+  finishedAt DateTime     @updatedAt
+  delete     Boolean      @default(false)
   userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  TagsOnTodo TagsOnTodo[]
+}
+
+model TagsOnTodo {
+  todo       Todo     @relation(fields: [todoId], references: [id])
+  todoId     Int
+  tag        Tag      @relation(fields: [tagId], references: [id])
+  tagId      Int
+  assignedAt DateTime @default(now())
+
+  @@id([todoId, tagId])
 }

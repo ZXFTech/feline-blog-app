@@ -3,17 +3,6 @@ import ListItem from "./listItem";
 import Link from "next/link";
 import { Blog, User } from "../../../generated/prisma";
 
-export interface BlogListItem {
-  id: number;
-  title: string;
-  author: string;
-  summary: string;
-  tags: string[];
-  gmtCreate?: string;
-  gmtUpdate?: string;
-  content: string;
-}
-
 export interface pageBean {
   pageNum: number;
   pageSize: number;
@@ -42,7 +31,6 @@ const BlogList: FC<BlogListProps> = ({ dataSource }) => {
           </Link>
         );
       })}
-      {/* <div>{Object.prototype.toString.call(pageBean)}</div> */}
     </div>
   );
 };

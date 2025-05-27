@@ -7,7 +7,6 @@ import { Blog, User } from "../../../generated/prisma";
 
 const ListItem: FC<Blog & { author: User }> = ({
   title,
-  content,
   createdAt,
   author,
 }) => {
@@ -40,17 +39,17 @@ const ListItem: FC<Blog & { author: User }> = ({
             })} */}
           {createdAt && (
             <Tag className="transition-all duration-400 group-hover:!shadow-none">
-              {createdAt.toDateString()}
+              {new Date(createdAt).toDateString()}
             </Tag>
           )}
         </ul>
       </div>
       {/* <NeuDiv className="list-item-content">{longContent}</NeuDiv> */}
-      <div className="px-1 text-md py-2">
+      {/* <div className="px-1 text-md py-2">
         <p className="text-eclipse overflow-hidden leading-[1rem] h-[2rem]">
           {content.slice(0, 100)}
         </p>
-      </div>
+      </div> */}
     </NeuDiv>
   );
 };

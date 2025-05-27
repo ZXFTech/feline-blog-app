@@ -13,7 +13,7 @@ export class ApiResponse<T> {
   }
 }
 
-type ActionResponse<T = unknown> = {
+export type ActionResponse<T = unknown> = {
   error: boolean;
   message: string;
   data: T | null;

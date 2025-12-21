@@ -5,93 +5,54 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
   output   = "../generated/prisma"
 }
 
 datasource db {
   provider = "mysql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String    @id @unique
+  id        String   @id @unique
   username  String
   avatar    String?
   work      String?
-  createdAt DateTime  @default(now())
+  createdAt DateTime @default(now())
   Blog      Blog[]
-  Comment   Comment[]
   Tag       Tag[]
   Todo      Todo[]
 }
 
 model Blog {
-  id         Int          @id @default(autoincrement())
-  authorId   String
-  author     User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
-  title      String
-  content    String       @db.LongText
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  Comment    Comment[]
-  TagsOnBlog TagsOnBlog[]
-  delete     Boolean      @default(false)
-}
-
-model Comment {
   id        Int      @id @default(autoincrement())
-  content   String
+  authorId  String
+  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title     String
+  content   String   @db.LongText
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   delete    Boolean  @default(false)
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  blogId    Int
-  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
 }
 
 model Tag {
-  id         Int          @id @default(autoincrement())
-  content    String
-  color      String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  userId     String
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  TagsOnBlog TagsOnBlog[]
-  TagsOnTodo TagsOnTodo[]
-}
-
-model TagsOnBlog {
-  blog       Blog     @relation(fields: [blogId], references: [id])
-  blogId     Int
-  tag        Tag      @relation(fields: [tagId], references: [id])
-  tagId      Int
-  assignedAt DateTime @default(now())
-
-  @@id([blogId, tagId])
+  id        Int      @id @default(autoincrement())
+  content   String   @unique
+  color     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Todo {
-  id         Int          @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   content    String
-  finished   Boolean      @default(false)
-  createAt   DateTime     @default(now())
-  updateAt   DateTime     @updatedAt
-  finishedAt DateTime     @updatedAt
-  delete     Boolean      @default(false)
+  finished   Boolean  @default(false)
+  createAt   DateTime @default(now())
+  updateAt   DateTime @updatedAt
+  finishedAt DateTime @updatedAt
+  delete     Boolean  @default(false)
   userId     String
-  user       User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  TagsOnTodo TagsOnTodo[]
-}
-
-model TagsOnTodo {
-  todo       Todo     @relation(fields: [todoId], references: [id])
-  todoId     Int
-  tag        Tag      @relation(fields: [tagId], references: [id])
-  tagId      Int
-  assignedAt DateTime @default(now())
-
-  @@id([todoId, tagId])
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -3,6 +3,7 @@
 import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
+
 export async function createBlog({
   title,
   content,
@@ -13,10 +14,19 @@ export async function createBlog({
   authorId?: string;
 }) {
   try {
+    const user = await db.user.findFirst({
+      where: {
+        id: authorId || testUserId,
+      },
+    });
+    if (!user) {
+      logger.error("User does not exist!");
+      return actionResponse.error("User does not exist!");
+    }
     const res = await db.blog.create({
       data: {
         title,
-        content: content,
+        content,
         authorId: authorId || testUserId,
       },
     });
@@ -34,7 +44,6 @@ export async function getBlogById(blogId: number) {
         id: Number(blogId),
       },
       include: {
-        TagsOnBlog: true,
         author: true,
       },
     });
@@ -76,7 +85,7 @@ export async function getBlogList(
     const [blogs, total] = await db.$transaction([
       db.blog.findMany({
         where: {
-          authorId: userId,
+          authorId: userId || testUserId,
           delete: false,
         },
         orderBy: {

@@ -5,7 +5,7 @@ import BlogList, { pageBean } from "@/components/BlogList/blogList";
 import NeuButton from "@/components/NeuButton/neuButton";
 import Link from "next/link";
 import Content from "@/components/Content/content";
-import { Blog as IBlog, User } from "../../../generated/prisma";
+import { Blog as IBlog, User } from "../../../generated/prisma/client";
 import { ActionResponse } from "@/lib/response/ApiResponse";
 import { toast } from "@/components/ProMessage";
 
@@ -21,7 +21,6 @@ export default function Blog() {
       }),
     });
     const result = await res.json();
-    console.log("result", result);
     const {
       error,
       message: errMessage,

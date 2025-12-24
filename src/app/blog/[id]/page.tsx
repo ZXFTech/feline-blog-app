@@ -55,6 +55,41 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
 
   const { blog } = data;
 
+  // // 最大重试次数
+  // const MAX_RETRY = 3;
+
+  // // 封装带重试的上传函数
+  // const uploadWithRetry = async ({
+  //   formData,
+  //   index,
+  //   chunkName,
+  //   retryCount,
+  // }) => {
+  //   try {
+  //     // 请求逻辑 ...
+  //   } catch (error) {
+  //     if (retryCount < MAX_RETRY) {
+  //       console.warn(
+  //         `切片 ${chunkName} 上传失败，第 ${retryCount + 1} 次重试...`
+  //       );
+  //       return uploadWithRetry({
+  //         formData,
+  //         index,
+  //         chunkName,
+  //         retryCount: retryCount + 1,
+  //       });
+  //     } else {
+  //       console.error(`切片 ${chunkName} 上传失败，已达最大重试次数`);
+  //       return { success: false, index, error };
+  //     }
+  //   }
+  // };
+
+  // // 执行所有上传（并行）
+  // const results = await Promise.all(
+  //   formChunks.map((item) => uploadWithRetry(item))
+  // );
+
   return (
     <Content rightSideBar={<BlogEditBar blogId={id} />}>
       <Suspense fallback={<Loading />}>
@@ -68,7 +103,8 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
             </Head>
             <h1>{blog.title}</h1>
             <div className="flex flex-wrap items-center justify-between mb-3">
-              <Tag className="ml-0">{blog.author.username}</Tag>
+              {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
+              <Tag className="ml-0">{blog.authorId.toString()}</Tag>
               {/* {(postData.TagsOnBlog||[]).length && (
           <ul className="flex flex-wrap gap-1 p-0 mx-0 my-3">
             {postData.TagsOnBlog.map((tag) => {

@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE `tag` ADD COLUMN `todoId` INTEGER NULL;
+
+-- AddForeignKey
+ALTER TABLE `Tag` ADD CONSTRAINT `Tag_todoId_fkey` FOREIGN KEY (`todoId`) REFERENCES `Todo`(`id`) ON DELETE SET NULL ON UPDATE CASCADE;

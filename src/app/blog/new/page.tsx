@@ -3,7 +3,7 @@
 import Content from "@/components/Content/content";
 import MarkdownEditor from "@/components/MarkdownEditor/markdownEditor";
 import { createBlog } from "@/db/blogAction";
-import { message } from "@/lib/message";
+import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
 import { useState, ChangeEventHandler } from "react";
 

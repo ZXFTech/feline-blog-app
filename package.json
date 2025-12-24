@@ -17,8 +17,8 @@
     "prisma-generate:prod": "dotenv -e .env.production -- npx prisma generate",
     "prisma:dev": "dotenv -e .env.development -- prisma",
     "prisma:prod": "dotenv -e .env.production -- prisma",
-    "prisma:studio:dev": "dotenv -e .env.development -- prisma studio",
-    "prisma:studio:prod": "dotenv -e .env.production -- prisma studio",
+    "prisma-studio:dev": "dotenv -e .env.development -- prisma studio",
+    "prisma-studio:prod": "dotenv -e .env.production -- prisma studio",
     "build": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts",
     "build-dev": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts --dev",
     "next-build": "next build"

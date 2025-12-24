@@ -3,26 +3,23 @@
 import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
+import { checkUser } from "./userAction";
 
 export async function createBlog({
   title,
   content,
-  authorId,
+  authorId = "",
 }: {
   title: string;
   content: string;
   authorId?: string;
 }) {
   try {
-    const user = await db.user.findFirst({
-      where: {
-        id: authorId || testUserId,
-      },
-    });
-    if (!user) {
-      logger.error("User does not exist!");
-      return actionResponse.error("User does not exist!");
+    const result = await checkUser(authorId);
+    if (result.error) {
+      return result;
     }
+
     const res = await db.blog.create({
       data: {
         title,

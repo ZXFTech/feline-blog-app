@@ -1,4 +1,4 @@
-import { InputHTMLAttributes, TextareaHTMLAttributes } from "react";
+import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
 import { IconSize } from "../Icon/icon";
 
 interface BaseNeuInputProps {
@@ -24,15 +24,14 @@ const inputSizeMap = {
   "3xl": "p-2 text-3xl",
 };
 
-const NeuInput = ({
-  className,
-  textArea,
-  inputSize = "md",
-  ...restProps
-}: NeuInputProps) => {
+const NeuInput = forwardRef<
+  HTMLInputElement & HTMLTextAreaElement,
+  NeuInputProps
+>(({ className, textArea, inputSize = "md", ...restProps }, ref) => {
   if (textArea) {
     return (
       <textarea
+        ref={ref}
         {...restProps}
         className={`neu-input p-3 resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
       />
@@ -40,10 +39,13 @@ const NeuInput = ({
   }
   return (
     <input
+      ref={ref}
       {...restProps}
       className={`neu-input bg-black/3 rounded-lg focus:bg-white/10 focus:outline-none block disabled:bg-gray-500/20 disabled:opacity-60 ${inputSizeMap[inputSize]} ${className}`}
     />
   );
-};
+});
+
+NeuInput.displayName = "NeuInput";
 
 export default NeuInput;

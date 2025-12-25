@@ -4,23 +4,35 @@ import Content from "@/components/Content/content";
 import { message } from "@/lib/message";
 import TodoEditorBar from "@/components/Todo/TodoEditorBar";
 import { useEffect, useState } from "react";
-import { Todo } from "../../../generated/prisma";
+import { Todo, Tag } from "../../../generated/prisma/client";
 import TodoDatePart from "@/components/Todo/TodoDatePart";
+import { TagTodo } from "@/types/todo";
+import Icon from "@/components/Icon/icon";
+import NeuButton from "@/components/NeuButton/neuButton";
+import { finished } from "stream";
 
 const TodoList = () => {
-  const [todoList, setTodoList] = useState<{ [key: string]: Todo[] }>({});
+  const [todoList, setTodoList] = useState<{ [key: string]: TagTodo[] }>({});
+  const [loading, setLoading] = useState(false);
 
-  const getBlogList = async () => {
+  // 编辑 todo 相关
+  const [targetTodo, setTargetTodo] = useState<TagTodo>({
+    content: "",
+    finished: false,
+  });
+  const [panelVisible, setPanelVisible] = useState(false);
+
+  const getTodoList = async () => {
     const res = await fetch("/api/todo");
     const { data, error, message: errMessage } = await res.json();
     if (error) {
       return message.error(errMessage);
     }
-    const todoList = data.todoList as Todo[];
+    const todoList = data.todoList as TagTodo[];
 
-    const sortedList = {} as { [key: string]: Todo[] };
+    const sortedList = {} as { [key: string]: TagTodo[] };
     (todoList || []).forEach((todo) => {
-      const date = new Date(todo.createAt);
+      const date = new Date(todo.createAt!);
       const dateKey = [
         date.getUTCFullYear(),
         (date.getUTCMonth() + 1).toString().padStart(2, "0"),
@@ -36,13 +48,13 @@ const TodoList = () => {
   };
 
   useEffect(() => {
-    getBlogList();
+    getTodoList();
   }, []);
 
-  const updateTodoById = async (todo: Todo) => {
+  const updateTodoById = async (todo: TagTodo) => {
     const res = await fetch("/api/todo", {
       method: "PATCH",
-      body: JSON.stringify({ todoId: todo.id, finished: !todo.finished }),
+      body: JSON.stringify({ id: todo.id, finished: !todo.finished }),
     });
 
     const result = await res.json();
@@ -51,25 +63,70 @@ const TodoList = () => {
       message.error(result.message);
     } else {
       message.success("更新成功!");
-      await getBlogList();
+      await getTodoList();
     }
   };
 
+  const deleteTodoById = async (todoId: number) => {
+    const res = await fetch("/api/todo", {
+      method: "DELETE",
+      body: JSON.stringify({ todoId }),
+    });
+    const result = await res.json();
+    if (result.error) {
+      message.error(result.message);
+      return;
+    }
+    message.success("已删除.");
+    await getTodoList();
+  };
+
+  const editTodo = (todo: TagTodo) => {
+    setTargetTodo(todo);
+    setPanelVisible(true);
+  };
+
+  const resetPanel = async () => {
+    setPanelVisible(false);
+    setTargetTodo({
+      content: "",
+      finished: false,
+    });
+    await getTodoList();
+  };
+
   return (
-    <Content rightSideBar={<TodoEditorBar refresh={getBlogList} />}>
-      <div className="w-full px-2">
-        {Object.keys(todoList).map((key) => {
-          return (
-            <TodoDatePart
-              key={key}
-              dateKey={key}
-              todoList={todoList[key]}
-              handleClick={updateTodoById}
-            />
-          );
-        })}
-      </div>
-    </Content>
+    <>
+      <Content
+        rightSideBar={
+          <NeuButton className="p-1!" onClick={() => setPanelVisible(true)}>
+            <Icon icon="note_add" size="3xl" />
+          </NeuButton>
+        }
+      >
+        <div className="w-full px-2">
+          {Object.keys(todoList).map((key) => {
+            return (
+              <TodoDatePart
+                key={key}
+                dateKey={key}
+                todoList={todoList[key]}
+                handleClick={updateTodoById}
+                handleDelete={deleteTodoById}
+                handleUpdate={editTodo}
+              />
+            );
+          })}
+        </div>
+      </Content>
+      <TodoEditorBar
+        onOk={resetPanel}
+        onClose={resetPanel}
+        refresh={getTodoList}
+        todo={targetTodo}
+        visible={panelVisible}
+      ></TodoEditorBar>
+    </>
   );
 };
 

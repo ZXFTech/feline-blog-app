@@ -1,40 +1,68 @@
 "use client";
 
-import { useState } from "react";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import NeuButton from "../NeuButton/neuButton";
 import dynamic from "next/dynamic";
-import { message } from "@/lib/message";
+import { toast as message } from "../ProMessage";
 import NeuInput from "../NeuInput";
-import { Todo } from "../../../generated/prisma";
+import { Todo, Tag } from "../../../generated/prisma/client";
 import Icon from "../Icon/icon";
+import TagEditor from "../TagEditor";
+import { TagTodo } from "@/types/todo";
 
-const Model = dynamic(() => import("../Modal"), { ssr: false });
+const Modal = dynamic(() => import("@/components/Modal"), { ssr: false });
 
-const TodoEditorBar = ({ refresh }: { refresh: () => void }) => {
-  const [visible, setVisible] = useState<boolean>(false);
+interface EditorProps {
+  visible: boolean;
+  refresh: () => void;
+  todo?: TagTodo;
+  onOk?: CallableFunction;
+  onClose?: CallableFunction;
+}
+
+const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
   const [loading, setLoading] = useState(false);
   const [validateMessage, setValidateMessage] = useState("");
 
-  const [todoData, setTodoData] = useState<Partial<Todo>>({
+  const [todoData, setTodoData] = useState<TagTodo>({
     content: "",
     finished: false,
   });
 
-  const onDataChange = (key: string, value: string) => {
-    setTodoData({
-      ...todoData,
-      [key]: value,
+  useEffect(() => {
+    setTodoData((prev) => {
+      return {
+        ...todo,
+        id: todo?.id || "",
+        content: todo?.content || "",
+        finished: todo?.finished || false,
+        tags: todo?.tags?.map((item) => item.tag),
+      };
     });
+  }, [todo]);
+
+  const onDataChange = (key: keyof TagTodo, value: TagTodo[keyof TagTodo]) => {
+    setTodoData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
   };
 
   const handleClose = () => {
-    setVisible(false);
+    setTodoData({
+      content: "",
+      finished: false,
+    });
+    if (onClose) {
+      onClose();
+    }
   };
 
-  const addTodo = async () => {
+  const handleTodo = async () => {
     setLoading(true);
+
     const res = await fetch("/api/todo", {
-      method: "POST",
+      method: todoData.id ? "PATCH" : "POST",
       body: JSON.stringify(todoData),
     });
 
@@ -45,8 +73,6 @@ const TodoEditorBar = ({ refresh }: { refresh: () => void }) => {
       return;
     }
     message.success("添加成功!");
-    setVisible(false);
-    refresh();
   };
 
   const handleOk = async () => {
@@ -55,36 +81,40 @@ const TodoEditorBar = ({ refresh }: { refresh: () => void }) => {
       return;
     }
     if (validateMessage) setValidateMessage("");
-    await addTodo();
+    await handleTodo();
+    setTodoData({
+      content: "",
+      finished: false,
+    });
+    if (onOk) {
+      onOk();
+    }
   };
+
   return (
-    <div>
-      <NeuButton className="p-1!" onClick={() => setVisible(true)}>
-        <Icon icon="note_add" size="3xl" />
-      </NeuButton>
-      <Model
-        okLoading={loading}
-        visible={visible}
-        onClose={handleClose}
-        onOk={handleOk}
-      >
+    <Modal
+      okLoading={loading}
+      visible={visible}
+      onClose={handleClose}
+      onOk={handleOk}
+    >
+      <div>
         <NeuInput
           disabled={loading}
           className="w-full"
-          value={todoData.content}
+          value={todoData?.content || ""}
+          autoComplete="off"
           onChange={(value) => onDataChange("content", value.target.value)}
         />
         {validateMessage && (
           <span className="text-red-500">{validateMessage}</span>
         )}
-      </Model>
-      {/* <TestModal visible={visible} onClose={handleClose}>
-        <NeuButton>测试</NeuButton>
-        <NeuButton>测试</NeuButton>
-        <NeuButton>测试</NeuButton>
-        <NeuButton>测试</NeuButton>
-      </TestModal> */}
-    </div>
+        <TagEditor
+          value={todoData.tags || []}
+          setValue={(tags) => onDataChange("tags", tags)}
+        />
+      </div>
+    </Modal>
   );
 };
 

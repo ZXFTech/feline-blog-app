@@ -1,21 +1,65 @@
 import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
-import { Todo } from "../../generated/prisma";
+import { Tag, Todo } from "../../generated/prisma/client";
+import { checkUser } from "./userAction";
 
-export async function addTodo(content: string, userId?: string) {
+export async function addTodo({
+  content,
+  userId = testUserId,
+  tags = [],
+}: {
+  content: string;
+  userId?: string;
+  tags?: Tag[];
+}) {
   try {
-    const result = await db.user.update({
-      where: {
-        id: userId || testUserId,
-      },
-      data: {
-        Todo: {
-          create: {
-            content: content,
-            finished: false,
+    const checkUserResult = await checkUser(userId);
+    if (checkUserResult.error) {
+      return checkUserResult;
+    }
+
+    // 先处理所有 tags
+    const tagOperation = tags.map((tag) =>
+      db.tag.upsert({
+        where: {
+          userId_content: {
+            userId,
+            content: tag.content,
           },
         },
+        update: {
+          color: tag.color,
+        },
+        create: {
+          content: tag.content,
+          color: tag.color,
+          userId,
+        },
+      })
+    );
+
+    const tagResult = await Promise.all(tagOperation);
+
+    const result = await db.todo.create({
+      data: {
+        content: content,
+        finished: false,
+        userId,
+        tags: {
+          create: tagResult.map((tag) => ({
+            assignedBy: userId,
+            assignedAt: new Date(),
+            tag: {
+              connect: {
+                id: tag.id,
+              },
+            },
+          })),
+        },
+      },
+      include: {
+        tags: true,
       },
     });
 
@@ -28,26 +72,76 @@ export async function addTodo(content: string, userId?: string) {
 }
 
 export async function updateTodo({
-  todoId,
+  id,
   finished,
   content,
+  tags,
+  userId = testUserId,
 }: {
-  todoId: number;
+  id: number;
+  userId: string;
   finished?: boolean;
   content?: string;
+  tags?: Tag[];
 }) {
   try {
+    console.log("tags", tags);
     const data = {} as Todo;
     if (finished !== undefined) data.finished = finished;
     if (content !== undefined) data.content = content;
-    const res = await db.todo.update({
-      where: {
-        id: todoId,
-      },
-      data: {
-        ...data,
-      },
-    });
+
+    let res;
+    // 如果 tag 不为 undefined, 先更新 tags
+    if (tags !== undefined) {
+      const tagOperation = tags.map((tag) =>
+        db.tag.upsert({
+          where: {
+            userId_content: {
+              userId,
+              content: tag.content,
+            },
+          },
+          update: {
+            color: tag.color,
+          },
+          create: {
+            content: tag.content,
+            color: tag.color,
+            userId,
+          },
+        })
+      );
+      const tagResult = await Promise.all(tagOperation);
+      res = await db.todo.update({
+        where: {
+          id: id,
+        },
+        data: {
+          ...data,
+          tags: {
+            deleteMany: {},
+            create: tagResult?.map((tag) => ({
+              assignedBy: userId,
+              assignedAt: new Date(),
+              tag: {
+                connect: {
+                  id: tag.id,
+                },
+              },
+            })),
+          },
+        },
+      });
+    } else {
+      res = await db.todo.update({
+        where: {
+          id,
+        },
+        data: {
+          ...data,
+        },
+      });
+    }
     if (!res) {
       return actionResponse.error("Todo not found!");
     }
@@ -85,6 +179,14 @@ export async function getTodoList(userId?: string) {
     const res = await db.todo.findMany({
       where: {
         userId: userId || testUserId,
+        delete: false,
+      },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
       orderBy: {
         createAt: "desc",

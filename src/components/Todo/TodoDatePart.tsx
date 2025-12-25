@@ -1,17 +1,32 @@
 "use client";
 
-import { Todo } from "../../../generated/prisma/client";
+import { TagTodo } from "@/types/todo";
+import { Tag as ITag, Todo } from "../../../generated/prisma/client";
 import Icon from "../Icon/icon";
 import NeuButton from "../NeuButton/neuButton";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import Tag from "../Tag/tag";
+import { useState } from "react";
+import dynamic from "next/dynamic";
+import TodoEditorBar from "./TodoEditorBar";
+import TagEditor from "../TagEditor";
 interface Props {
   dateKey: string;
-  todoList: Todo[];
-  handleClick: (todo: Todo) => void;
+  todoList: TagTodo[];
+  handleClick: (todo: TagTodo) => void;
+  handleDelete: (todoId: number) => void;
+  handleUpdate: (todo: TagTodo) => void;
 }
 
-const TodoDatePart = ({ todoList, dateKey, handleClick }: Props) => {
+const Model = dynamic(() => import("../Modal"), { ssr: false });
+
+const TodoDatePart = ({
+  todoList,
+  dateKey,
+  handleClick,
+  handleDelete,
+  handleUpdate,
+}: Props) => {
   return (
     <div className="flex flex-col item-start gap-4 mb-3">
       <Tag>{new Date(dateKey).toLocaleDateString("zh-CN")}</Tag>
@@ -23,19 +38,50 @@ const TodoDatePart = ({ todoList, dateKey, handleClick }: Props) => {
               className="p-1! m-0! leading-0"
             >
               {todo.finished ? (
-                <Icon className="text-green-700" icon="select_check_box" />
+                <Icon
+                  className="text-green-700"
+                  size="xl"
+                  icon="select_check_box"
+                />
               ) : (
-                <Icon className="" icon="check_box_outline_blank" />
+                <Icon size="xl" className="" icon="check_box_outline_blank" />
               )}
             </NeuDiv>
             <NeuButton
               onClick={() => handleClick(todo)}
-              className={`my-0! w-full overflow-hidden! word-wrap ${
-                todo.finished ? "line-through" : ""
-              }`}
+              className={`m-0! w-full overflow-hidden! word-wrap p-3! block! text-start`}
             >
-              {todo.content}
+              <span
+                className={`${
+                  todo.finished ? "line-through" : ""
+                } text-base font-semibold inline-block`}
+              >
+                {todo.content}
+              </span>
+              {todo.tags?.length ? (
+                <div className="todo-tags flex flex-wrap gap-1 justify-end mt-2">
+                  {todo.tags.map((item, index) => {
+                    const tag = item.tag;
+                    return (
+                      <Tag key={tag.content + index} color={tag.color}>
+                        {tag.content}
+                      </Tag>
+                    );
+                  })}
+                </div>
+              ) : null}
             </NeuButton>
+            <div>
+              <NeuButton
+                className="mt-0! mb-2!"
+                icon="edit"
+                onClick={() => handleUpdate(todo)}
+              ></NeuButton>
+              <NeuButton
+                icon="delete"
+                onClick={() => handleDelete(todo.id!)}
+              ></NeuButton>
+            </div>
           </div>
         );
       })}

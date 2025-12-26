@@ -1,12 +1,9 @@
 "use client";
 
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import NeuButton from "../NeuButton/neuButton";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast as message } from "../ProMessage";
 import NeuInput from "../NeuInput";
-import { Todo, Tag } from "../../../generated/prisma/client";
-import Icon from "../Icon/icon";
 import TagEditor from "../TagEditor";
 import { TagTodo } from "@/types/todo";
 
@@ -16,9 +13,14 @@ interface EditorProps {
   visible: boolean;
   refresh: () => void;
   todo?: TagTodo;
-  onOk?: CallableFunction;
-  onClose?: CallableFunction;
+  onOk?: () => void;
+  onClose?: () => void;
 }
+
+const INITIAL_TODO_DATA: TagTodo = {
+  content: "",
+  finished: false,
+};
 
 const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
   const [loading, setLoading] = useState(false);
@@ -29,51 +31,65 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
     finished: false,
   });
 
-  useEffect(() => {
-    setTodoData((prev) => {
-      return {
-        ...todo,
-        id: todo?.id || "",
-        content: todo?.content || "",
-        finished: todo?.finished || false,
-        tags: todo?.tags?.map((item) => item.tag),
-      };
-    });
+  const initialTodoData = useMemo(() => {
+    if (!todo) {
+      return INITIAL_TODO_DATA;
+    }
+    return {
+      ...todo,
+      id: todo?.id,
+      content: todo?.content || "",
+      finished: todo?.finished || false,
+      tags: todo?.tags?.map((item) => item.tag),
+    };
   }, [todo]);
 
-  const onDataChange = (key: keyof TagTodo, value: TagTodo[keyof TagTodo]) => {
-    setTodoData((prev) => ({
-      ...prev,
-      [key]: value,
-    }));
-  };
+  useEffect(() => {
+    setTodoData(initialTodoData);
+  }, [initialTodoData]);
 
-  const handleClose = () => {
-    setTodoData({
-      content: "",
-      finished: false,
-    });
+  const onDataChange = useCallback(
+    (key: keyof TagTodo, value: TagTodo[keyof TagTodo]) => {
+      setTodoData((prev) => ({
+        ...prev,
+        [key]: value,
+      }));
+    },
+    []
+  );
+
+  const handleClose = useCallback(() => {
+    setTodoData(INITIAL_TODO_DATA);
     if (onClose) {
       onClose();
     }
-  };
+  }, []);
 
-  const handleTodo = async () => {
+  const handleTodo = useCallback(async () => {
     setLoading(true);
 
-    const res = await fetch("/api/todo", {
-      method: todoData.id ? "PATCH" : "POST",
-      body: JSON.stringify(todoData),
-    });
+    try {
+      const res = await fetch("/api/todo", {
+        method: todoData.id ? "PATCH" : "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(todoData),
+      });
 
-    const result = await res.json();
-    setLoading(false);
-    if (result.error) {
-      message.error(result.message);
-      return;
+      const result = await res.json();
+      if (result.error) {
+        message.error(result.message);
+        return;
+      }
+      message.success("添加成功!");
+    } catch (error) {
+      console.error("操作失败:", error);
+      message.error("操作失败,请重试");
+    } finally {
+      setLoading(false);
     }
-    message.success("添加成功!");
-  };
+  }, [todoData]);
 
   const handleOk = async () => {
     if (!todoData.content?.trim()) {
@@ -81,11 +97,10 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       return;
     }
     if (validateMessage) setValidateMessage("");
+
     await handleTodo();
-    setTodoData({
-      content: "",
-      finished: false,
-    });
+
+    setTodoData(INITIAL_TODO_DATA);
     if (onOk) {
       onOk();
     }

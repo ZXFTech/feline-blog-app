@@ -4,12 +4,10 @@ import Content from "@/components/Content/content";
 import { message } from "@/lib/message";
 import TodoEditorBar from "@/components/Todo/TodoEditorBar";
 import { useEffect, useState } from "react";
-import { Todo, Tag } from "../../../generated/prisma/client";
 import TodoDatePart from "@/components/Todo/TodoDatePart";
 import { TagTodo } from "@/types/todo";
 import Icon from "@/components/Icon/icon";
 import NeuButton from "@/components/NeuButton/neuButton";
-import { finished } from "stream";
 
 const TodoList = () => {
   const [todoList, setTodoList] = useState<{ [key: string]: TagTodo[] }>({});

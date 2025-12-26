@@ -1,15 +1,11 @@
 "use client";
 
 import { TagTodo } from "@/types/todo";
-import { Tag as ITag, Todo } from "../../../generated/prisma/client";
 import Icon from "../Icon/icon";
 import NeuButton from "../NeuButton/neuButton";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import Tag from "../Tag/tag";
-import { useState } from "react";
-import dynamic from "next/dynamic";
-import TodoEditorBar from "./TodoEditorBar";
-import TagEditor from "../TagEditor";
+
 interface Props {
   dateKey: string;
   todoList: TagTodo[];
@@ -17,8 +13,6 @@ interface Props {
   handleDelete: (todoId: number) => void;
   handleUpdate: (todo: TagTodo) => void;
 }
-
-const Model = dynamic(() => import("../Modal"), { ssr: false });
 
 const TodoDatePart = ({
   todoList,

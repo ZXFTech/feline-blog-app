@@ -1,12 +1,14 @@
 "use client";
 
-import { Dispatch, SetStateAction, useState } from "react";
+import { Dispatch, SetStateAction, useRef, useState } from "react";
 import NeuButton from "../NeuButton/neuButton";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import Tag from "../Tag/tag";
 import NeuInput from "../NeuInput";
 import ColorPanel from "../ColorPanel";
-import { TagsCollection, TagData } from "@/app/page";
+import { Tag as ITag } from "../../../generated/prisma/client";
+
+export type TagData = Pick<ITag, "content" | "color"> & { id?: number };
 
 const isContain = (targetTag: TagData) => {
   return (comparedTag: TagData) => {
@@ -14,6 +16,7 @@ const isContain = (targetTag: TagData) => {
   };
 };
 
+// 暂时用不上，用于区分 新增的 tag 和已有的 tag
 const splitExistArray = <T,>(
   list: T[],
   func: (item: T) => boolean
@@ -28,25 +31,17 @@ const splitExistArray = <T,>(
 };
 
 interface Props {
-  value?: TagsCollection;
-  setValue: Dispatch<SetStateAction<TagsCollection>>;
+  value: TagData[];
+  setValue: (tagData: TagData[]) => void;
 }
 
-const TagEditor = ({
-  value = {
-    originTags: [],
-    removedTags: [],
-    addedTags: [],
-    updatedTags: [],
-  },
-  setValue,
-}: Props) => {
+const TagEditor = ({ value = [], setValue }: Props) => {
   const [visible, setVisible] = useState(false);
   const [tagValue, setTagValue] = useState<string>("");
   const [tagColor, setTagColor] = useState<string>("");
   const [panelVisible, setPanelVisible] = useState(false);
 
-  const { originTags, removedTags, addedTags, updatedTags } = value;
+  const tagContentInput = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
 
   const resetState = () => {
     setTagColor("");
@@ -55,154 +50,30 @@ const TagEditor = ({
   };
 
   const handleRemoveTag = (targetTag: TagData) => {
-    // 如果是从 originTags 中删除
-    const [originTag, newOriginTags] = splitExistArray(
-      originTags,
-      isContain(targetTag)
-    );
-    if (originTag) {
-      // 从 originTags 中删除, 涉及服务端操作, 记录进 removedTags
-      setValue((prev) => ({
-        ...prev,
-        originTags: newOriginTags,
-        removedTags: removedTags.concat(originTag),
-      }));
-      return;
-    }
-    // 如果是从 updatedTags 中删除
-    const [updatedTag, newUpdatedTags] = splitExistArray(
-      updatedTags,
-      isContain(targetTag)
-    );
-    if (updatedTag) {
-      // 涉及服务端操作, 记录进 removeTags
-      setValue((prev) => ({
-        ...prev,
-        updatedTags: newUpdatedTags,
-        removedTags: removedTags.concat(updatedTag),
-      }));
-      return;
-    }
-    // 如果是从 addedTag 中删除
-    const [addedTag, newAddedTags] = splitExistArray(
-      addedTags,
-      isContain(targetTag)
-    );
-    if (addedTag) {
-      // 涉及服务端操作, 记录进 removeTags
-      setValue((prev) => ({
-        ...prev,
-        addedTags: newAddedTags,
-        removedTags: removedTags.concat(addedTag),
-      }));
-      return;
-    }
+    setValue([...value.filter((tag) => tag.content !== targetTag.content)]);
   };
 
   const updateTags = () => {
-    if (!tagValue) {
-      resetState();
-      return;
+    // 更新 todo 标签
+    const searchResult = value.find((tag) => tag.content === tagValue);
+    if (searchResult) {
+      searchResult.color = tagColor;
+    } else {
+      value.push({
+        content: tagValue,
+        color: tagColor,
+      });
     }
-
-    const newTag = { content: tagValue, color: tagColor };
-
-    // 判断 originTagList 是否包含 tagValue
-    const [originTag, newOriginTags] = splitExistArray(
-      originTags,
-      isContain(newTag)
-    );
-    console.log("originTag", originTag);
-    console.log("newOriginTags", newOriginTags);
-    if (originTag) {
-      // 如果存在 tag ,则更新 tag, 从 originTags 里移除, 加入 updatedList
-      setValue((prev) => ({
-        ...prev,
-        originTags: newOriginTags,
-        updatedTags: updatedTags.concat({
-          ...originTag,
-          color: tagColor || originTag.color,
-        }),
-      }));
-      resetState();
-      return;
-    }
-
-    // 判断 updatedTags 是否包含同 tagValue 的 tag
-    const [updatedTag, newUpdatedTags] = splitExistArray(
-      updatedTags,
-      isContain(newTag)
-    );
-    console.log("newUpdatedTags", newUpdatedTags);
-    console.log("updatedTag", updatedTag);
-    console.log("newTag", newTag);
-    console.log("{...updatedTag,...newTag}", { ...updatedTag, ...newTag });
-    console.log(
-      "newUpdatedTags.concat({ ...updatedTag, ...newTag }",
-      newUpdatedTags.concat({ ...updatedTag, ...newTag })
-    );
-    if (updatedTag) {
-      // 在 updatedTags 中, 更新
-      setValue((prev) => ({
-        ...prev,
-        updatedTags: [...newUpdatedTags, { ...updatedTag, ...newTag }],
-      }));
-      resetState();
-      return;
-    }
-
-    // 判断 updatedTags 是否包含同 tagValue 的 tag
-    const [addedTag] = splitExistArray(addedTags, isContain(newTag));
-    if (addedTag) {
-      // 在 addedTagList 中, 更新
-      setValue((prev) => ({
-        ...prev,
-        addedTags: addedTags.map((tag) =>
-          tag.content === addedTag.content ? { ...tag, ...newTag } : tag
-        ),
-      }));
-      resetState();
-      return;
-    }
-
-    // 判断 removedTags 中是否包含
-    const [removedTag, newRemovedTags] = splitExistArray(
-      removedTags,
-      isContain(newTag)
-    );
-    if (removedTag) {
-      // 在 removedTags 中, 如果 id 有值, 则是服务端已存在的, 添加到 originTags 中, id 为 undefined, 则是本次新增, 放入 addedTags 中
-      if (removedTag.id) {
-        setValue((prev) => ({
-          ...prev,
-          removedTags: newRemovedTags,
-          originTags: originTags.concat({ ...removedTag, ...newTag }),
-        }));
-      } else {
-        setValue((prev) => ({
-          ...prev,
-          removedTags: newRemovedTags,
-          addedTags: addedTags.concat({ ...removedTag, ...newTag }),
-        }));
-      }
-
-      resetState();
-      return;
-    }
-
-    // 都不存在, 则为首次新增, 直接添加到 addedTags
-    setValue((prev) => ({
-      ...prev,
-      addedTags: addedTags.concat(newTag),
-    }));
-    resetState();
-    return;
+    setValue([...value]);
+    setTagValue("");
+    setTagColor("");
+    setVisible(false);
   };
 
   return (
-    <div className="tag-editor-container w-[100%] m-1">
-      <NeuDiv className="tags flex flex-wrap gap-1 m-1! mb-4!">
-        {[...originTags, ...updatedTags, ...addedTags].map((tag, index) => (
+    <NeuDiv className="tag-editor-container w-[100%] max-w-120 mx-0! p-0">
+      <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
+        {value.map((tag, index) => (
           <Tag
             key={tag.id + tag.content! + index}
             color={tag.color}
@@ -212,8 +83,8 @@ const TagEditor = ({
             {tag.content}
           </Tag>
         ))}
-      </NeuDiv>
-      <div className="tag-editor flex flex-wrap gap-1 justify-end">
+      </div>
+      <div className="tag-editor flex flex-wrap justify-end">
         {visible ? (
           <>
             <NeuInput
@@ -221,6 +92,7 @@ const TagEditor = ({
               className="font-medium!"
               inputSize="xs"
               value={tagValue}
+              ref={tagContentInput}
               onChange={(e) => setTagValue(e.target.value)}
             />
             <ColorPanel
@@ -248,13 +120,14 @@ const TagEditor = ({
             icon="add"
             onClick={() => {
               setVisible(true);
+              tagContentInput.current?.focus();
             }}
-          ></NeuButton>
+          />
         )}
       </div>
 
       {/* <Modal visible={visible} onClose={handleCancel} onOk={handleOk}></Modal> */}
-    </div>
+    </NeuDiv>
   );
 };
 

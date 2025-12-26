@@ -4,15 +4,18 @@ import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 import { checkUser } from "./userAction";
+import { TagData } from "@/components/TagEditor";
 
 export async function createBlog({
   title,
   content,
-  authorId = "",
+  authorId = testUserId,
+  tags = [],
 }: {
   title: string;
   content: string;
   authorId?: string;
+  tags?: TagData[];
 }) {
   try {
     const result = await checkUser(authorId);
@@ -20,11 +23,42 @@ export async function createBlog({
       return result;
     }
 
+    //检查所有 tags
+    const tagOperation = tags.map((tag) => {
+      return db.tag.upsert({
+        where: {
+          userId_content: {
+            userId: authorId,
+            content: tag.content,
+          },
+        },
+        update: {
+          color: tag.color,
+        },
+        create: {
+          userId: authorId,
+          content: tag.content,
+          color: tag.color,
+        },
+      });
+    });
+
+    const tagResult = await Promise.all(tagOperation);
+
     const res = await db.blog.create({
       data: {
         title,
         content,
-        authorId: authorId || testUserId,
+        authorId,
+        tags: {
+          create: tagResult.map((tag) => ({
+            assignedAt: new Date(),
+            assignedBy: authorId,
+            tag: {
+              connect: { id: tag.id },
+            },
+          })),
+        },
       },
     });
     return actionResponse.success({ blogId: res.id });
@@ -42,6 +76,11 @@ export async function getBlogById(blogId: number) {
       },
       include: {
         author: true,
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
       },
     });
     return { data: { blog: res }, error: false, message: "" };
@@ -54,9 +93,31 @@ export async function getBlogById(blogId: number) {
 
 export async function updateBlogById(
   blogId: number,
-  { title, content }: { title: string; content: string }
+  {
+    title,
+    content,
+    tags,
+    userId,
+  }: { title: string; content: string; tags: TagData[]; userId: string }
 ) {
   try {
+    const tagOperation = tags.map((tag) =>
+      db.tag.upsert({
+        where: {
+          content: tag.content,
+        },
+        update: {
+          color: tag.color,
+        },
+        create: {
+          content: tag.content,
+          color: tag.color,
+          userId,
+        },
+      })
+    );
+
+    const tagResult = await Promise.all(tagOperation);
     const res = await db.blog.update({
       where: {
         id: Number(blogId),
@@ -64,6 +125,18 @@ export async function updateBlogById(
       data: {
         title,
         content: content,
+        tags: {
+          deleteMany: {},
+          create: tagResult.map((item) => ({
+            assignedAt: new Date(),
+            assignedBy: userId,
+            tag: {
+              connect: {
+                id: item.id,
+              },
+            },
+          })),
+        },
       },
     });
     return actionResponse.success({ blogId: res.id });

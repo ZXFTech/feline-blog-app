@@ -105,17 +105,22 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
             <div className="flex flex-wrap items-center justify-between mb-3">
               {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
               <Tag className="ml-0">{blog.authorId.toString()}</Tag>
-              {/* {(postData.TagsOnBlog||[]).length && (
-          <ul className="flex flex-wrap gap-1 p-0 mx-0 my-3">
-            {postData.TagsOnBlog.map((tag) => {
-              return (
-                <Tag color={tag.color} key={tag.id}>
-                  {tag.name}
-                </Tag>
-              );
-            })}
-          </ul>
-        )} */}
+              {blog.tags.length ? (
+                <ul className="flex flex-wrap gap-1 p-0 mx-0 my-3">
+                  {blog.tags.map((item) => {
+                    return (
+                      <Tag
+                        color={item.tag.color}
+                        key={item.blogId + item.tagId}
+                      >
+                        {item.tag.content}
+                      </Tag>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <></>
+              )}
             </div>
             <div className="blog-content text-left flex-1 overflow-scroll hide-scrollbar h-[calc(100vh-20rem))]">
               <ReactMarkdown

@@ -6,6 +6,7 @@ import { createBlog } from "@/db/blogAction";
 import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
 import { useState, ChangeEventHandler } from "react";
+import TagEditor, { TagData } from "@/components/TagEditor";
 
 const New = () => {
   const router = useRouter();
@@ -15,10 +16,13 @@ const New = () => {
     content: "",
   });
 
+  const [tags, setTags] = useState<TagData[]>([]);
+
   const handleSubmit = async () => {
     const res = await createBlog({
       title: blogData.title.trim() ? blogData.title.trim() : "无标题",
       content: blogData.content,
+      tags,
     });
     if (res.error) {
       message.error("创建失败!" + res.message);
@@ -41,7 +45,7 @@ const New = () => {
     setBlogData((prev) => ({ ...prev, title: e.target.value }));
 
   return (
-    <Content>
+    <Content rightSideBar={<TagEditor value={tags} setValue={setTags} />}>
       <MarkdownEditor
         blogData={blogData}
         onContentChange={onContentChange}

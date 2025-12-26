@@ -28,14 +28,15 @@ model User {
 }
 
 model Blog {
-  id        Int      @id @default(autoincrement())
+  id        Int           @id @default(autoincrement())
   authorId  String
-  author    User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   title     String
-  content   String   @db.LongText
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  delete    Boolean  @default(false)
+  content   String        @db.LongText
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  delete    Boolean       @default(false)
+  tags      TagsOnBlogs[]
 }
 
 model Tag {
@@ -47,6 +48,7 @@ model Tag {
   userId    String
   user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   todos     TagsOnTodos[]
+  blogs     TagsOnBlogs[]
 
   @@unique([userId, content])
 }
@@ -73,4 +75,15 @@ model TagsOnTodos {
   assignedBy String
 
   @@id([todoId, tagId])
+}
+
+model TagsOnBlogs {
+  blog       Blog     @relation(fields: [blogId], references: [id])
+  blogId     Int
+  tag        Tag      @relation(fields: [tagId], references: [id])
+  tagId      Int
+  assignedAt DateTime @default(now())
+  assignedBy String
+
+  @@id([blogId, tagId])
 }

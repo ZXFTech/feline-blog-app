@@ -198,8 +198,6 @@ export async function getTodoList(
       };
     }
 
-    console.log("where", where);
-
     const res = await db.todo.findMany({
       where: where,
       include: {

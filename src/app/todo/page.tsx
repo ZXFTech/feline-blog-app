@@ -3,12 +3,13 @@
 import Content from "@/components/Content/content";
 import { message } from "@/lib/message";
 import TodoEditorBar from "@/components/Todo/TodoEditorBar";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import TodoDatePart from "@/components/Todo/TodoDatePart";
 import { TagTodo } from "@/types/todo";
-import Icon from "@/components/Icon/icon";
 import NeuButton from "@/components/NeuButton/neuButton";
 import { useSearchParams } from "next/navigation";
+import { TodoOperationBar } from "@/components/Todo/TodoOperationBar";
+import NeuDiv from "@/components/NeuDiv/NeuDiv";
 
 const TodoList = () => {
   const [todoList, setTodoList] = useState<{ [key: string]: TagTodo[] }>({});
@@ -23,7 +24,7 @@ const TodoList = () => {
   });
   const [panelVisible, setPanelVisible] = useState(false);
 
-  const getTodoList = async () => {
+  const getTodoList = useCallback(async () => {
     const res = await fetch(`/api/todo?${searchParams}`);
     const { data, error, message: errMessage } = await res.json();
     if (error) {
@@ -46,7 +47,7 @@ const TodoList = () => {
       }
     });
     setTodoList(sortedList);
-  };
+  }, [searchParams]);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -101,11 +102,17 @@ const TodoList = () => {
     <>
       <Content
         rightSideBar={
-          <NeuButton className="p-1!" onClick={() => setPanelVisible(true)}>
-            <Icon icon="note_add" size="3xl" />
-          </NeuButton>
+          <NeuDiv neuType="flat">
+            <NeuButton className="p-1!" onClick={() => setPanelVisible(true)}>
+              新建
+            </NeuButton>
+          </NeuDiv>
         }
       >
+        <TodoOperationBar
+          setPanelVisible={setPanelVisible}
+          refresh={getTodoList}
+        />
         <div className="w-full px-2">
           {Object.keys(todoList).map((key) => {
             return (

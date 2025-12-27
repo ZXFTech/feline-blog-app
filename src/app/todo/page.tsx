@@ -8,10 +8,13 @@ import TodoDatePart from "@/components/Todo/TodoDatePart";
 import { TagTodo } from "@/types/todo";
 import Icon from "@/components/Icon/icon";
 import NeuButton from "@/components/NeuButton/neuButton";
+import { useSearchParams } from "next/navigation";
 
 const TodoList = () => {
   const [todoList, setTodoList] = useState<{ [key: string]: TagTodo[] }>({});
   const [loading, setLoading] = useState(false);
+
+  const searchParams = useSearchParams().toString();
 
   // 编辑 todo 相关
   const [targetTodo, setTargetTodo] = useState<TagTodo>({
@@ -21,7 +24,7 @@ const TodoList = () => {
   const [panelVisible, setPanelVisible] = useState(false);
 
   const getTodoList = async () => {
-    const res = await fetch("/api/todo");
+    const res = await fetch(`/api/todo?${searchParams}`);
     const { data, error, message: errMessage } = await res.json();
     if (error) {
       return message.error(errMessage);
@@ -46,6 +49,7 @@ const TodoList = () => {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     getTodoList();
   }, []);
 

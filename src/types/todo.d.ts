@@ -11,3 +11,10 @@ export type TagTodo = {
   delete?: boolean;
   tags?: TagData[];
 };
+
+export interface TodoSearchParams {
+  content?: string | null;
+  orderBy?: "desc" | "asc";
+  finished?: boolean | null;
+  tags?: string | null;
+}

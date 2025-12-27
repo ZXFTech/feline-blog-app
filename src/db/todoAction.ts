@@ -3,6 +3,7 @@ import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 import { Tag, Todo } from "../../generated/prisma/client";
 import { checkUser } from "./userAction";
+import { TodoSearchParams } from "@/types/todo";
 
 export async function addTodo({
   content,
@@ -174,13 +175,33 @@ export async function deleteTodo(todoId: number) {
   }
 }
 
-export async function getTodoList(userId?: string) {
+export async function getTodoList(
+  searchParams?: TodoSearchParams,
+  userId?: string
+) {
   try {
+    const { finished, content, tags, orderBy } = searchParams || {};
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
+      userId: userId || testUserId,
+      delete: false,
+    };
+
+    if (finished !== null) {
+      where["finished"] = finished;
+    }
+
+    if (content && content.trim() !== "") {
+      where.content = {
+        contains: content,
+      };
+    }
+
+    console.log("where", where);
+
     const res = await db.todo.findMany({
-      where: {
-        userId: userId || testUserId,
-        delete: false,
-      },
+      where: where,
       include: {
         tags: {
           include: {
@@ -189,7 +210,7 @@ export async function getTodoList(userId?: string) {
         },
       },
       orderBy: {
-        createAt: "desc",
+        createAt: orderBy,
       },
     });
     return actionResponse.success({

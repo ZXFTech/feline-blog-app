@@ -2,9 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { addTodo, deleteTodo, getTodoList, updateTodo } from "@/db/todoAction";
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const searchParams = req.nextUrl.searchParams;
+
+  const orderBy = searchParams.get("orderBy") === "asc" ? "asc" : "desc";
+  const content = searchParams.get("content");
+  const finished = searchParams.get("finished")
+    ? Boolean(searchParams.get("finished"))
+    : null;
+
   // 获取所有 Todo
-  return NextResponse.json(await getTodoList());
+  return NextResponse.json(
+    await getTodoList({
+      orderBy,
+      content,
+      finished,
+    })
+  );
 }
 export async function POST(req: NextRequest) {
   // 创建新 Todo

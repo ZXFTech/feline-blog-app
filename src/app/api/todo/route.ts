@@ -8,7 +8,9 @@ export async function GET(req: NextRequest) {
   const orderBy = searchParams.get("orderBy") === "asc" ? "asc" : "desc";
   const content = searchParams.get("content");
   const finished = searchParams.get("finished")
-    ? Boolean(searchParams.get("finished"))
+    ? searchParams.get("finished") === "true"
+      ? true
+      : false
     : null;
 
   // 获取所有 Todo

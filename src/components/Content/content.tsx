@@ -24,7 +24,7 @@ const Content: FC<ContentProps> = ({
         {children}
       </div>
       {rightSideBar && (
-        <div className="hidden md:block w-[25%] h-[100vh] overflow-scroll hide-scrollbar pt-23 pb-10 px-4">
+        <div className="hidden md:block w-[25%] h-[100vh] overflow-scroll hide-scrollbar pt-19 pb-10 px-4">
           {rightSideBar}
         </div>
       )}

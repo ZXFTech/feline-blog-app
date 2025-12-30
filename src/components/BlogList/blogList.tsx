@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 import ListItem from "./listItem";
 import Link from "next/link";
-import { Blog, User } from "../../../generated/prisma";
+import { Blog, User } from "../../../generated/prisma/client";
 
 export interface pageBean {
   pageNum: number;

@@ -149,17 +149,29 @@ export async function updateBlogById(
 export async function getBlogList(
   pageNum: number,
   pageSize: number,
-  userId?: string
+  searchParams: {
+    content: string;
+    orderBy: "desc" | "asc";
+  },
+  userId = testUserId
 ) {
   try {
+    const where: any = {
+      authorId: userId,
+      delete: false,
+    };
+
+    if (searchParams.content) {
+      where.content = {
+        contains: searchParams.content,
+      };
+    }
+
     const [blogs, total] = await db.$transaction([
       db.blog.findMany({
-        where: {
-          authorId: userId || testUserId,
-          delete: false,
-        },
+        where,
         orderBy: {
-          createdAt: "desc",
+          createdAt: searchParams.orderBy,
         },
         include: {
           author: true,
@@ -168,7 +180,7 @@ export async function getBlogList(
         skip: (pageNum - 1) * pageSize,
       }),
       db.blog.count({
-        where: { authorId: userId || testUserId },
+        where: { authorId: userId },
       }),
     ]);
     return actionResponse.success({

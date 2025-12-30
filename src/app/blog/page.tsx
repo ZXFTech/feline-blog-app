@@ -1,25 +1,21 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import BlogList, { pageBean } from "@/components/BlogList/blogList";
-import NeuButton from "@/components/NeuButton/neuButton";
-import Link from "next/link";
 import Content from "@/components/Content/content";
 import { Blog as IBlog, User } from "../../../generated/prisma/client";
 import { ActionResponse } from "@/lib/response/ApiResponse";
 import { toast } from "@/components/ProMessage";
+import { useSearchParams } from "next/navigation";
+import { BlogOperationBar } from "@/components/BlogList/BlogOperationBar";
 
 export default function Blog() {
   const [blogs, setBlogs] = useState<(IBlog & { author: User })[]>([]);
 
-  const getBLogList = async () => {
-    const res = await fetch("/api/blog", {
-      method: "POST",
-      body: JSON.stringify({
-        pageNum: 1,
-        pageSize: 20,
-      }),
-    });
+  const searchParams = useSearchParams().toString();
+
+  const getBlogList = useCallback(async () => {
+    const res = await fetch("/api/blog" + `?${searchParams}`);
     const result = await res.json();
     const {
       error,
@@ -36,21 +32,17 @@ export default function Blog() {
       return;
     }
     setBlogs(data.blogs || []);
-  };
+  }, [searchParams]);
 
   useEffect(() => {
-    getBLogList();
-  }, []);
+    (() => {
+      getBlogList();
+    })();
+  }, [getBlogList, searchParams]);
 
   return (
     <Content>
-      <div className="top-panel mx-3 my-1 flex-row-reverse py-1 flex flex-wrap">
-        <Link href="/blog/new" className="hover:no-underline!">
-          <NeuButton icon="add_box" className="">
-            新建
-          </NeuButton>
-        </Link>
-      </div>
+      <BlogOperationBar />
       <BlogList dataSource={blogs} />
     </Content>
   );

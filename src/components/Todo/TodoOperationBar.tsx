@@ -83,7 +83,15 @@ export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
     >
       <div className="flex flex-row gap-2">
         <NeuInput onChange={(e) => debounceUpdate("content", e.target.value)} />
-        <NeuButton className="p-1!" onClick={switchOrderBy}>
+        <NeuButton
+          className="p-1!"
+          onClick={switchOrderBy}
+          icon={`${
+            pOrderBy === "desc"
+              ? "keyboard_double_arrow_up"
+              : "keyboard_double_arrow_down"
+          }`}
+        >
           <span className="font-medium tracking-wider">
             {pOrderBy === "desc" ? "按时间正序" : "按时间倒序"}
           </span>

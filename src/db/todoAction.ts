@@ -86,7 +86,6 @@ export async function updateTodo({
   tags?: Tag[];
 }) {
   try {
-    console.log("tags", tags);
     const data = {} as Todo;
     if (finished !== undefined) data.finished = finished;
     if (content !== undefined) data.content = content;

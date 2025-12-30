@@ -52,7 +52,7 @@ const TodoList = () => {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     getTodoList();
-  }, []);
+  }, [getTodoList]);
 
   const updateTodoById = async (todo: TagTodo) => {
     const res = await fetch("/api/todo", {

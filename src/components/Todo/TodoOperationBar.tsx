@@ -14,7 +14,6 @@ import NeuInput from "../NeuInput";
 import { debounce } from "@/utils/debounce ";
 
 interface TodoOperationBarProps {
-  setPanelVisible: Dispatch<SetStateAction<boolean>>;
   refresh: () => void;
 }
 
@@ -41,8 +40,9 @@ export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [orderBy, setOrderBy] = useState<boolean>(true);
-  const [todoStatus, setTodoStatus] = useState<string>("");
+  const params = new URLSearchParams(searchParams);
+  const pOrderBy = params.get("orderBy") || "desc";
+  const pTodoStatus = params.get("finished") || "";
 
   const updateSearchParams = useCallback(
     (key: keyof TodoSearchParams, value: string) => {
@@ -53,12 +53,9 @@ export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
       } else {
         params.delete(key);
       }
-
-      console.log("params", params.toString());
       router.replace(`${pathname}?${params}`);
-      refresh();
     },
-    [searchParams, router, pathname, refresh]
+    [searchParams, router, pathname]
   );
 
   const debounceUpdate = useMemo(
@@ -72,54 +69,41 @@ export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
   );
 
   const switchTodoStatus = (status: string) => {
-    setTodoStatus(status);
+    updateSearchParams("finished", status !== null ? status : "");
   };
 
   const switchOrderBy = () => {
-    setOrderBy((prev) => !prev);
+    updateSearchParams("orderBy", pOrderBy === "asc" ? "desc" : "asc");
   };
 
-  useEffect(() => {
-    updateSearchParams("orderBy", orderBy ? "desc" : "asc");
-  }, [orderBy, updateSearchParams]);
-
-  useEffect(() => {
-    updateSearchParams("finished", todoStatus !== null ? todoStatus : "");
-  }, [todoStatus, updateSearchParams]);
-
   return (
-    <div className="flex flex-col gap-4 mt-4 sticky right-0 left-0 top-0 z-100">
-      <NeuDiv
-        neuType="flat"
-        className="flex flex-row flex-wrap items-center justify-between"
-      >
-        <div className="flex flex-row gap-2">
-          <NeuInput
-            onChange={(e) => debounceUpdate("content", e.target.value)}
-          />
-          <NeuButton className="p-1!" onClick={switchOrderBy}>
-            <span className="font-medium tracking-wider">
-              {orderBy ? "升序" : "降序"}
-            </span>
+    <NeuDiv
+      neuType="flat"
+      className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100"
+    >
+      <div className="flex flex-row gap-2">
+        <NeuInput onChange={(e) => debounceUpdate("content", e.target.value)} />
+        <NeuButton className="p-1!" onClick={switchOrderBy}>
+          <span className="font-medium tracking-wider">
+            {pOrderBy === "desc" ? "按时间正序" : "按时间倒序"}
+          </span>
+        </NeuButton>
+      </div>
+      <NeuDiv neuType="flat" className="flex flex-row-reverse flex-wrap ">
+        {TODO_STATUS_BUTTON_LIST.map((item) => (
+          <NeuButton
+            buttonType={`${
+              pTodoStatus === item.status ? "primary" : "default"
+            }`}
+            key={item.id}
+            onClick={() => {
+              switchTodoStatus(item.status);
+            }}
+          >
+            <span className="font-medium tracking-wider">{item.label}</span>
           </NeuButton>
-        </div>
-        <NeuDiv neuType="flat" className="flex flex-row-reverse flex-wrap ">
-          {TODO_STATUS_BUTTON_LIST.map((item) => (
-            <NeuButton
-              buttonType={`${
-                todoStatus === item.status ? "primary" : "default"
-              }`}
-              key={item.id}
-              // className={`${
-              //   todoStatus === item.status ? "bg-cyan-500! text-white!" : ""
-              // }`}
-              onClick={() => switchTodoStatus(item.status)}
-            >
-              <span className="font-medium tracking-wider">{item.label}</span>
-            </NeuButton>
-          ))}
-        </NeuDiv>
+        ))}
       </NeuDiv>
-    </div>
+    </NeuDiv>
   );
 };

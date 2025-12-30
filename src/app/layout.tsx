@@ -18,8 +18,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NEONCAT",
-  description: "Neon cat blog",
+  title: "行者",
+  description: "道阻且长,行则将至。",
 };
 
 const routeList = ["home", "blog", "album", "contact", "todo"];

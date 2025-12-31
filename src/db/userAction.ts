@@ -4,17 +4,13 @@ import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 
-const checkUser = async (userId: string) => {
+const checkUser = async (identifier: "userId" | "email", payload: string) => {
   const user = await db.user.findFirst({
     where: {
-      id: userId || testUserId,
+      [identifier]: payload,
     },
   });
-  if (!user) {
-    logger.error("User does not exist!");
-    return actionResponse.error("User does not exist!");
-  }
-  return actionResponse.success();
+  return user;
 };
 
 export { checkUser };

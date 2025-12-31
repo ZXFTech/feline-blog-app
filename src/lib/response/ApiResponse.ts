@@ -1,17 +1,4 @@
-export class ApiResponse<T> {
-  constructor(
-    public error: boolean,
-    public data: T | null,
-    public message?: string
-  ) {}
-  static success<T>(data: T, message?: string) {
-    return new ApiResponse(false, data, message);
-  }
-
-  static error(message: string) {
-    return new ApiResponse(true, null, message);
-  }
-}
+import { NextResponse } from "next/server";
 
 export type ActionResponse<T = unknown> = {
   error: boolean;
@@ -20,19 +7,31 @@ export type ActionResponse<T = unknown> = {
 };
 
 export const actionResponse = {
-  error: (message: string): ActionResponse<null> => {
-    return {
-      error: true,
-      message,
-      data: null,
-    };
+  error: (
+    message: string,
+    status = 500
+  ): NextResponse<ActionResponse<null>> => {
+    return NextResponse.json(
+      {
+        error: true,
+        message,
+        data: null,
+      },
+      { status }
+    );
   },
 
-  success: <T = unknown>(data?: T): ActionResponse<T> => {
-    return {
-      error: false,
-      message: "",
-      data: data ?? null,
-    };
+  success: <T = unknown>(
+    data?: T,
+    status = 200
+  ): NextResponse<ActionResponse<T>> => {
+    return NextResponse.json(
+      {
+        error: false,
+        message: "",
+        data: data ?? null,
+      },
+      { status }
+    );
   },
 };

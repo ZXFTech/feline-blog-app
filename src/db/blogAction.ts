@@ -18,9 +18,9 @@ export async function createBlog({
   tags?: TagData[];
 }) {
   try {
-    const result = await checkUser(authorId);
-    if (result.error) {
-      return result;
+    const existingUser = await checkUser("userId", authorId);
+    if (!existingUser) {
+      return actionResponse.error("用户不存在!");
     }
 
     //检查所有 tags
@@ -156,6 +156,7 @@ export async function getBlogList(
   userId = testUserId
 ) {
   try {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
       authorId: userId,
       delete: false,

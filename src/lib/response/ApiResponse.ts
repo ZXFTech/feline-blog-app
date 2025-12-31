@@ -23,12 +23,13 @@ export const actionResponse = {
 
   success: <T = unknown>(
     data?: T,
+    message = "success",
     status = 200
   ): NextResponse<ActionResponse<T>> => {
     return NextResponse.json(
       {
         error: false,
-        message: "",
+        message,
         data: data ?? null,
       },
       { status }

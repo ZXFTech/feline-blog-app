@@ -8,7 +8,7 @@ export type ActionResponse<T = unknown> = {
 
 export const actionResponse = {
   error: (
-    message: string,
+    message = "服务器内部错误",
     status = 500
   ): NextResponse<ActionResponse<null>> => {
     return NextResponse.json(

@@ -15,7 +15,7 @@ export async function addTodo({
   tags?: Tag[];
 }) {
   try {
-    const existingUser = await checkUser("userId", userId);
+    const existingUser = await checkUser("id", userId);
     if (!existingUser) {
       return actionResponse.error("用户不存在!");
     }

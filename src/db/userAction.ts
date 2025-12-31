@@ -1,10 +1,8 @@
 "use server";
 
-import { actionResponse } from "@/lib/response/ApiResponse";
-import db, { testUserId } from "./client";
-import logger from "@/lib/logger/Logger";
+import db from "./client";
 
-const checkUser = async (identifier: "userId" | "email", payload: string) => {
+const checkUser = async (identifier: "id" | "email", payload: string) => {
   const user = await db.user.findFirst({
     where: {
       [identifier]: payload,

@@ -18,7 +18,7 @@ export async function createBlog({
   tags?: TagData[];
 }) {
   try {
-    const existingUser = await checkUser("userId", authorId);
+    const existingUser = await checkUser("id", authorId);
     if (!existingUser) {
       return actionResponse.error("用户不存在!");
     }

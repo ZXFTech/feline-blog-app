@@ -3,3 +3,11 @@
 .neu-input {
   @include neu.neu-debossed-normal;
 }
+
+.input-prefix,
+.input-suffix {
+  border-color: var(--neu-border-color);
+}
+.input-clear {
+  color: var(--neu-font-color);
+}

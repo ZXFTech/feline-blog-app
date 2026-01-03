@@ -1,50 +1,149 @@
-import { forwardRef, InputHTMLAttributes, TextareaHTMLAttributes } from "react";
-import { IconSize } from "../Icon/icon";
+import {
+  ChangeEvent,
+  forwardRef,
+  InputHTMLAttributes,
+  ReactNode,
+  TextareaHTMLAttributes,
+  useRef,
+  useState,
+} from "react";
+import Icon, { IconSize } from "../Icon/icon";
+import { composeRef } from "@/utils/composeRef";
+import NeuDiv from "../NeuDiv/NeuDiv";
+
+export const iconSizeMap = {
+  xs: "8",
+  sm: "12",
+  md: "16",
+  lg: "20",
+  xl: "24",
+  "2xl": "28",
+  "3xl": "32",
+};
 
 interface BaseNeuInputProps {
   inputSize: IconSize;
   loading?: boolean;
   textArea?: boolean;
+  prefix?: ReactNode;
+  suffix?: ReactNode;
+  search?: boolean;
+  onClear?: () => void;
+  allowClear?: boolean;
 }
 
 // 配置联合类型
-type InputProps = BaseNeuInputProps & InputHTMLAttributes<HTMLInputElement>;
+type InputProps = BaseNeuInputProps &
+  Omit<InputHTMLAttributes<HTMLInputElement>, "prefix" | "size">;
 type TextareaProps = BaseNeuInputProps &
-  TextareaHTMLAttributes<HTMLTextAreaElement>;
+  Omit<TextareaHTMLAttributes<HTMLTextAreaElement>, "prefix" | "size">;
 
 export type NeuInputProps = Partial<InputProps & TextareaProps>;
 
 const inputSizeMap = {
-  xs: "p-2 text-xs",
-  sm: "p-2 text-sm",
-  md: "p-2 text-base",
-  lg: "p-1 text-lg",
-  xl: "p-2 text-xl",
-  "2xl": "p-2 text-2xl",
-  "3xl": "p-2 text-3xl",
+  xs: { p: "1", font: "text-xs" },
+  sm: { p: "1", font: "text-sm" },
+  md: { p: "1", font: "text-base" },
+  lg: { p: "1", font: "text-lg" },
+  xl: { p: "1", font: "text-xl" },
+  "2xl": { p: "2", font: "text-2xl" },
+  "3xl": { p: "2", font: "text-2xl" },
 };
 
 const NeuInput = forwardRef<
   HTMLInputElement & HTMLTextAreaElement,
   NeuInputProps
->(({ className, textArea, inputSize = "md", ...restProps }, ref) => {
-  if (textArea) {
+>(
+  (
+    {
+      className = "",
+      textArea,
+      suffix,
+      prefix,
+      allowClear,
+      onClear,
+      onChange,
+      inputSize = "md",
+      defaultValue,
+
+      ...restProps
+    },
+    ref
+  ) => {
+    const [value, setValue] = useState(defaultValue);
+
+    const internalRef = useRef<HTMLInputElement>(null);
+    const mergedRef = composeRef(internalRef, ref);
+
+    const handleClear = (e: ChangeEvent<HTMLInputElement>) => {
+      setValue("");
+      internalRef.current?.focus();
+      onClear?.();
+      onChange?.(e);
+    };
+
+    if (textArea) {
+      return (
+        <textarea
+          ref={ref}
+          {...restProps}
+          className={`neu-input resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
+        />
+      );
+    }
     return (
-      <textarea
-        ref={ref}
-        {...restProps}
-        className={`neu-input p-3 resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
-      />
+      <NeuDiv
+        neuType="flat"
+        className={`p-0! rounded-lg flex items-stretch bg-black/3 rounded-lg disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
+      >
+        {prefix ? (
+          <div
+            className={`input-prefix p-${inputSizeMap[inputSize].p} ${inputSizeMap[inputSize].font} flex items-center`}
+          >
+            {prefix}
+          </div>
+        ) : null}
+        <NeuDiv
+          neuType="debossed"
+          intensity="sm"
+          className={`input-container relative flex items-center p-0! m-0! ${
+            prefix ? "rounded-l-none" : "rounded-l-lg"
+          } ${suffix ? "rounded-r-none" : "rounded-r-lg"}`}
+        >
+          <input
+            ref={mergedRef}
+            {...restProps}
+            className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none `}
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              onChange?.(e);
+            }}
+          />
+          {allowClear && value ? (
+            <Icon
+              icon="clear"
+              size="sm"
+              className="input-clear absolute! right-3 top-auto cursor-pointer rounded-full bg-stone-400 hover:bg-stone-300"
+              onClick={(e) =>
+                handleClear(e as unknown as ChangeEvent<HTMLInputElement>)
+              }
+            >
+              x
+            </Icon>
+          ) : null}
+        </NeuDiv>
+        {suffix ? (
+          <div
+            className={`input-suffix p-${inputSizeMap[inputSize].p} ${inputSizeMap[inputSize].font} flex items-center`}
+          >
+            {suffix}
+          </div>
+        ) : null}
+      </NeuDiv>
     );
   }
-  return (
-    <input
-      ref={ref}
-      {...restProps}
-      className={`neu-input bg-black/3 rounded-lg focus:bg-white/10 focus:outline-none block disabled:bg-gray-500/20 disabled:opacity-60 ${inputSizeMap[inputSize]} ${className}`}
-    />
-  );
-});
+);
 
 NeuInput.displayName = "NeuInput";
 

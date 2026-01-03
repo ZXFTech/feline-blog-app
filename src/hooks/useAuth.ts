@@ -40,6 +40,10 @@ export function useAuth() {
     }
   };
 
+  useEffect(() => {
+    checkAuth();
+  }, []);
+
   const login = async function (email: string, password: string) {
     try {
       const res = await fetch("/api/auth/login", {

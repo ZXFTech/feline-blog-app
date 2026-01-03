@@ -45,6 +45,10 @@
   @include neu.neu-debossed-normal;
 }
 
+.neu-debossed-sm {
+  @include neu.neu-debossed-sm;
+}
+
 .neu-recessed-normal {
   @include neu.neu-flat;
   &:hover {

@@ -36,6 +36,15 @@
   box-shadow: none;
 }
 
+@mixin neu-debossed-sm {
+  // font-size: 97%;
+  box-shadow: inset calc(var(--shadow-size-sm) * -1)
+      calc(var(--shadow-size-sm) * -1) var(--shadow-blur-sm)
+      var(--neu-light-shadow),
+    inset var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm)
+      var(--neu-dark-shadow);
+}
+
 @mixin neu-debossed-normal {
   // font-size: 97%;
   box-shadow: inset calc(var(--shadow-size-normal) * -1)

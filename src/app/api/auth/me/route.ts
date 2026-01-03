@@ -1,14 +1,12 @@
 import db from "@/db/client";
-import { checkUser } from "@/db/userAction";
 import { verifyToken } from "@/lib/jwt";
 import logger from "@/lib/logger/Logger";
 import { actionResponse } from "@/lib/response/ApiResponse";
-import bcrypt from "bcryptjs";
 import { NextRequest } from "next/server";
 
-export async function POST(request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
-    const token = await request.cookies.get("token")?.value;
+    const token = request.cookies.get("token")?.value;
 
     if (!token) {
       return actionResponse.success(null, "");

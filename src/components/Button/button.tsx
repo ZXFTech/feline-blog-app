@@ -56,7 +56,7 @@ const Button: FC<ButtonProps> = forwardRef<
   // 配置 classnames
   const configClassNames = classNames(
     "btn",
-    "flex items-center justify-start",
+    "flex items-center justify-baseline",
     `${children ? "gap-1" : "gap-0"}`,
     {
       [`btn-${buttonType}`]: buttonType,

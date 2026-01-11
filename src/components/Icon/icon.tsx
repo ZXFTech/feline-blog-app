@@ -53,7 +53,11 @@ const Icon: FC<IconProps> = (props) => {
   // 如果theme是primary，添加类 icon-primary
   const { className, theme, icon, size = "md", ...restProps } = props;
 
-  const classes = classnames("icon", "material-symbols-outlined", className);
+  const classes = classnames(
+    "neu-icon",
+    "material-symbols-outlined",
+    className
+  );
 
   const style = theme ? { color: themeColor[theme] } : {};
 

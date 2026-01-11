@@ -3,9 +3,6 @@
 
 .btn {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: baseline;
   font-weight: variables.$btn-font-weight;
   line-height: variables.$btn-line-height;
   color: var(--neu-font-color);

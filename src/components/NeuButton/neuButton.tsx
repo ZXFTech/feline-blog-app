@@ -2,6 +2,7 @@ import React, { FC } from "react";
 import Button, { ButtonProps } from "../Button/button";
 import classNames from "classnames";
 import { NeuIntensity, NeuButtonType } from "@/types";
+import Link from "next/link";
 // import { getElementColor, getStyleProperty } from "../../utils/theme";
 
 export interface NeuButtonProps extends ButtonProps {
@@ -16,6 +17,8 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
     intensity = "normal",
     className,
     buttonType,
+    children,
+    href = "",
     ...restProps
   } = props;
 
@@ -55,8 +58,19 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
 
   //   setCombineStyle(themeStyle);
   // }, [themeColorHex, props]);
+  if (buttonType === "link") {
+    return (
+      <Link className={className} href={href} {...restProps}>
+        {children}
+      </Link>
+    );
+  }
 
-  return <Button className={classnames} {...restProps} />;
+  return (
+    <Button className={classnames} {...restProps}>
+      {children}
+    </Button>
+  );
 };
 
 export default NeuButton;

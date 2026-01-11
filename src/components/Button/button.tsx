@@ -45,7 +45,6 @@ const Button: FC<ButtonProps> = forwardRef<
     className,
     disabled,
     btnSize = "md",
-    href,
     children,
     loading,
     icon,
@@ -56,7 +55,7 @@ const Button: FC<ButtonProps> = forwardRef<
   // 配置 classnames
   const configClassNames = classNames(
     "btn",
-    "flex items-center justify-baseline",
+    "inline-flex items-center justify-center",
     `${children ? "gap-1" : "gap-0"}`,
     {
       [`btn-${buttonType}`]: buttonType,
@@ -67,19 +66,11 @@ const Button: FC<ButtonProps> = forwardRef<
     className
   );
 
-  if (buttonType === "link") {
-    return (
-      <a className={configClassNames} href={href} {...restProps}>
-        {children}
-      </a>
-    );
-  }
-
   return (
     <button ref={ref} className={configClassNames} {...restProps}>
       {loading && <IconSpinner size={btnSize} className="btn-loading" />}
       {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
-      <span className="break-all text-left">{children}</span>
+      <span className="text-center">{children}</span>
     </button>
   );
 });

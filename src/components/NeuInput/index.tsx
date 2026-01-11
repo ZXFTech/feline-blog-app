@@ -94,7 +94,7 @@ const NeuInput = forwardRef<
     return (
       <NeuDiv
         neuType="flat"
-        className={`p-0! rounded-lg flex items-stretch w-fit bg-black/3 rounded-lg disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
+        className={`p-0! rounded-lg flex items-stretch bg-black/3 rounded-lg ${className}`}
       >
         {prefix ? (
           <div
@@ -107,14 +107,14 @@ const NeuInput = forwardRef<
         <NeuDiv
           neuType="debossed"
           intensity="sm"
-          className={`input-container relative flex items-center p-1! m-0! ${
+          className={`input-container relative flex items-stretch grow-1 p-1! m-0! ${
             prefix ? "rounded-l-none" : "rounded-l-lg"
           } ${suffix ? "rounded-r-none" : "rounded-r-lg"}`}
         >
           <input
             ref={mergedRef}
             {...restProps}
-            className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none `}
+            className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none disabled:bg-gray-500/20 disabled:opacity-60 grow-1`}
             value={value}
             onChange={(e) => {
               setValue(e.target.value);

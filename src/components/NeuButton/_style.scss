@@ -6,8 +6,6 @@
 .btn-embossed-normal {
   box-sizing: content-box;
   background-color: var(--theme-customize-color);
-  margin: 0.3rem;
-  padding: 0.3rem;
   @include neu.neu-embossed-normal;
   // transition: box-shadow 0.1s;
   &:active,

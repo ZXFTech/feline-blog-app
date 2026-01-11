@@ -19,10 +19,15 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
     ...restProps
   } = props;
 
-  const classnames = classNames("neu-btn", className, {
-    [`btn-${neuType}-${intensity}`]: neuType && intensity,
-    [`neu-btn-${buttonType}`]: buttonType,
-  });
+  const classnames = classNames(
+    "neu-btn",
+    "m-1",
+    {
+      [`btn-${neuType}-${intensity}`]: neuType && intensity,
+      [`neu-btn-${buttonType}`]: buttonType,
+    },
+    className
+  );
 
   // const [combineStyle, setCombineStyle] = useState<React.CSSProperties>({});
   // useEffect(() => {

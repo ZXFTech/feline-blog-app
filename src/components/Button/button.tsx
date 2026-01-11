@@ -79,7 +79,7 @@ const Button: FC<ButtonProps> = forwardRef<
     <button ref={ref} className={configClassNames} {...restProps}>
       {loading && <IconSpinner size={btnSize} className="btn-loading" />}
       {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
-      <span className="break-all text-wrap text-left">{children}</span>
+      <span className="break-all text-left">{children}</span>
     </button>
   );
 });

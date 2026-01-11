@@ -94,11 +94,12 @@ const NeuInput = forwardRef<
     return (
       <NeuDiv
         neuType="flat"
-        className={`p-0! rounded-lg flex items-stretch bg-black/3 rounded-lg disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
+        className={`p-0! rounded-lg flex items-stretch w-fit bg-black/3 rounded-lg disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
       >
         {prefix ? (
           <div
             className={`input-prefix p-${inputSizeMap[inputSize].p} ${inputSizeMap[inputSize].font} flex items-center`}
+            onClick={() => internalRef?.current?.focus()}
           >
             {prefix}
           </div>
@@ -106,7 +107,7 @@ const NeuInput = forwardRef<
         <NeuDiv
           neuType="debossed"
           intensity="sm"
-          className={`input-container relative flex items-center p-0! m-0! ${
+          className={`input-container relative flex items-center p-1! m-0! ${
             prefix ? "rounded-l-none" : "rounded-l-lg"
           } ${suffix ? "rounded-r-none" : "rounded-r-lg"}`}
         >

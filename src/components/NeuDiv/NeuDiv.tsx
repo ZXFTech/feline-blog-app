@@ -23,7 +23,7 @@ const NeuDiv: FC<NeuContainerProps> = forwardRef<
     "neu-div",
     {
       [`neu-${neuType}-${intensity}`]: neuType && intensity,
-      "m-4 p-1": neuType === "embossed",
+      "p-1": neuType === "embossed",
     },
     className
   );

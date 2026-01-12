@@ -86,8 +86,7 @@ export async function getBlogById(blogId: number) {
         },
       },
     });
-    return { data: { blog: res }, error: false, message: "" };
-    // return actionResponse.success({ blog: res });
+    return { blog: res };
   } catch (err) {
     logger.error("Find blog failed!", err);
     throw "Find blog failed!" + err;

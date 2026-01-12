@@ -25,13 +25,9 @@ import Loading from "@/app/loading";
 
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
-  const { data, error, message: errMessage } = await getBlogById(id);
+  const { blog } = await getBlogById(id);
 
-  if (error) {
-    message.error(errMessage!);
-  }
-
-  if (!data || !data.blog) {
+  if (!blog) {
     return (
       <div className="blog-empty-content">
         <NeuDiv className="blog-empty-title">
@@ -52,8 +48,6 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
       </div>
     );
   }
-
-  const { blog } = data;
 
   // // 最大重试次数
   // const MAX_RETRY = 3;
@@ -104,7 +98,7 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
             <h1>{blog.title}</h1>
             <div className="flex flex-wrap items-center justify-between mb-3">
               {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
-              <Tag className="ml-0">{blog.authorId.toString()}</Tag>
+              <Tag className="ml-0">{blog.author.username.toString()}</Tag>
               {blog.tags.length ? (
                 <ul className="flex flex-wrap gap-1 p-0 mx-0 my-3">
                   {blog.tags.map((item) => {

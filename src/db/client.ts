@@ -20,4 +20,4 @@ if (process.env.NODE_ENV !== "production") {
   globalForDB.db = db;
 }
 
-export const testUserId = "test-user";
+export const testUserId = "cmkarwq5v0003b47kn18mszur";

@@ -6,6 +6,7 @@ import Navbar from "@/components/Navbar/navbar";
 import Footer from "@/components/Footer/footer";
 import Head from "next/head";
 import { Toaster } from "@/components/ProMessage";
+import AuthProviders from "@/providers/AuthProviders";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,10 +38,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased neu-light body-content`}
       >
-        <Toaster richColors visibleToasts={5} />
-        <Navbar routeList={routeList} />
-        {children}
-        <Footer />
+        <AuthProviders>
+          <Navbar routeList={routeList} />
+          <Toaster richColors visibleToasts={5} />
+          {children}
+          <Footer />
+        </AuthProviders>
       </body>
     </html>
   );

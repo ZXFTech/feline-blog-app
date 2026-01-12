@@ -3,28 +3,20 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import logger from "@/lib/logger/Logger";
-
-interface User {
-  id: string;
-  email: string;
-  name: string | null;
-  role: string;
-  image: string;
-}
+import { useCtxAuth } from "@/providers/AuthProviders";
 
 export function useAuth() {
-  const [user, setUser] = useState<User | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
 
   const router = useRouter();
+  const { setUser, user } = useCtxAuth();
 
   const checkAuth = async function () {
     try {
       const res = await fetch("/api/auth/me");
 
-      const data = await res.json();
-
       if (res.ok) {
+        const { data } = await res.json();
         setUser(data.user);
       } else {
         setUser(null);
@@ -49,7 +41,7 @@ export function useAuth() {
         body: JSON.stringify({ email, password }),
       });
 
-      const data = await res.json();
+      const { data } = await res.json();
       if (res.ok) {
         setUser(data.user);
         return { success: true };
@@ -77,7 +69,7 @@ export function useAuth() {
           password,
         }),
       });
-      const data = await res.json();
+      const { data } = await res.json();
 
       if (res.ok) {
         setUser(data.user);
@@ -110,7 +102,7 @@ export function useAuth() {
     login,
     register,
     logout,
-    isAuthenticated: !user,
+    isAuthenticated: !!user,
     isAdmin: user?.role === "ADMIN",
     isRoot: user?.role === "ROOT",
   };

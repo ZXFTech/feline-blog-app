@@ -36,12 +36,12 @@ export async function POST(request: NextRequest) {
         user: {
           id: user.id,
           email: user.email,
-          name: user.username,
+          username: user.username,
           role: user.role,
+          avatar: user.avatar,
         },
       },
-      "登录成功",
-      200
+      "登录成功"
     );
 
     const isProd = process.env.NODE_ENV === "production";

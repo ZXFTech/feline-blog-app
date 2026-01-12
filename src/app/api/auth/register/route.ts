@@ -56,6 +56,7 @@ export async function POST(req: NextRequest) {
           email: user.email,
           username: user.username,
           role: user.role,
+          avatar: user.avatar,
         },
       },
       "注册成功"

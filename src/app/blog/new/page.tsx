@@ -1,57 +1,17 @@
-"use client";
-
 import Content from "@/components/Content/content";
-import MarkdownEditor from "@/components/MarkdownEditor/markdownEditor";
-import { createBlog } from "@/db/blogAction";
-import { toast as message } from "@/components/ProMessage";
-import { useRouter } from "next/navigation";
-import { useState, ChangeEventHandler } from "react";
-import TagEditor, { TagData } from "@/components/TagEditor";
+import { redirect } from "next/navigation";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import BlogEditor from "./BlogEditor";
 
-const New = () => {
-  const router = useRouter();
-  // blog state
-  const [blogData, setBlogData] = useState({
-    title: "",
-    content: "",
-  });
-
-  const [tags, setTags] = useState<TagData[]>([]);
-
-  const handleSubmit = async () => {
-    const res = await createBlog({
-      title: blogData.title.trim() ? blogData.title.trim() : "无标题",
-      content: blogData.content,
-      tags,
-    });
-    if (res.error) {
-      message.error("创建失败!" + res.message);
-      return;
-    }
-    message.success("创建成功!");
-    setBlogData({
-      title: "",
-      content: "",
-    });
-    router.push(`/blog/${res.data?.blogId}`);
-  };
-
-  const onContentChange: ChangeEventHandler<HTMLTextAreaElement> = (value) =>
-    setBlogData((prev) => ({
-      ...prev,
-      content: value.target.value.replaceAll(/(?<!\s\s)\n/g, "  \n"),
-    }));
-  const onTitleChange: ChangeEventHandler<HTMLInputElement> = (e) =>
-    setBlogData((prev) => ({ ...prev, title: e.target.value }));
+const New = async () => {
+  const user = await getCurrentUser();
+  if (!user) {
+    redirect("/login");
+  }
 
   return (
-    <Content rightSideBar={<TagEditor value={tags} setValue={setTags} />}>
-      <MarkdownEditor
-        blogData={blogData}
-        onContentChange={onContentChange}
-        onTitleChange={onTitleChange}
-        handleSubmit={handleSubmit}
-      />
+    <Content>
+      <BlogEditor />
     </Content>
   );
 };

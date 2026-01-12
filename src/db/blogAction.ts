@@ -95,14 +95,18 @@ export async function getBlogById(blogId: number) {
 
 export async function updateBlogById(
   blogId: number,
-  {
-    title,
-    content,
-    tags,
-    userId,
-  }: { title: string; content: string; tags: TagData[]; userId: string }
+  { title, content, tags }: { title: string; content: string; tags: TagData[] }
 ) {
   try {
+    const existingUser = await getCurrentUser();
+    if (!existingUser) {
+      throw "用户不存在!";
+    }
+
+    if (existingUser.role !== Role.ROOT) {
+      throw "无权限!";
+    }
+    const authorId = existingUser.id;
     const tagOperation = tags.map((tag) =>
       db.tag.upsert({
         where: {
@@ -114,7 +118,7 @@ export async function updateBlogById(
         create: {
           content: tag.content,
           color: tag.color,
-          userId,
+          userId: authorId,
         },
       })
     );
@@ -131,7 +135,7 @@ export async function updateBlogById(
           deleteMany: {},
           create: tagResult.map((item) => ({
             assignedAt: new Date(),
-            assignedBy: userId,
+            assignedBy: authorId,
             tag: {
               connect: {
                 id: item.id,

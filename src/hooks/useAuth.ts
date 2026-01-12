@@ -3,9 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import logger from "@/lib/logger/Logger";
-import bcrypt from "bcryptjs";
-import { error } from "console";
-import { toast } from "@/components/ProMessage";
 
 interface User {
   id: string;
@@ -17,7 +14,7 @@ interface User {
 
 export function useAuth() {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
 
   const router = useRouter();
 
@@ -36,7 +33,7 @@ export function useAuth() {
       logger.error("认证检查失败:", error);
       setUser(null);
     } finally {
-      setLoading(false);
+      setAuthLoading(false);
     }
   };
 
@@ -57,11 +54,11 @@ export function useAuth() {
         setUser(data.user);
         return { success: true };
       } else {
-        return { success: false, data: false };
+        return { success: false, message: data.message };
       }
     } catch (error) {
       logger.error("网络错误.", error);
-      return { success: false, error: "网络错误" };
+      return { success: false, message: "网络错误" };
     }
   };
 
@@ -81,16 +78,17 @@ export function useAuth() {
         }),
       });
       const data = await res.json();
+
       if (res.ok) {
         setUser(data.user);
         return { success: true };
       } else {
         setUser(null);
-        return { success: false, error: data.error };
+        return { success: false, message: data.message };
       }
     } catch (error) {
       logger.error("网络错误,", error);
-      return { success: false, error: "网络错误" };
+      return { success: false, message: "网络错误" };
     }
   };
 
@@ -108,7 +106,7 @@ export function useAuth() {
 
   return {
     user,
-    loading,
+    authLoading,
     login,
     register,
     logout,

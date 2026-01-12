@@ -153,7 +153,7 @@ export async function getBlogList(
     content: string;
     orderBy: "desc" | "asc";
   },
-  userId = testUserId
+  userId = "cmkarwq5v0003b47kn18mszur" // 仅查询个人的
 ) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

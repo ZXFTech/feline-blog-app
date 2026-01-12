@@ -64,7 +64,8 @@ const NeuInput = forwardRef<
       onClear,
       onChange,
       inputSize = "md",
-      value = "",
+      value,
+      defaultValue,
       ...restProps
     },
     ref
@@ -111,7 +112,7 @@ const NeuInput = forwardRef<
             ref={mergedRef}
             {...restProps}
             className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none disabled:bg-gray-500/20 disabled:opacity-60 grow-1`}
-            value={value}
+            value={value || defaultValue || ""}
             onChange={(e) => {
               onChange?.(e);
             }}

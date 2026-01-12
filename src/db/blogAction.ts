@@ -1,27 +1,30 @@
 "use server";
 
-import { actionResponse } from "@/lib/response/ApiResponse";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
-import { checkUser } from "./userAction";
 import { TagData } from "@/components/TagEditor";
+import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { Role } from "../../generated/prisma/enums";
 
 export async function createBlog({
   title,
   content,
-  authorId = testUserId,
   tags = [],
 }: {
   title: string;
   content: string;
-  authorId?: string;
   tags?: TagData[];
 }) {
   try {
-    const existingUser = await checkUser("id", authorId);
+    const existingUser = await getCurrentUser();
     if (!existingUser) {
-      return actionResponse.error("用户不存在!");
+      throw "用户不存在!";
     }
+
+    if (existingUser.role !== Role.ROOT) {
+      throw "无权限!";
+    }
+    const authorId = existingUser.id;
 
     //检查所有 tags
     const tagOperation = tags.map((tag) => {
@@ -61,10 +64,10 @@ export async function createBlog({
         },
       },
     });
-    return actionResponse.success({ blogId: res.id });
+    return { blogId: res.id };
   } catch (err) {
     logger.error("Create blog failed!", err);
-    return actionResponse.error("Create blog failed!" + err);
+    throw "Create blog failed!" + err;
   }
 }
 
@@ -87,7 +90,7 @@ export async function getBlogById(blogId: number) {
     // return actionResponse.success({ blog: res });
   } catch (err) {
     logger.error("Find blog failed!", err);
-    return actionResponse.error("Find blog failed!" + err);
+    throw "Find blog failed!" + err;
   }
 }
 
@@ -139,10 +142,10 @@ export async function updateBlogById(
         },
       },
     });
-    return actionResponse.success({ blogId: res.id });
+    return { blogId: res.id };
   } catch (err) {
     logger.error("Update blog failed!", err);
-    return actionResponse.error("Update blog failed!" + err);
+    throw "Update blog failed!" + err;
   }
 }
 
@@ -150,10 +153,10 @@ export async function getBlogList(
   pageNum: number,
   pageSize: number,
   searchParams: {
-    content: string;
+    content?: string;
     orderBy: "desc" | "asc";
   },
-  userId = "cmkarwq5v0003b47kn18mszur" // 仅查询个人的
+  userId = testUserId // 仅查询个人的
 ) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -184,13 +187,13 @@ export async function getBlogList(
         where: { authorId: userId },
       }),
     ]);
-    return actionResponse.success({
+    return {
       blogs: blogs,
       pageBean: { pageNum, pageSize },
       total,
-    });
+    };
   } catch (err) {
     logger.error("err", err);
-    return actionResponse.error("Query blog list failed!" + err);
+    throw "Query blog list failed!" + err;
   }
 }

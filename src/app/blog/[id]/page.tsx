@@ -1,14 +1,10 @@
 "use server";
 
 import Head from "next/head";
-
 import NeuDiv from "@/components/NeuDiv/NeuDiv";
 import Tag from "@/components/Tag/tag";
-
 import { CodeBlock } from "@/components/NotionBlock/notionBlock";
-
 import Image from "next/image";
-
 import { getBlogById } from "@/db/blogAction";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -18,16 +14,14 @@ import { message } from "@/lib/message";
 import { Suspense } from "react";
 import Loading from "@/app/loading";
 
-// export async function getStaticProps({ params }: { params: { id: number } }) {
-//   const postData = await getBlogById(params.id);
-//   console.log("postData", postData);
-// }
-
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
   const { blog } = await getBlogById(id);
 
   if (!blog) {
+    message.error("未找到博客");
+    // 暂时这么写 后续跳转到 404
+    // redirect("/blog");
     return (
       <div className="blog-empty-content">
         <NeuDiv className="blog-empty-title">
@@ -37,7 +31,7 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
           <div>
             <Image
               layout="responsive"
-              src="/img/myCat.jpg"
+              src="/myCat.jpg"
               alt="my cat"
               width={100}
               height={100}
@@ -48,41 +42,6 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
       </div>
     );
   }
-
-  // // 最大重试次数
-  // const MAX_RETRY = 3;
-
-  // // 封装带重试的上传函数
-  // const uploadWithRetry = async ({
-  //   formData,
-  //   index,
-  //   chunkName,
-  //   retryCount,
-  // }) => {
-  //   try {
-  //     // 请求逻辑 ...
-  //   } catch (error) {
-  //     if (retryCount < MAX_RETRY) {
-  //       console.warn(
-  //         `切片 ${chunkName} 上传失败，第 ${retryCount + 1} 次重试...`
-  //       );
-  //       return uploadWithRetry({
-  //         formData,
-  //         index,
-  //         chunkName,
-  //         retryCount: retryCount + 1,
-  //       });
-  //     } else {
-  //       console.error(`切片 ${chunkName} 上传失败，已达最大重试次数`);
-  //       return { success: false, index, error };
-  //     }
-  //   }
-  // };
-
-  // // 执行所有上传（并行）
-  // const results = await Promise.all(
-  //   formChunks.map((item) => uploadWithRetry(item))
-  // );
 
   return (
     <Content rightSideBar={<BlogEditBar blogId={id} />}>

@@ -58,17 +58,23 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
 
   //   setCombineStyle(themeStyle);
   // }, [themeColorHex, props]);
-  if (buttonType === "link") {
-    return (
-      <Link className={className} href={href} {...restProps}>
-        {children}
-      </Link>
-    );
-  }
+  // if (buttonType === "link") {
+  //   return (
+  //     <Link className={className} href={href} {...restProps}>
+  //       {children}
+  //     </Link>
+  //   );
+  // }
 
   return (
     <Button className={classnames} {...restProps}>
-      {children}
+      {buttonType === "link" ? (
+        <Link className="neu-btn-inner-link" href={href} {...restProps}>
+          {children}
+        </Link>
+      ) : (
+        children
+      )}
     </Button>
   );
 };

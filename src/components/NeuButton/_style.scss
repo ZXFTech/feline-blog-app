@@ -55,6 +55,11 @@
   );
 }
 
-.neu-btn-link {
-  text-decoration: underline;
+.neu-btn-inner-link {
+  text-decoration: none;
+  color: inherit;
+
+  &:hover {
+    color: inherit;
+  }
 }

@@ -73,8 +73,24 @@ const NeuInput = forwardRef<
     const internalRef = useRef<HTMLInputElement>(null);
     const mergedRef = composeRef(internalRef, ref);
 
+    const isControlled = value !== undefined;
+    const [innerValue, setInnerValue] = useState(defaultValue ?? "");
+    const mergedValue = isControlled ? value : innerValue;
+
+    const handleChange = (
+      e: ChangeEvent<HTMLInputElement> & ChangeEvent<HTMLTextAreaElement>
+    ) => {
+      if (!isControlled) {
+        setInnerValue(e.target.value);
+      }
+      onChange?.(e);
+    };
+
     const handleClear = (e: ChangeEvent<HTMLInputElement>) => {
       internalRef.current?.focus();
+      if (!isControlled) {
+        setInnerValue("");
+      }
       onClear?.();
       onChange?.(e);
     };
@@ -82,10 +98,8 @@ const NeuInput = forwardRef<
     if (textArea) {
       return (
         <textarea
-          value={value || defaultValue || ""}
-          onChange={(e) => {
-            onChange?.(e);
-          }}
+          value={mergedValue}
+          onChange={handleChange}
           ref={ref}
           {...restProps}
           className={`neu-input resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}
@@ -116,12 +130,10 @@ const NeuInput = forwardRef<
             ref={mergedRef}
             {...restProps}
             className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none disabled:bg-gray-500/20 disabled:opacity-60 grow-1`}
-            value={value || defaultValue || ""}
-            onChange={(e) => {
-              onChange?.(e);
-            }}
+            value={mergedValue}
+            onChange={handleChange}
           />
-          {allowClear && value ? (
+          {allowClear && mergedValue ? (
             <Icon
               icon="clear"
               size="sm"

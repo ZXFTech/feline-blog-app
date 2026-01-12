@@ -90,16 +90,13 @@ export default function Register() {
         return;
       }
       setLoading(true);
-      console.log("email", email);
-      console.log("password", password);
       const result = await register(email, password, username);
-      console.log("result", result);
       if (!result.success) {
         message.error(result.message || "注册失败.");
         return;
       } else {
         message.success("注册成功!");
-        router.refresh();
+        router.push("/");
       }
     } catch (error) {
       message.error("出错了," + error);

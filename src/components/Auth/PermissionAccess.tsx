@@ -10,24 +10,11 @@ interface Props {
 export const PermissionAccess = ({
   children,
   allowedRoles,
-  fallbacks,
+  fallbacks = null,
 }: Props) => {
-  const { authLoading, user } = useAuth();
+  const { user } = useAuth();
 
-  if (authLoading) {
-    return (
-      <div className="flex items-center justify-center ">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (
-    !authLoading &&
-    !user &&
-    allowedRoles?.length &&
-    allowedRoles.includes(user!.role)
-  ) {
+  if (!user || (allowedRoles?.length && allowedRoles.includes(user!.role))) {
     return <>{fallbacks}</>;
   }
 

@@ -82,6 +82,10 @@ const NeuInput = forwardRef<
     if (textArea) {
       return (
         <textarea
+          value={value || defaultValue || ""}
+          onChange={(e) => {
+            onChange?.(e);
+          }}
           ref={ref}
           {...restProps}
           className={`neu-input resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60 ${className}`}

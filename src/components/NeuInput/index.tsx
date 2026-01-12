@@ -64,19 +64,15 @@ const NeuInput = forwardRef<
       onClear,
       onChange,
       inputSize = "md",
-      defaultValue,
-
+      value = "",
       ...restProps
     },
     ref
   ) => {
-    const [value, setValue] = useState(defaultValue);
-
     const internalRef = useRef<HTMLInputElement>(null);
     const mergedRef = composeRef(internalRef, ref);
 
     const handleClear = (e: ChangeEvent<HTMLInputElement>) => {
-      setValue("");
       internalRef.current?.focus();
       onClear?.();
       onChange?.(e);
@@ -117,7 +113,6 @@ const NeuInput = forwardRef<
             className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none disabled:bg-gray-500/20 disabled:opacity-60 grow-1`}
             value={value}
             onChange={(e) => {
-              setValue(e.target.value);
               onChange?.(e);
             }}
           />

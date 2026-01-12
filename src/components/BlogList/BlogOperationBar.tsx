@@ -1,16 +1,17 @@
+"use client";
+
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import NeuButton from "../NeuButton/neuButton";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import NeuInput from "../NeuInput";
 import { debounce } from "@/utils/debounce ";
-import Link from "next/link";
+import { PermissionAccess } from "../Auth/PermissionAccess";
 
 export const BlogOperationBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-
   const orderBy = searchParams.get("orderBy") || "desc";
 
   const updateSearchParams = useCallback(
@@ -68,9 +69,11 @@ export const BlogOperationBar = () => {
             </span>
           </NeuButton>
           {/* <Link href="/blog/new" className="hover:no-underline!"> */}
-          <NeuButton icon="add_box" onClick={() => router.push("/blog/new")}>
-            <span className="font-medium tracking-wider">新建</span>
-          </NeuButton>
+          <PermissionAccess>
+            <NeuButton icon="add_box" onClick={() => router.push("/blog/new")}>
+              <span className="font-medium tracking-wider">新建</span>
+            </NeuButton>
+          </PermissionAccess>
           {/* </Link> */}
         </div>
       </NeuDiv>

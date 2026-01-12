@@ -8,9 +8,9 @@ import logger from "@/lib/logger/Logger";
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name } = await req.json();
+    const { email, password, username } = await req.json();
 
-    if (!email || !password || !name) {
+    if (!email || !password || !username) {
       return actionResponse.error("请填写所有必填字段", 400);
     }
 
@@ -38,7 +38,7 @@ export async function POST(req: NextRequest) {
       data: {
         email,
         password: hashedPassword,
-        username: name,
+        username,
         role: "USER",
       },
     });

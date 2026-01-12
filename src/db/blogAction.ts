@@ -3,7 +3,7 @@
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 import { TagData } from "@/components/TagEditor";
-import { getCurrentUser } from "@/lib/auth/getCurrentUser";
+import { getCurrentUser } from "@/lib/auth/userAuth";
 import { Role } from "../../generated/prisma/enums";
 
 export async function createBlog({

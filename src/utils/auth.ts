@@ -1,8 +1,4 @@
-import { checkUser } from "@/db/userAction";
-import { verifyToken } from "@/lib/jwt";
-import logger from "@/lib/logger/Logger";
 import bcrypt from "bcryptjs";
-import { cookies } from "next/headers";
 
 export async function hashPassword(password: string): Promise<string> {
   const salt = await bcrypt.genSalt(12);
@@ -46,70 +42,47 @@ export function validatePassword(password: string): {
   };
 }
 
-export async function getCurrentUser() {
-  try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+// export async function requireAuth(handler: CallableFunction) {
+//   return async function (context: unknown) {
+//     const user = await getCurrentUser();
 
-    if (!token) {
-      return null;
-    }
+//     if (!user) {
+//       return {
+//         redirect: {
+//           destination: "/login",
+//           permanent: false,
+//         },
+//       };
+//     }
 
-    const decoded = verifyToken(token);
-    if (!decoded) {
-      return null;
-    }
+//     return handler(context, user);
+//   };
+// }
 
-    const user = await checkUser("id", decoded.userId);
+// export function requireRole(roles: string[]) {
+//   return function (handler: CallableFunction) {
+//     return async function (context: unknown) {
+//       const user = await getCurrentUser();
 
-    return user;
-  } catch (error) {
-    logger.error("获取当前用户错误:", error);
-    return null;
-  }
-}
+//       if (!user) {
+//         return {
+//           redirect: {
+//             destination: "/login",
+//             permanent: false,
+//           },
+//         };
+//       }
 
-export async function requireAuth(handler: CallableFunction) {
-  return async function (context: unknown) {
-    const user = await getCurrentUser();
+//       if (!roles.includes(user.role)) {
+//         return {
+//           redirect: {
+//             destination: "/unauthorized",
+//             permanent: false,
+//           },
+//         };
+//       }
 
-    if (!user) {
-      return {
-        redirect: {
-          destination: "/login",
-          permanent: false,
-        },
-      };
-    }
-
-    return handler(context, user);
-  };
-}
-
-export function requireRole(roles: string[]) {
-  return function (handler: CallableFunction) {
-    return async function (context: unknown) {
-      const user = await getCurrentUser();
-
-      if (!user) {
-        return {
-          redirect: {
-            destination: "/login",
-            permanent: false,
-          },
-        };
-      }
-
-      if (!roles.includes(user.role)) {
-        return {
-          redirect: {
-            destination: "/unauthorized",
-            permanent: false,
-          },
-        };
-      }
-
-      return handler(context, user);
-    };
-  };
-}
+//       return handler(context, user);
+//     };
+//   };
+// }

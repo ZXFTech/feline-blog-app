@@ -41,12 +41,13 @@ export function useAuth() {
         body: JSON.stringify({ email, password }),
       });
 
-      const { data } = await res.json();
+      const { data, message } = await res.json();
+      console.log("res.ok", res.ok);
       if (res.ok) {
         setUser(data.user);
         return { success: true };
       } else {
-        return { success: false, message: data.message };
+        return { success: false, message: message };
       }
     } catch (error) {
       logger.error("网络错误.", error);
@@ -69,14 +70,13 @@ export function useAuth() {
           password,
         }),
       });
-      const { data } = await res.json();
-
+      const { data, message } = await res.json();
       if (res.ok) {
         setUser(data.user);
         return { success: true };
       } else {
         setUser(null);
-        return { success: false, message: data.message };
+        return { success: false, message: message };
       }
     } catch (error) {
       logger.error("网络错误,", error);

@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       return actionResponse.error("邮箱和密码不能为空", 400);
     }
 
-    const user = await checkUser("email", email);
+    const user = await checkUser("email", email, true);
 
     if (!user || !user.password) {
       return actionResponse.error("邮箱或密码不正确", 401);
@@ -44,11 +44,14 @@ export async function POST(request: NextRequest) {
       200
     );
 
+    const isProd = process.env.NODE_ENV === "production";
+
     response.cookies.set("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: isProd,
+      sameSite: isProd ? "none" : "lax",
       maxAge: 60 * 60 * 24 * 7,
+      path: "/",
     });
 
     return response;

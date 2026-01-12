@@ -14,7 +14,7 @@ export default function Home() {
       <div className="neu-light px-4! py-4! flex flex-col gap-4 overflow-scroll hide-scrollbar h-full">
         <NeuDiv
           neuType="debossed"
-          className="flex flex-wrap items-center gap-2"
+          className="flex flex-wrap items-center gap-2 p-4"
         >
           <span className="text-sm">toast</span>
           <NeuButton
@@ -57,11 +57,11 @@ export default function Home() {
             成功
           </NeuButton>
         </NeuDiv>
-        <NeuDiv className="flex flex-wrap items-center gap-2 m-0!">
+        <NeuDiv className="flex flex-wrap items-center gap-2 m-0! p-4">
           <span className="text-sm">icon:</span>
           <Icon theme="danger" icon="search" />
         </NeuDiv>
-        <NeuDiv className="flex flex-wrap items-center gap-2 m-0!">
+        <NeuDiv className="flex flex-wrap items-center gap-2 m-0! p-4">
           <span className="text-sm">button:</span>
           <NeuButton btnSize="xs" icon="search" loading>
             测试
@@ -78,7 +78,7 @@ export default function Home() {
         </NeuDiv>
         <NeuDiv
           neuType="debossed"
-          className="flex flex-wrap items-center gap-2"
+          className="flex flex-wrap items-center gap-2 p-4"
         >
           <span className="text-sm">button:</span>
           <NeuButton loading>测试</NeuButton>
@@ -88,7 +88,7 @@ export default function Home() {
         </NeuDiv>
         <NeuDiv
           neuType="debossed"
-          className="flex flex-wrap items-center gap-2"
+          className="flex flex-wrap items-center gap-2 p-4"
         >
           <span className="text-sm">tag:</span>
           <Tag icon="search">测试</Tag>
@@ -105,16 +105,39 @@ export default function Home() {
         </NeuDiv>
         <NeuDiv
           neuType="debossed"
-          className="flex flex-wrap items-center gap-2"
+          className="flex flex-wrap items-center gap-2 p-4"
         >
           <span className="text-sm">输入框</span>
-          <NeuInput inputSize="xs" defaultValue={"这是一段默认文字"} />
+          <NeuInput
+            prefix={<Icon icon="search" size="sm" />}
+            suffix={123}
+            inputSize="xs"
+            defaultValue={"这是一段默认文字"}
+          />
           <NeuInput inputSize="sm" defaultValue={"这是一段默认文字"} />
           <NeuInput inputSize="md" defaultValue={"这是一段默认文字"} />
           <NeuInput inputSize="lg" defaultValue={"这是一段默认文字"} />
-          <NeuInput inputSize="xl" defaultValue={"这是一段默认文字"} />
-          <NeuInput inputSize="2xl" defaultValue={"这是一段默认文字"} />
-          <NeuInput inputSize="3xl" defaultValue={"这是一段默认文字"} />
+          <NeuInput
+            prefix={<Icon icon="search" size="xl" />}
+            suffix={123}
+            inputSize="xl"
+            defaultValue={"这是一段默认文字"}
+            allowClear
+          />
+          <NeuInput
+            inputSize="2xl"
+            defaultValue={"这是一段默认文字"}
+            allowClear
+            onChange={(e) => console.log("e.target.value", e.target.value)}
+          />
+          <NeuInput
+            prefix={<Icon icon="search" size="2xl" />}
+            suffix={123}
+            allowClear
+            inputSize="3xl"
+            defaultValue={"这是一段默认文字"}
+            onChange={(e) => console.log("e.target.value", e.target.value)}
+          />
         </NeuDiv>
       </div>
     </Content>

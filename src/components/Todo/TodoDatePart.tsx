@@ -43,12 +43,12 @@ const TodoDatePart = ({
             </NeuDiv>
             <NeuButton
               onClick={() => handleClick(todo)}
-              className={`m-0! w-full overflow-hidden! word-wrap p-3! block! text-start`}
+              className={`m-0! w-full overflow-hidden! p-3! block! text-start`}
             >
               <span
                 className={`${
                   todo.finished ? "line-through" : ""
-                } text-base font-semibold inline-block`}
+                } text-sm text-start whitespace-break-spaces font-semibold inline-block`}
               >
                 {todo.content}
               </span>

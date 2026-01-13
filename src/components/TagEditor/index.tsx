@@ -70,7 +70,7 @@ const TagEditor = ({ value = [], setValue }: Props) => {
   };
 
   return (
-    <NeuDiv className="tag-editor-container w-[100%] max-w-120 mx-0! p-0">
+    <NeuDiv className="tag-editor-container w-[100%] max-w-120 mb-4 p-0">
       <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
         {value.map((tag, index) => (
           <Tag

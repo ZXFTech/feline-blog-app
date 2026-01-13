@@ -77,8 +77,8 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
         }
         await updateTodo({
           id: todo.id,
-          content: todo.content,
-          tags: todo.tags as Tag[],
+          content: todoData.content,
+          tags: todoData.tags as Tag[],
         });
       } else {
         await addTodo({ content: todoData.content, tags: todoData.tags });
@@ -117,7 +117,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       <div>
         <NeuInput
           disabled={loading}
-          className="w-full"
+          className="w-full mb-4"
           value={todoData?.content || ""}
           autoComplete="off"
           onChange={(value) => onDataChange("content", value.target.value)}

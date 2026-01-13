@@ -10,7 +10,7 @@ interface ProgressProps {
   max?: number; // 最大值，默认 100
   size?: "sm" | "md" | "lg";
   type?: ComponentType;
-  showLabel?: boolean; // 是否显示百分比
+  showLabel?: "percentage" | "num"; // 是否显示百分比
   className?: string;
   title?: string;
   titleColor?: string | "success" | "warning" | "danger" | "primary";
@@ -33,7 +33,7 @@ function NeuProgressBar({
   max = 100,
   size = "md",
   type = "default",
-  showLabel = false,
+  showLabel,
   title = "",
   titleColor = "",
   progressBarColor = "",
@@ -76,7 +76,9 @@ function NeuProgressBar({
                 color: titleColor || titleTypeColor[type as keyof TypeColor],
               }}
             >
-              {Math.round(percentage)}%
+              {showLabel === "percentage"
+                ? `${Math.round(percentage)}%`
+                : value}
             </div>
           )}
         </div>

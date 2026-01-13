@@ -1,0 +1,22 @@
+@use "../../styles/mixin";
+@use "../../styles/variables";
+
+.neu-progress-bar-default {
+  background: var(--neu-font-color);
+}
+
+.neu-progress-bar-primary {
+  @include mixin.neu-progress-bar-theme(variables.$neu-primary);
+}
+
+.neu-progress-bar-danger {
+  @include mixin.neu-progress-bar-theme(variables.$neu-danger);
+}
+
+.neu-progress-bar-success {
+  @include mixin.neu-progress-bar-theme(variables.$neu-success);
+}
+
+.neu-progress-bar-warning {
+  @include mixin.neu-progress-bar-theme(variables.$neu-warning);
+}

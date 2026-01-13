@@ -7,11 +7,40 @@ import Tag from "@/components/Tag/tag";
 import Content from "@/components/Content/content";
 import NeuInput from "@/components/NeuInput";
 import { toast } from "@/components/ProMessage";
+import ProgressBar from "@/components/NeuProgressBar/NeuProgressBar";
 
 export default function Home() {
   return (
     <Content>
       <div className="neu-light px-4! py-4! flex flex-col gap-4 overflow-scroll hide-scrollbar h-full">
+        <NeuDiv neuType="debossed" className="flex flex-col gap-4 p-4">
+          <span className="text-sm">进度条</span>
+          <ProgressBar value={55} max={100} />
+          <ProgressBar value={55} max={100} showLabel />
+          <ProgressBar
+            value={55}
+            title="primary 进度条"
+            showLabel
+            type="primary"
+          />
+          <ProgressBar
+            value={55}
+            title="自定义 danger title 颜色"
+            titleColor="#1aab5b"
+            type="danger"
+          />
+          <ProgressBar
+            title="默认 title 颜色跟随 type"
+            value={55}
+            type="success"
+          />
+          <ProgressBar
+            value={55}
+            title="自定义颜色"
+            progressBarColor="#d315e4"
+            type="warning"
+          />
+        </NeuDiv>
         <NeuDiv
           neuType="debossed"
           className="flex flex-wrap items-center gap-2 p-4"

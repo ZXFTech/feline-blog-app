@@ -65,13 +65,14 @@ const TodoDatePart = ({
                 </div>
               ) : null}
             </NeuButton>
-            <div>
+            <div className="flex flex-col">
               <NeuButton
-                className="mt-0! mb-2!"
+                className="p-2! mb-2"
                 icon="edit"
                 onClick={() => handleUpdate(todo)}
               ></NeuButton>
               <NeuButton
+                className="p-2!"
                 icon="delete"
                 onClick={() => handleDelete(todo.id!)}
               ></NeuButton>

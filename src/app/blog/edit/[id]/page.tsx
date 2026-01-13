@@ -19,12 +19,7 @@ const Edit = async ({ params }) => {
 
   // blog state
 
-  return (
-    <Content>
-      {/* <Temp></Temp> */}
-      <BlogEditor blog={blog}></BlogEditor>
-    </Content>
-  );
+  return <BlogEditor blog={blog}></BlogEditor>;
 };
 
 export default Edit;

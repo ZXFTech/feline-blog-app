@@ -9,11 +9,7 @@ const New = async () => {
     redirect("/login");
   }
 
-  return (
-    <Content>
-      <BlogEditor />
-    </Content>
-  );
+  return <BlogEditor />;
 };
 
 export default New;

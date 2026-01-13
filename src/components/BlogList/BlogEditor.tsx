@@ -6,9 +6,11 @@ import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
 import { useState, ChangeEventHandler, useEffect } from "react";
 import { Role } from "../../../generated/prisma/enums";
-import { TagData } from "@/components/TagEditor";
+import TagEditor, { TagData } from "@/components/TagEditor";
+import Content from "../Content/content";
+import NeuDiv from "../NeuDiv/NeuDiv";
 
-type CombinedBlog = {
+export type CombinedBlog = {
   author?: {
     password: string;
     createdAt: Date;
@@ -48,13 +50,15 @@ type CombinedBlog = {
 
 const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
   // blog state
   const [blogData, setBlogData] = useState({
     title: blog?.title || "",
     content: blog?.content || "",
   });
-
-  const [loading, setLoading] = useState(false);
+  const [tags, setTags] = useState<TagData[]>(
+    blog?.tags?.map((item) => item.tag) || []
+  );
 
   const handleSubmit = async () => {
     try {
@@ -65,14 +69,14 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
         result = await updateBlogById(Number(blog?.id), {
           title: blogData.title.trim() ? blogData.title.trim() : "无标题",
           content: blogData.content,
-          tags: [] as TagData[],
+          tags: tags,
         });
       } else {
         // 新增
         result = await createBlog({
           title: blogData.title.trim() ? blogData.title.trim() : "无标题",
           content: blogData.content,
-          tags: [],
+          tags: tags,
         });
       }
 
@@ -98,13 +102,21 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
     setBlogData((prev) => ({ ...prev, title: e.target.value }));
 
   return (
-    <MarkdownEditor
-      blogData={blogData}
-      onContentChange={onContentChange}
-      onTitleChange={onTitleChange}
-      handleSubmit={handleSubmit}
-      loading={loading}
-    />
+    <Content
+      rightSideBar={
+        <NeuDiv neuType="flat">
+          <TagEditor setValue={setTags} value={tags} />
+        </NeuDiv>
+      }
+    >
+      <MarkdownEditor
+        blogData={blogData}
+        onContentChange={onContentChange}
+        onTitleChange={onTitleChange}
+        handleSubmit={handleSubmit}
+        loading={loading}
+      />
+    </Content>
   );
 };
 

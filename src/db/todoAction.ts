@@ -1,25 +1,81 @@
-import { actionResponse } from "@/lib/response/ApiResponse";
+"use server";
+
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 import { Tag, Todo } from "../../generated/prisma/client";
-import { checkUser } from "./userAction";
 import { TodoSearchParams } from "@/types/todo";
+import { requireAuth } from "@/lib/auth/userAuth";
+
+export async function getTodoList(
+  searchParams?: TodoSearchParams,
+  userId?: string
+) {
+  try {
+    const { finished, content, tags, orderBy } = searchParams || {};
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const where: any = {
+      userId: userId || testUserId,
+      delete: false,
+    };
+
+    if (finished !== null) {
+      where["finished"] = finished;
+    }
+
+    if (content && content.trim() !== "") {
+      where.content = {
+        contains: content,
+      };
+    }
+
+    const [todos, total, finishedTodos] = await db.$transaction([
+      db.todo.findMany({
+        where: where,
+        include: {
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
+        },
+        orderBy: {
+          createAt: orderBy,
+        },
+      }),
+      db.todo.count({
+        where: { userId },
+      }),
+      db.todo.count({
+        where: {
+          userId,
+          finished: true,
+        },
+      }),
+    ]);
+
+    return {
+      todoList: todos,
+      total,
+      finished: finishedTodos,
+    };
+  } catch (error) {
+    const errorMessage = "Query todo list failed! " + error;
+    logger.error(errorMessage);
+    throw errorMessage;
+  }
+}
 
 export async function addTodo({
   content,
-  userId = testUserId,
   tags = [],
 }: {
   content: string;
-  userId?: string;
   tags?: Tag[];
 }) {
   try {
-    const existingUser = await checkUser("id", userId);
-    if (!existingUser) {
-      return actionResponse.error("用户不存在!");
-    }
-
+    const user = await requireAuth();
+    const userId = user.id;
     // 先处理所有 tags
     const tagOperation = tags.map((tag) =>
       db.tag.upsert({
@@ -64,11 +120,11 @@ export async function addTodo({
       },
     });
 
-    return actionResponse.success({ result });
+    return { result };
   } catch (error) {
     const errorMessage = "Add todo failed! " + error;
     logger.error(errorMessage);
-    return actionResponse.error(errorMessage);
+    throw errorMessage;
   }
 }
 
@@ -77,15 +133,15 @@ export async function updateTodo({
   finished,
   content,
   tags,
-  userId = testUserId,
 }: {
   id: number;
-  userId: string;
   finished?: boolean;
   content?: string;
   tags?: Tag[];
 }) {
   try {
+    const user = await requireAuth();
+    const userId = user.id;
     const data = {} as Todo;
     if (finished !== undefined) data.finished = finished;
     if (content !== undefined) data.content = content;
@@ -143,13 +199,13 @@ export async function updateTodo({
       });
     }
     if (!res) {
-      return actionResponse.error("Todo not found!");
+      throw "Todo not found!";
     }
-    return actionResponse.success({ id: data.id });
+    return { id: data.id };
   } catch (error) {
     const errorMessage = "Update todo failed! " + error;
     logger.error(errorMessage);
-    return actionResponse.error(errorMessage);
+    throw errorMessage;
   }
 }
 
@@ -164,61 +220,13 @@ export async function deleteTodo(todoId: number) {
       },
     });
     if (!res) {
-      return actionResponse.error("Todo not found!");
+      throw "Todo not found!";
     }
-    return actionResponse.success({ todoId });
+    return { todoId };
   } catch (error) {
     const errorMessage = "Delete todo failed! " + error;
     logger.error(errorMessage);
-    return actionResponse.error(errorMessage);
-  }
-}
-
-export async function getTodoList(
-  searchParams?: TodoSearchParams,
-  userId?: string
-) {
-  try {
-    const { finished, content, tags, orderBy } = searchParams || {};
-
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {
-      userId: userId || testUserId,
-      delete: false,
-    };
-
-    if (finished !== null) {
-      where["finished"] = finished;
-    }
-
-    if (content && content.trim() !== "") {
-      where.content = {
-        contains: content,
-      };
-    }
-
-    const res = await db.todo.findMany({
-      where: where,
-      include: {
-        tags: {
-          include: {
-            tag: true,
-          },
-        },
-      },
-      orderBy: {
-        createAt: orderBy,
-      },
-    });
-    return actionResponse.success({
-      todoList: res,
-      total: res.length,
-      finished: res.filter((todo) => todo.finished).length,
-    });
-  } catch (error) {
-    const errorMessage = "Query todo list failed! " + error;
-    logger.error(errorMessage);
-    return actionResponse.error(errorMessage);
+    throw errorMessage;
   }
 }
 
@@ -231,10 +239,10 @@ export async function getTodoById(todoId: number, userId?: string) {
       },
     });
 
-    return actionResponse.success({ todo: res });
+    return { todo: res };
   } catch (error) {
     const errorMessage = "Get todo failed! " + error;
     logger.error(errorMessage);
-    return actionResponse.error(errorMessage);
+    throw errorMessage;
   }
 }

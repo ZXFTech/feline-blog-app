@@ -42,7 +42,6 @@ export function useAuth() {
       });
 
       const { data, message } = await res.json();
-      console.log("res.ok", res.ok);
       if (res.ok) {
         setUser(data.user);
         return { success: true };

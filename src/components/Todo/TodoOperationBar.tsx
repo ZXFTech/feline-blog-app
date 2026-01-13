@@ -1,14 +1,14 @@
-import React, { useCallback, useMemo } from "react";
+"use client";
+
+import React, { Dispatch, SetStateAction, useCallback, useMemo } from "react";
 import NeuButton from "../NeuButton/neuButton";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TodoSearchParams } from "@/types/todo";
 import NeuInput from "../NeuInput";
 import { debounce } from "@/utils/debounce ";
-
-interface TodoOperationBarProps {
-  refresh: () => void;
-}
+import { PermissionAccess } from "../Auth/PermissionAccess";
+import Icon from "../Icon/icon";
 
 const TODO_STATUS_BUTTON_LIST = [
   {
@@ -28,7 +28,11 @@ const TODO_STATUS_BUTTON_LIST = [
   },
 ];
 
-export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
+export const TodoOperationBar = ({
+  setPanelVisible,
+}: {
+  setPanelVisible: Dispatch<SetStateAction<boolean>>;
+}) => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -70,12 +74,13 @@ export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
   };
 
   return (
-    <NeuDiv
-      neuType="flat"
-      className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100"
-    >
+    <div className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100">
       <div className="flex flex-row gap-2">
-        <NeuInput onChange={(e) => debounceUpdate("content", e.target.value)} />
+        <NeuInput
+          prefix={<Icon icon="search" />}
+          allowClear
+          onChange={(e) => debounceUpdate("content", e.target.value)}
+        />
         <NeuButton
           className="p-1!"
           onClick={switchOrderBy}
@@ -105,6 +110,11 @@ export const TodoOperationBar = ({ refresh }: TodoOperationBarProps) => {
           </NeuButton>
         ))}
       </NeuDiv>
-    </NeuDiv>
+      <PermissionAccess>
+        <NeuDiv neuType="flat">
+          <NeuButton onClick={() => setPanelVisible(true)}>新建</NeuButton>
+        </NeuDiv>
+      </PermissionAccess>
+    </div>
   );
 };

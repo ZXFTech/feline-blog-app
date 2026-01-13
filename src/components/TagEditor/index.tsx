@@ -22,7 +22,6 @@ const splitExistArray = <T,>(
   func: (item: T) => boolean
 ): [T | undefined, T[], T[]] => {
   const existedTag = list.find((item) => func(item));
-  console.log(list.filter((item) => func(item)));
   return [
     existedTag,
     list.filter((item) => !func(item)),

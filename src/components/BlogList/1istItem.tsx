@@ -1,7 +1,7 @@
 import React, { FC } from "react";
 
-import NeuDiv from "../NeuDiv/NeuDiv";
-import Tag from "../Tag/tag";
+import NeuDiv from "../NeuDiv";
+import Tag from "../Tag";
 
 import { CombinedBlog } from "./BlogEditor";
 

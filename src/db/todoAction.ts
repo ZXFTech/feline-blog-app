@@ -40,7 +40,7 @@ export async function getTodoList(
           },
         },
         orderBy: {
-          createAt: orderBy,
+          createAt: orderBy || "desc",
         },
       }),
       db.todo.count({

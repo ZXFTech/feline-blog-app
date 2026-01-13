@@ -182,6 +182,11 @@ export async function getBlogList(
         },
         include: {
           author: true,
+          tags: {
+            include: {
+              tag: true,
+            },
+          },
         },
         take: pageSize,
         skip: (pageNum - 1) * pageSize,

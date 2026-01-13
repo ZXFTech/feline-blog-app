@@ -3,13 +3,10 @@ import React, { FC } from "react";
 import NeuDiv from "../NeuDiv/NeuDiv";
 import Tag from "../Tag/tag";
 
-import { Blog, User } from "../../../generated/prisma";
+import { CombinedBlog } from "./BlogEditor";
 
-const ListItem: FC<Blog & { author: User }> = ({
-  title,
-  createdAt,
-  author,
-}) => {
+const ListItem: FC<CombinedBlog> = (blog) => {
+  const { author, title, createdAt, tags = [] } = blog;
   return (
     <NeuDiv
       neuType="raised"
@@ -26,17 +23,13 @@ const ListItem: FC<Blog & { author: User }> = ({
           <div></div>
         )}
         <ul className="flex gap-1 p-0 m-0">
-          {/* {tags.multi_select.map((tag) => {
-              return (
-                <Tag
-                  className="transition-all duration-400 group-hover:!shadow-none"
-                  style={{ color: tag.color }}
-                  key={tag.id}
-                >
-                  {tag.name}
-                </Tag>
-              );
-            })} */}
+          {tags.map((item) => {
+            return (
+              <Tag key={item.tagId} color={item.tag.color}>
+                {item.tag.content}
+              </Tag>
+            );
+          })}
           {createdAt && (
             <Tag className="transition-all duration-400 group-hover:!shadow-none">
               {new Date(createdAt).toDateString()}

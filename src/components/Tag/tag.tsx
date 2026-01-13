@@ -26,7 +26,7 @@ const Tag: FC<TagProps> = ({
     <NeuDiv
       style={{ color }}
       intensity="sm"
-      className={`group !px-0 !py-1 !mx-0.5 !my-1.25 font-medium flex justify-center items-center ${
+      className={`group !px-0 !py-1 !mx-0.5 !my-1.25 font-medium inline-flex justify-center items-center  ${
         closable ? "cursor-pointer" : ""
       } ${combineClassNames}`}
       {...restProps}
@@ -35,7 +35,7 @@ const Tag: FC<TagProps> = ({
       <span
         className={`${icon ? "ml-0.5" : "ml-2"} ${
           closable ? "mr-0.5" : "mr-2"
-        } text-xs font-medium`}
+        } text-xs font-medium whitespace-nowrap`}
       >
         {children}
       </span>

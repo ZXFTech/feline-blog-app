@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import ListItem from "./1istItem";
+import ListItem from "./ListItem";
 import Link from "next/link";
 import { Blog, User } from "../../../generated/prisma/client";
 

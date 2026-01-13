@@ -122,7 +122,7 @@ const NeuInput = forwardRef<
         <NeuDiv
           neuType="debossed"
           intensity="sm"
-          className={`input-container relative flex items-stretch grow-1 p-1! m-0! ${
+          className={`input-container relative flex items-center grow-1 p-1! m-0! ${
             prefix ? "rounded-l-none" : "rounded-l-lg"
           } ${suffix ? "rounded-r-none" : "rounded-r-lg"}`}
         >
@@ -137,7 +137,7 @@ const NeuInput = forwardRef<
             <Icon
               icon="clear"
               size="sm"
-              className="input-clear absolute! right-3 top-auto cursor-pointer rounded-full bg-stone-400 hover:bg-stone-300"
+              className="input-clear absolute right-2 top-[50%-6] cursor-pointer rounded-full bg-stone-400 hover:bg-stone-300"
               onClick={(e) =>
                 handleClear(e as unknown as ChangeEvent<HTMLInputElement>)
               }

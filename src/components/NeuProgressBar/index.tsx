@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import React from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
-import Tag from "../Tag/tag";
+import NeuDiv from "../NeuDiv";
+import Tag from "../Tag";
 
 type ComponentType = "default" | "success" | "warning" | "danger" | "primary";
 
@@ -10,7 +10,7 @@ interface ProgressProps {
   max?: number; // 最大值，默认 100
   size?: "sm" | "md" | "lg";
   type?: ComponentType;
-  showLabel?: "percentage" | "num"; // 是否显示百分比
+  showLabel?: "percentage" | "num" | boolean; // 是否显示百分比
   className?: string;
   title?: string;
   titleColor?: string | "success" | "warning" | "danger" | "primary";

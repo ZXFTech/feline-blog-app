@@ -1,10 +1,10 @@
 "use client";
 
 import { TagTodo } from "@/types/todo";
-import Icon from "../Icon/icon";
-import NeuButton from "../NeuButton/neuButton";
-import NeuDiv from "../NeuDiv/NeuDiv";
-import Tag from "../Tag/tag";
+import Icon from "../Icon";
+import NeuButton from "../NeuButton";
+import NeuDiv from "../NeuDiv";
+import Tag from "../Tag";
 
 interface Props {
   dateKey: string;

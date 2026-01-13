@@ -1,5 +1,5 @@
 import { Dispatch, ReactNode, SetStateAction, useMemo } from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuDiv from "../NeuDiv";
 import colors from "tailwindcss/colors";
 
 type TailwindColors = typeof colors;

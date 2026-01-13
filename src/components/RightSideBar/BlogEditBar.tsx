@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import NeuButton from "../NeuButton/neuButton";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuButton from "../NeuButton";
+import NeuDiv from "../NeuDiv";
 
 interface Props {
   blogId: number;

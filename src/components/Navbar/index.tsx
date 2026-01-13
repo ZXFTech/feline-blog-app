@@ -1,5 +1,5 @@
 import { FC, ReactNode } from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuDiv from "../NeuDiv";
 import Link from "next/link";
 import { IconNeonCat } from "../Icon/presetIcon";
 import { UserMenu } from "../Profile/UserMenu";

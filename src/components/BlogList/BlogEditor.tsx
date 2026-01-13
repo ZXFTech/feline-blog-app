@@ -1,14 +1,14 @@
 "use client";
 
-import MarkdownEditor from "@/components/MarkdownEditor/markdownEditor";
+import MarkdownEditor from "@/components/MarkdownEditor";
 import { createBlog, updateBlogById } from "@/db/blogAction";
 import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
 import { useState, ChangeEventHandler, useEffect } from "react";
 import { Role } from "../../../generated/prisma/enums";
 import TagEditor, { TagData } from "@/components/TagEditor";
-import Content from "../Content/content";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import Content from "../Content";
+import NeuDiv from "../NeuDiv";
 
 export type CombinedBlog = {
   author?: {

@@ -1,9 +1,9 @@
 "use client";
 
 import { Dispatch, SetStateAction, useRef, useState } from "react";
-import NeuButton from "../NeuButton/neuButton";
-import NeuDiv from "../NeuDiv/NeuDiv";
-import Tag from "../Tag/tag";
+import NeuButton from "../NeuButton";
+import NeuDiv from "../NeuDiv";
+import Tag from "../Tag";
 import NeuInput from "../NeuInput";
 import ColorPanel from "../ColorPanel";
 import { Tag as ITag } from "../../../generated/prisma/client";

@@ -1,4 +1,4 @@
-import Content from "@/components/Content/content";
+import Content from "@/components/Content";
 import TagOperator from "@/components/Tag/TagOperator";
 import TagShowCase from "@/components/Tag/TagShowCase";
 import { getAllTags } from "@/db/tagAction";

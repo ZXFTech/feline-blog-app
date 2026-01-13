@@ -1,7 +1,7 @@
 import { NeuType } from "@/types";
 import React, { FC, HTMLAttributes } from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
-import Icon from "../Icon/icon";
+import NeuDiv from "../NeuDiv";
+import Icon from "../Icon";
 import classNames from "classnames";
 
 interface TagProps extends HTMLAttributes<HTMLElement> {

@@ -1,5 +1,5 @@
 import React, { FC } from "react";
-import Button, { ButtonProps } from "../Button/button";
+import Button, { ButtonProps } from "../Button";
 import classNames from "classnames";
 import { NeuIntensity, NeuButtonType } from "@/types";
 import Link from "next/link";

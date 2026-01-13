@@ -1,4 +1,4 @@
-import Content from "@/components/Content/content";
+import Content from "@/components/Content";
 import { message } from "@/lib/message";
 import BlogEditor from "@/components/BlogList/BlogEditor";
 import { getBlogById } from "@/db/blogAction";

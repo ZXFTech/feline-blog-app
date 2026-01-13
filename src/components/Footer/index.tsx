@@ -1,5 +1,5 @@
 import React from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuDiv from "../NeuDiv";
 
 const Footer = () => {
   return (

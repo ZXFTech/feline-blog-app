@@ -1,14 +1,14 @@
 "use client";
 
 import React, { Dispatch, SetStateAction, useCallback, useMemo } from "react";
-import NeuButton from "../NeuButton/neuButton";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuButton from "../NeuButton";
+import NeuDiv from "../NeuDiv";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TodoSearchParams } from "@/types/todo";
 import NeuInput from "../NeuInput";
 import { debounce } from "@/utils/debounce ";
 import { PermissionAccess } from "../Auth/PermissionAccess";
-import Icon from "../Icon/icon";
+import Icon from "../Icon";
 
 const TODO_STATUS_BUTTON_LIST = [
   {

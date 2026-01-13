@@ -1,14 +1,14 @@
 "use server";
 
 import Head from "next/head";
-import NeuDiv from "@/components/NeuDiv/NeuDiv";
-import Tag from "@/components/Tag/tag";
-import { CodeBlock } from "@/components/NotionBlock/notionBlock";
+import NeuDiv from "@/components/NeuDiv";
+import Tag from "@/components/Tag";
+import { CodeBlock } from "@/components/NotionBlock";
 import Image from "next/image";
 import { getBlogById } from "@/db/blogAction";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import Content from "@/components/Content/content";
+import Content from "@/components/Content";
 import BlogEditBar from "@/components/RightSideBar/BlogEditBar";
 import { message } from "@/lib/message";
 import { Suspense } from "react";

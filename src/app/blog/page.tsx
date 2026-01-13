@@ -1,5 +1,5 @@
 import BlogList from "@/components/BlogList/blogList";
-import Content from "@/components/Content/content";
+import Content from "@/components/Content";
 import { BlogOperationBar } from "@/components/BlogList/BlogOperationBar";
 import { getBlogList } from "@/db/blogAction";
 

@@ -1,6 +1,6 @@
 import CopyButton from "@/components/CopyButton/copyButton";
-import NeuDiv from "@/components/NeuDiv/NeuDiv";
-import Tag from "@/components/Tag/tag";
+import NeuDiv from "@/components/NeuDiv";
+import Tag from "@/components/Tag";
 
 import Image from "next/image";
 import React, { FC } from "react";

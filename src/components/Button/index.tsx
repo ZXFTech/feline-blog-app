@@ -8,7 +8,7 @@ import React, {
 
 import classNames from "classnames";
 import { IconSpinner } from "../Icon/presetIcon";
-import Icon, { IconType } from "../Icon/icon";
+import Icon, { IconType } from "../Icon";
 
 export type ButtonSize = "sm" | "xs" | "md" | "lg" | "xl" | "2xl" | "3xl";
 

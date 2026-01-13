@@ -1,7 +1,7 @@
 import { FC } from "react";
 
 // import NextSvg from "../../../public/next.svg";
-import Icon, { IconProps } from "./icon";
+import Icon, { IconProps } from ".";
 import Image from "next/image";
 import Link from "next/link";
 

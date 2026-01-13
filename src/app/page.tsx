@@ -1,13 +1,13 @@
 "use client";
 
-import NeuButton from "@/components/NeuButton/neuButton";
-import Icon from "../components/Icon/icon";
-import NeuDiv from "@/components/NeuDiv/NeuDiv";
-import Tag from "@/components/Tag/tag";
-import Content from "@/components/Content/content";
+import NeuButton from "@/components/NeuButton";
+import Icon from "../components/Icon";
+import NeuDiv from "@/components/NeuDiv";
+import Tag from "@/components/Tag";
+import Content from "@/components/Content";
 import NeuInput from "@/components/NeuInput";
 import { toast } from "@/components/ProMessage";
-import ProgressBar from "@/components/NeuProgressBar/NeuProgressBar";
+import ProgressBar from "@/components/NeuProgressBar";
 
 export default function Home() {
   return (

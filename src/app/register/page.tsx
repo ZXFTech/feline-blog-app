@@ -1,11 +1,11 @@
 "use client";
 
-import Content from "@/components/Content/content";
-import Icon from "@/components/Icon/icon";
-import NeuButton from "@/components/NeuButton/neuButton";
-import NeuDiv from "@/components/NeuDiv/NeuDiv";
+import Content from "@/components/Content";
+import Icon from "@/components/Icon";
+import NeuButton from "@/components/NeuButton";
+import NeuDiv from "@/components/NeuDiv";
 import NeuInput from "@/components/NeuInput";
-import { TextGap } from "@/components/TextGap/TextGap";
+import { TextGap } from "@/components/TextGap";
 import { useAuth } from "@/hooks/useAuth";
 import { toast as message } from "@/components/ProMessage";
 import Link from "next/link";

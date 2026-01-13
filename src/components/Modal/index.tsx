@@ -8,11 +8,11 @@ import {
   useRef,
   useState,
 } from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuDiv from "../NeuDiv";
 import { createPortal } from "react-dom";
-import Icon, { IconType } from "../Icon/icon";
-import NeuButton from "../NeuButton/neuButton";
-import { ButtonType } from "../Button/button";
+import Icon, { IconType } from "../Icon";
+import NeuButton from "../NeuButton";
+import { ButtonType } from "../Button";
 
 type FooterType = "ok" | "cancel" | "default" | "none";
 

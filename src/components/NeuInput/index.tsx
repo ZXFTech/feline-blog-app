@@ -7,9 +7,9 @@ import {
   useRef,
   useState,
 } from "react";
-import Icon, { IconSize } from "../Icon/icon";
+import Icon, { IconSize } from "../Icon";
 import { composeRef } from "@/utils/composeRef";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import NeuDiv from "../NeuDiv";
 
 export const iconSizeMap = {
   xs: "8",

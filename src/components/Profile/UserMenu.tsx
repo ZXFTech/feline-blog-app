@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import NeuButton from "../NeuButton/neuButton";
+import NeuButton from "../NeuButton";
 import { useAuth } from "@/hooks/useAuth";
 import { useCtxAuth } from "@/providers/AuthProviders";
 

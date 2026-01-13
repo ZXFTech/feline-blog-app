@@ -1,4 +1,3 @@
-import Content from "@/components/Content/content";
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/userAuth";
 import BlogEditor from "@/components/BlogList/BlogEditor";

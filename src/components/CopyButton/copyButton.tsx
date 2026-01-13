@@ -2,7 +2,7 @@
 
 import classNames from "classnames";
 import React, { useEffect, useRef, useState } from "react";
-import NeuButton from "../NeuButton/neuButton";
+import NeuButton from "../NeuButton";
 import logger from "@/lib/logger/Logger";
 
 export interface CopyButtonPros {

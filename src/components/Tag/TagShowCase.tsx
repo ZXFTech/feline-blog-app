@@ -1,7 +1,6 @@
 import React from "react";
-import { Tag as ITag } from "../../../generated/prisma/client";
-import NeuDiv from "../NeuDiv/NeuDiv";
-import NeuProgressBar from "../NeuProgressBar/NeuProgressBar";
+import NeuDiv from "../NeuDiv";
+import NeuProgressBar from "../NeuProgressBar";
 import { CountedTag } from "@/app/tag/page";
 
 interface Props {

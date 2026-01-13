@@ -1,6 +1,6 @@
 // "use client";
 
-import Content from "@/components/Content/content";
+import Content from "@/components/Content";
 import { TagTodo } from "@/types/todo";
 import { getTodoList } from "@/db/todoAction";
 import TodoList from "./TodoList";

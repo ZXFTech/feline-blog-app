@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useCallback, useMemo, useState } from "react";
-import Icon from "../Icon/icon";
-import NeuDiv from "../NeuDiv/NeuDiv";
+import Icon from "../Icon";
+import NeuDiv from "../NeuDiv";
 import NeuInput from "../NeuInput";
-import NeuButton from "../NeuButton/neuButton";
+import NeuButton from "../NeuButton";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { debounce } from "@/utils/debounce ";
 
@@ -53,7 +53,7 @@ function TagOperator() {
           blog
         </NeuButton>
         <NeuButton
-          buttonType={`${pShow === "todos" ? "primary" : "default"}`}
+          buttonType={`${pShow !== "blogs" ? "primary" : "default"}`}
           onClick={() => updateSearchParams("show", "todos")}
         >
           todo

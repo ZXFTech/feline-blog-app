@@ -1,11 +1,11 @@
 "use client";
 
 import { ChangeEventHandler, useState } from "react";
-import NeuDiv from "../NeuDiv/NeuDiv";
-import NeuButton from "../NeuButton/neuButton";
+import NeuDiv from "../NeuDiv";
+import NeuButton from "../NeuButton";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { CodeBlock } from "../NotionBlock/notionBlock";
+import { CodeBlock } from "../NotionBlock";
 import Link from "next/link";
 import NeuInput from "@/components/NeuInput";
 

@@ -6,8 +6,6 @@ import TodoDatePart from "@/components/Todo/TodoDatePart";
 import { TodoOperationBar } from "@/components/Todo/TodoOperationBar";
 import { TagTodo } from "@/types/todo";
 import { deleteTodo, updateTodo } from "@/db/todoAction";
-import { TagData } from "@/components/TagEditor";
-import { Tag } from "../../../generated/prisma/client";
 import { useRouter } from "next/navigation";
 
 interface Props {

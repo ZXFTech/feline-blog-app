@@ -8,16 +8,21 @@ type ColorKeys = keyof TailwindColors;
 
 interface Props {
   onColorPicked: (targetColor: string) => void;
-
+  color: string;
+  setColor: (color: string) => void;
   colorFilter?: {
     i: number;
     j: number;
   };
 }
 
-const ColorPanel = ({ onColorPicked, colorFilter = { i: 0, j: 0 } }: Props) => {
+const ColorPanel = ({
+  onColorPicked,
+  color,
+  setColor,
+  colorFilter = { i: 0, j: 0 },
+}: Props) => {
   const [visible, setVisible] = useState(false);
-  const [color, setColor] = useState<string>("");
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
 
@@ -44,7 +49,7 @@ const ColorPanel = ({ onColorPicked, colorFilter = { i: 0, j: 0 } }: Props) => {
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [visible, setVisible]);
+  }, [visible, setVisible, setColor]);
 
   const colorListMap = useMemo<{ name: string; color: string }[][]>(() => {
     return Object.keys(colors as TailwindColors)

@@ -4,11 +4,12 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast as message } from "../ProMessage";
 import NeuInput from "../NeuInput";
-import TagEditor from "../TagEditor";
+import TagEditor, { TagData } from "../TagEditor";
 import { TagTodo } from "@/types/todo";
 import { addTodo, updateTodo } from "@/db/todoAction";
 import { Tag } from "../../../generated/prisma/client";
 import { useRouter } from "next/navigation";
+import { getOptionTagsById } from "@/db/tagAction";
 
 const Modal = dynamic(() => import("@/components/Modal"), { ssr: false });
 
@@ -28,6 +29,11 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [validateMessage, setValidateMessage] = useState("");
+  const [optionTags, setOptionTags] = useState<TagData[]>([]);
+
+  useEffect(() => {
+    getOptionTagsById(todo?.id).then((tags) => setOptionTags(tags));
+  }, [todo]);
 
   const [todoData, setTodoData] = useState<TagTodo>({
     content: "",
@@ -43,7 +49,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       id: todo?.id,
       content: todo?.content || "",
       finished: todo?.finished || false,
-      tags: todo?.tags?.map((item) => item.tag),
+      tags: todo?.tags,
     };
   }, [todo]);
 
@@ -128,6 +134,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
         <TagEditor
           value={todoData.tags || []}
           setValue={(tags) => onDataChange("tags", tags)}
+          options={optionTags}
         />
       </div>
     </Modal>

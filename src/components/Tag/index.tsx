@@ -16,6 +16,7 @@ const Tag: FC<TagProps> = ({
   children,
   closable = false,
   onClose,
+  onClick,
   color,
   icon,
   className,
@@ -24,10 +25,11 @@ const Tag: FC<TagProps> = ({
   const combineClassNames = classNames("tag", className);
   return (
     <NeuDiv
+      onClick={onClick}
       style={{ color }}
       intensity="sm"
       className={`group !px-0 !py-1 !mx-0.5 !my-1.25 font-medium inline-flex justify-center items-center  ${
-        closable ? "cursor-pointer" : ""
+        closable || onClick ? "cursor-pointer" : ""
       } ${combineClassNames}`}
       {...restProps}
     >

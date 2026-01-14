@@ -32,7 +32,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
   const [optionTags, setOptionTags] = useState<TagData[]>([]);
 
   useEffect(() => {
-    getOptionTagsById(todo?.id).then((tags) => setOptionTags(tags));
+    getOptionTagsById("todo", todo?.id).then((tags) => setOptionTags(tags));
   }, [todo]);
 
   const [todoData, setTodoData] = useState<TagTodo>({

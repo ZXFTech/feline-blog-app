@@ -24,9 +24,9 @@ export async function getAllTags() {
   }
 }
 
-export async function getOptionTagsById(todoId?: number) {
+export async function getOptionTagsById(target: "blog" | "todo", id?: number) {
   try {
-    if (!todoId) {
+    if (!id) {
       // 没有 todo id 返回所有 tag
       return await getAllTags();
     }
@@ -34,9 +34,9 @@ export async function getOptionTagsById(todoId?: number) {
     const result = await db.tag.findMany({
       where: {
         userId: testUserId,
-        todos: {
+        [target + "s"]: {
           none: {
-            todoId,
+            [target + "Id"]: id,
           },
         },
       },
@@ -44,6 +44,7 @@ export async function getOptionTagsById(todoId?: number) {
         createdAt: "desc",
       },
     });
+    console.log("result", result);
     return result;
   } catch (error) {
     logger.error("获取可选 tags 出错,", error);

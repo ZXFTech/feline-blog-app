@@ -127,7 +127,7 @@ const Modal = ({
       >
         <NeuDiv
           onClick={(e) => e.stopPropagation()}
-          className={`model-main flex flex-col min-w-100 min-h-50 ${
+          className={`model-main flex flex-col min-w-100 max-w-[60%] min-h-50 ${
             !show ? "scale-99 opacity-0" : "scale-100 opacity-100"
           } transition-all duration-300 ease-in-out`}
         >
@@ -137,16 +137,16 @@ const Modal = ({
               {closeIcon ? (
                 <Icon
                   onClick={onClose}
-                  size="sm"
+                  size="md"
                   className="cursor-pointer transition-all duration-200 hover:rotate-180"
                   icon={closeIcon === true ? "close" : closeIcon}
                 />
               ) : null}
             </div>
           </div>
-          <div className="flex-1">{children}</div>
-          <div className="modal-footer flex items-center justify-end">
-            <Footer />
+          <div className="flex-1 px-2">{children}</div>
+          <div className="modal-footer flex items-center justify-end px-1">
+            {Footer()}
           </div>
         </NeuDiv>
       </div>,

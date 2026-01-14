@@ -1,6 +1,6 @@
 "use client";
 
-import { ChangeEventHandler, useState } from "react";
+import { ChangeEventHandler, useEffect, useState } from "react";
 import NeuDiv from "../NeuDiv";
 import NeuButton from "../NeuButton";
 import ReactMarkdown from "react-markdown";
@@ -8,25 +8,34 @@ import remarkGfm from "remark-gfm";
 import { CodeBlock } from "../NotionBlock";
 import Link from "next/link";
 import NeuInput from "@/components/NeuInput";
+import { getOptionTagsById } from "@/db/tagAction";
+import TagEditor, { TagData } from "../TagEditor";
 
 interface Props {
   handleSubmit: () => void;
   loading?: boolean;
-  blogData: { title: string; content: string };
+  blog: { title: string; content: string; id?: number; tags?: TagData[] };
   onTitleChange: ChangeEventHandler<HTMLInputElement>;
   onContentChange: ChangeEventHandler<HTMLTextAreaElement>;
+  onTagChange: (tags: TagData[]) => void;
 }
 
 const MarkdownEditor = ({
   handleSubmit,
-  blogData,
+  blog,
   onTitleChange,
   onContentChange,
+  onTagChange,
   loading,
 }: Props) => {
   // 编辑页面状态 state
   const [preview, setPreview] = useState(false);
   const [fullScreen, setFullScreen] = useState(false);
+  const [optionTags, setOptionTags] = useState<TagData[]>([]);
+
+  useEffect(() => {
+    getOptionTagsById("blog", blog?.id).then((res) => setOptionTags(res));
+  }, [blog]);
 
   return (
     <NeuDiv
@@ -71,9 +80,16 @@ const MarkdownEditor = ({
         className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
         type="text"
         placeholder="无标题"
-        value={blogData.title}
+        value={blog.title}
         onChange={onTitleChange as ChangeEventHandler}
       />
+      <NeuDiv neuType="flat">
+        <TagEditor
+          setValue={onTagChange}
+          value={blog.tags || []}
+          options={optionTags}
+        />
+      </NeuDiv>
       <div className="full-screen-content flex grow mb-1 relative">
         <NeuInput
           textArea
@@ -82,7 +98,7 @@ const MarkdownEditor = ({
             preview ? "w-[49%]" : "w-full"
           } h-full resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60`}
           placeholder="输入Markdown内容..."
-          value={blogData.content}
+          value={blog.content}
           onChange={onContentChange as ChangeEventHandler}
         />
         <NeuDiv
@@ -111,7 +127,7 @@ const MarkdownEditor = ({
             }}
             remarkPlugins={[remarkGfm]}
           >
-            {blogData.content}
+            {blog.content}
           </ReactMarkdown>
         </NeuDiv>
       </div>

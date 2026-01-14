@@ -37,48 +37,47 @@ type AnchorButtonProps = BaseButtonProps & AnchorHTMLAttributes<HTMLElement>;
 
 export type ButtonProps = Partial<NativeButtonProps & AnchorButtonProps>;
 
-const Button: FC<ButtonProps> = forwardRef<
-  HTMLButtonElement & HTMLAnchorElement,
-  ButtonProps
->((props, ref) => {
-  const {
-    className,
-    disabled,
-    btnSize = "md",
-    children,
-    loading,
-    icon,
-    buttonType,
-    ...restProps
-  } = props;
+const Button = forwardRef<HTMLButtonElement & HTMLAnchorElement, ButtonProps>(
+  (props, ref) => {
+    const {
+      className,
+      disabled,
+      btnSize = "md",
+      children,
+      loading,
+      icon,
+      buttonType,
+      ...restProps
+    } = props;
 
-  // 配置 classnames
-  const configClassNames = classNames(
-    "btn",
-    "inline-flex items-center justify-center",
-    `${children ? "gap-1" : "gap-0"}`,
-    {
-      [`btn-${buttonType}`]: buttonType,
-      [`btn-${btnSize}`]: btnSize,
-      disabled: disabled,
-      loading: loading,
-    },
-    className
-  );
+    // 配置 classnames
+    const configClassNames = classNames(
+      "btn",
+      "inline-flex items-center justify-center",
+      `${children ? "gap-1" : "gap-0"}`,
+      {
+        [`btn-${buttonType}`]: buttonType,
+        [`btn-${btnSize}`]: btnSize,
+        disabled: disabled,
+        loading: loading,
+      },
+      className
+    );
 
-  return (
-    <button
-      disabled={disabled}
-      ref={ref}
-      className={configClassNames}
-      {...restProps}
-    >
-      {loading && <IconSpinner size={btnSize} className="btn-loading" />}
-      {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
-      <span className="text-center">{children}</span>
-    </button>
-  );
-});
+    return (
+      <button
+        disabled={disabled}
+        ref={ref}
+        className={configClassNames}
+        {...restProps}
+      >
+        {loading && <IconSpinner size={btnSize} className="btn-loading" />}
+        {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
+        <span className="text-center">{children}</span>
+      </button>
+    );
+  }
+);
 Button.displayName = "Button";
 
 export default Button;

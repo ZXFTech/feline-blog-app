@@ -7,10 +7,7 @@ interface NeuContainerProps extends HTMLAttributes<HTMLDivElement> {
   intensity?: NeuIntensity;
 }
 
-const NeuDiv: FC<NeuContainerProps> = forwardRef<
-  HTMLDivElement,
-  NeuContainerProps
->((props, ref) => {
+const NeuDiv = forwardRef<HTMLDivElement, NeuContainerProps>((props, ref) => {
   const {
     neuType = "embossed",
     intensity = "normal",

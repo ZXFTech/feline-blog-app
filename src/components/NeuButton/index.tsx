@@ -1,4 +1,6 @@
-import React, { FC } from "react";
+"use client";
+
+import React, { FC, forwardRef } from "react";
 import Button, { ButtonProps } from "../Button";
 import classNames from "classnames";
 import { NeuIntensity, NeuButtonType } from "@/types";
@@ -11,7 +13,10 @@ export interface NeuButtonProps extends ButtonProps {
   themeColorHex?: string;
 }
 
-const NeuButton: FC<NeuButtonProps> = (props) => {
+const NeuButton = forwardRef<
+  HTMLButtonElement & HTMLAnchorElement,
+  NeuButtonProps
+>((props, ref) => {
   const {
     neuType = "embossed",
     intensity = "normal",
@@ -69,7 +74,7 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
   // }
 
   return (
-    <Button disabled={disabled} className={classnames} {...restProps}>
+    <Button ref={ref} disabled={disabled} className={classnames} {...restProps}>
       {buttonType === "link" ? (
         <Link className="neu-btn-inner-link" href={href} {...restProps}>
           {children}
@@ -79,6 +84,8 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
       )}
     </Button>
   );
-};
+});
+
+NeuButton.displayName = "NeuButton";
 
 export default NeuButton;

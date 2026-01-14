@@ -8,7 +8,7 @@ import NeuInput from "../NeuInput";
 import { debounce } from "@/utils/debounce ";
 import { PermissionAccess } from "../Auth/PermissionAccess";
 
-export const BlogOperationBar = () => {
+export const BlogListOperationBar = () => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();

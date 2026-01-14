@@ -1,6 +1,6 @@
 import BlogList from "@/components/BlogList/blogList";
 import Content from "@/components/Content";
-import { BlogOperationBar } from "@/components/BlogList/BlogOperationBar";
+import { BlogListOperationBar } from "@/components/BlogList/BlogListOperationBar";
 import { getBlogList } from "@/db/blogAction";
 
 interface BlogPageProps {
@@ -22,7 +22,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
 
   return (
     <Content>
-      <BlogOperationBar />
+      <BlogListOperationBar />
       <BlogList dataSource={blogs} />
     </Content>
   );

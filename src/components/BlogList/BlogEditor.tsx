@@ -4,11 +4,10 @@ import MarkdownEditor from "@/components/MarkdownEditor";
 import { createBlog, updateBlogById } from "@/db/blogAction";
 import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
-import { useState, ChangeEventHandler, useEffect } from "react";
+import { useState, ChangeEventHandler } from "react";
 import { Role } from "../../../generated/prisma/enums";
-import TagEditor, { TagData } from "@/components/TagEditor";
+import { TagData } from "@/components/TagEditor";
 import Content from "../Content";
-import NeuDiv from "../NeuDiv";
 
 export type CombinedBlog = {
   author?: {
@@ -23,21 +22,7 @@ export type CombinedBlog = {
     role: Role;
     updateAt: Date;
   };
-  tags?: ({
-    tag: {
-      content: string;
-      createdAt: Date;
-      updatedAt: Date;
-      id: number;
-      color: string;
-      userId: string;
-    };
-  } & {
-    assignedAt: Date;
-    assignedBy: string;
-    tagId: number;
-    blogId: number;
-  })[];
+  tags?: TagData[];
 } & {
   title: string;
   content: string;
@@ -53,12 +38,11 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
   const [loading, setLoading] = useState(false);
   // blog state
   const [blogData, setBlogData] = useState({
+    id: blog?.id,
     title: blog?.title || "",
     content: blog?.content || "",
+    tags: blog?.tags || [],
   });
-  const [tags, setTags] = useState<TagData[]>(
-    blog?.tags?.map((item) => item.tag) || []
-  );
 
   const handleSubmit = async () => {
     try {
@@ -69,21 +53,23 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
         result = await updateBlogById(Number(blog?.id), {
           title: blogData.title.trim() ? blogData.title.trim() : "无标题",
           content: blogData.content,
-          tags: tags,
+          tags: blogData.tags,
         });
       } else {
         // 新增
         result = await createBlog({
           title: blogData.title.trim() ? blogData.title.trim() : "无标题",
           content: blogData.content,
-          tags: tags,
+          tags: blogData.tags,
         });
       }
 
       message.success("创建成功!");
       setBlogData({
+        id: undefined,
         title: "",
         content: "",
+        tags: [],
       });
       router.push(`/blog/${result.blogId}`);
     } catch (error) {
@@ -91,6 +77,13 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const onTagChange = (tags: TagData[]) => {
+    setBlogData({
+      ...blogData,
+      tags,
+    });
   };
 
   const onContentChange: ChangeEventHandler<HTMLTextAreaElement> = (value) =>
@@ -102,19 +95,14 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
     setBlogData((prev) => ({ ...prev, title: e.target.value }));
 
   return (
-    <Content
-      rightSideBar={
-        <NeuDiv neuType="flat">
-          <TagEditor setValue={setTags} value={tags} />
-        </NeuDiv>
-      }
-    >
+    <Content>
       <MarkdownEditor
-        blogData={blogData}
+        blog={blogData}
         onContentChange={onContentChange}
         onTitleChange={onTitleChange}
         handleSubmit={handleSubmit}
         loading={loading}
+        onTagChange={onTagChange}
       />
     </Content>
   );

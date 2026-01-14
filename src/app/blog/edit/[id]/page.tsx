@@ -1,4 +1,3 @@
-import Content from "@/components/Content";
 import { message } from "@/lib/message";
 import BlogEditor from "@/components/BlogList/BlogEditor";
 import { getBlogById } from "@/db/blogAction";
@@ -16,10 +15,14 @@ const Edit = async ({ params }) => {
     message.error("未找到博客");
     redirect("/blog");
   }
+  const formattedBlog = {
+    ...blog,
+    tags: blog.tags.map((item) => item.tag),
+  };
 
   // blog state
 
-  return <BlogEditor blog={blog}></BlogEditor>;
+  return <BlogEditor blog={formattedBlog}></BlogEditor>;
 };
 
 export default Edit;

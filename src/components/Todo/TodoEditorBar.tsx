@@ -10,6 +10,7 @@ import { addTodo, updateTodo } from "@/db/todoAction";
 import { Tag } from "../../../generated/prisma/client";
 import { useRouter } from "next/navigation";
 import { getOptionTagsById } from "@/db/tagAction";
+import classNames from "classnames";
 
 const Modal = dynamic(() => import("@/components/Modal"), { ssr: false });
 
@@ -30,6 +31,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
   const [loading, setLoading] = useState(false);
   const [validateMessage, setValidateMessage] = useState("");
   const [optionTags, setOptionTags] = useState<TagData[]>([]);
+  const [shake, setShake] = useState(false);
 
   useEffect(() => {
     getOptionTagsById("todo", todo?.id).then((tags) => setOptionTags(tags));
@@ -39,7 +41,6 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
     content: "",
     finished: false,
   });
-
   const initialTodoData = useMemo(() => {
     if (!todo) {
       return INITIAL_TODO_DATA;
@@ -52,6 +53,13 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       tags: todo?.tags,
     };
   }, [todo]);
+
+  const resetStatus = useCallback(() => {
+    setShake(false);
+    setValidateMessage("");
+    setTodoData(initialTodoData);
+    setLoading(false);
+  }, [setShake, setValidateMessage, setTodoData, setLoading, initialTodoData]);
 
   useEffect(() => {
     setTodoData(initialTodoData);
@@ -69,10 +77,9 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
 
   const handleClose = useCallback(() => {
     setTodoData(INITIAL_TODO_DATA);
-    if (onClose) {
-      onClose();
-    }
-  }, [onClose]);
+    resetStatus();
+    onClose?.();
+  }, [onClose, resetStatus]);
 
   const handleTodo = useCallback(async () => {
     setLoading(true);
@@ -93,6 +100,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
     } catch (error) {
       message.error("添加失败," + error);
     } finally {
+      setShake(false);
       setLoading(false);
       router.refresh();
     }
@@ -100,7 +108,9 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
 
   const handleOk = async () => {
     if (!todoData.content?.trim()) {
-      setValidateMessage("待办内容不能为空!");
+      setValidateMessage("todo 内容不能为空");
+      setShake(false);
+      requestAnimationFrame(() => setShake(true));
       return;
     }
     if (validateMessage) setValidateMessage("");
@@ -119,18 +129,27 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       visible={visible}
       onClose={handleClose}
       onOk={handleOk}
+      title="新增 Todo"
     >
-      <div>
-        <NeuInput
-          disabled={loading}
-          className="w-full mb-4"
-          value={todoData?.content || ""}
-          autoComplete="off"
-          onChange={(value) => onDataChange("content", value.target.value)}
-        />
-        {validateMessage && (
-          <span className="text-red-500">{validateMessage}</span>
-        )}
+      <div className="w-200">
+        <div className=" mb-4">
+          <NeuInput
+            disabled={loading}
+            className={classNames("w-full mb-1", {
+              "input-shake": shake,
+              "border-red-700!": validateMessage,
+            })}
+            value={todoData?.content || ""}
+            autoComplete="off"
+            onChange={(value) => {
+              setValidateMessage("");
+              onDataChange("content", value.target.value);
+            }}
+          />
+          {validateMessage && (
+            <span className="text-red-700 text-sm">{validateMessage}</span>
+          )}
+        </div>
         <TagEditor
           value={todoData.tags || []}
           setValue={(tags) => onDataChange("tags", tags)}

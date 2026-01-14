@@ -47,7 +47,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
     "btn",
     "inline-flex items-center justify-center",
     `${children ? "gap-1" : "gap-0"}`,
-    `${children ? "leading-5!" : "leading-0"}`,
+    !children && "p-1!",
     {
       [`btn-${buttonType}`]: buttonType,
       [`btn-${btnSize}`]: btnSize,

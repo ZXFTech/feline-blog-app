@@ -1,8 +1,57 @@
+"use server";
+
 import { CountedTag } from "@/app/tag/page";
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 
-export async function getAllTags(
+export async function getAllTags() {
+  try {
+    // const user = await requireAuth();
+
+    const result = await db.tag.findMany({
+      where: {
+        userId: testUserId,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+
+    return result;
+  } catch (error) {
+    logger.error("获取 tag 列表出错,", error);
+    throw error;
+  }
+}
+
+export async function getOptionTagsById(todoId?: number) {
+  try {
+    if (!todoId) {
+      // 没有 todo id 返回所有 tag
+      return await getAllTags();
+    }
+
+    const result = await db.tag.findMany({
+      where: {
+        userId: testUserId,
+        todos: {
+          none: {
+            todoId,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+    return result;
+  } catch (error) {
+    logger.error("获取可选 tags 出错,", error);
+    throw error;
+  }
+}
+
+export async function getSortedTags(
   countBy: "blogs" | "todos",
   sort?: "desc" | "asc"
 ) {
@@ -16,7 +65,6 @@ export async function getAllTags(
         _count: sort || "desc",
       },
     };
-
     const include = {
       _count: {
         select: {

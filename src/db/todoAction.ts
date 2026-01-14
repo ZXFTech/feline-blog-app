@@ -5,6 +5,7 @@ import logger from "@/lib/logger/Logger";
 import { Tag, Todo } from "../../generated/prisma/client";
 import { TodoSearchParams } from "@/types/todo";
 import { requireAuth } from "@/lib/auth/userAuth";
+import { TagData } from "@/components/TagEditor";
 
 export async function getTodoList(
   searchParams?: TodoSearchParams,
@@ -137,7 +138,7 @@ export async function updateTodo({
   id: number;
   finished?: boolean;
   content?: string;
-  tags?: Tag[];
+  tags?: TagData[];
 }) {
   try {
     const user = await requireAuth();
@@ -230,16 +231,33 @@ export async function deleteTodo(todoId: number) {
   }
 }
 
-export async function getTodoById(todoId: number, userId?: string) {
+export async function getTodoById(
+  todoId: number,
+  userId?: string,
+  tags = false
+) {
   try {
     const res = await db.todo.findFirst({
       where: {
         id: todoId,
         userId: userId || testUserId,
       },
+      include: {
+        tags: {
+          include: {
+            tag: tags,
+          },
+        },
+      },
     });
-
-    return { todo: res };
+    if (!res) {
+      return null;
+    }
+    const formattedTodo = {
+      ...res,
+      tags: res.tags.map((item) => item.tag),
+    };
+    return formattedTodo;
   } catch (error) {
     const errorMessage = "Get todo failed! " + error;
     logger.error(errorMessage);

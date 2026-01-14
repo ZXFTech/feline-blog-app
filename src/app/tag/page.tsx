@@ -1,7 +1,7 @@
 import Content from "@/components/Content";
 import TagOperator from "@/components/Tag/TagOperator";
 import TagShowCase from "@/components/Tag/TagShowCase";
-import { getAllTags } from "@/db/tagAction";
+import { getSortedTags } from "@/db/tagAction";
 import React from "react";
 import { Tag as ITag } from "../../../generated/prisma/client";
 
@@ -12,7 +12,7 @@ export type CountedTag = ITag & {
 
 async function TagPage({ searchParams }) {
   const { show, orderBy } = await searchParams;
-  const { tags, max } = await getAllTags(show || "todos", orderBy);
+  const { tags, max } = await getSortedTags(show || "todos", orderBy);
   return (
     <Content>
       <TagOperator />

@@ -3,12 +3,9 @@
 
 .btn {
   position: relative;
-  font-weight: variables.$btn-font-weight;
-  line-height: variables.$btn-line-height;
   color: var(--neu-font-color);
   white-space: nowrap;
   background-image: none;
-  // border: $btn-border-width solid transparent;
   border: none;
   outline: none;
   @include mixin.button-size(

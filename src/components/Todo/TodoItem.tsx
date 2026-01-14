@@ -1,3 +1,5 @@
+"use client";
+
 import React from "react";
 import Icon from "../Icon";
 import NeuButton from "../NeuButton";
@@ -7,12 +9,19 @@ import { TagTodo } from "@/types/todo";
 
 interface Props {
   todo: TagTodo;
-  onTodoClick: (todo: TagTodo) => void;
-  onTodoUpdate: (todo: TagTodo) => void;
-  onTodoDelete: (todoId: number) => void;
+  onTodoClick?: (todo: TagTodo) => void;
+  onTodoUpdate?: (todo: TagTodo) => void;
+  onTodoDelete?: (todoId: number) => void;
+  editable?: boolean;
 }
 
-function TodoItem({ todo, onTodoClick, onTodoDelete, onTodoUpdate }: Props) {
+function TodoItem({
+  todo,
+  onTodoClick,
+  onTodoDelete,
+  onTodoUpdate,
+  editable = true,
+}: Props) {
   return (
     <div className="flex items-start justify-center gap-2">
       <NeuDiv style={{ fontSize: "20px" }} className="p-1! m-0! leading-0">
@@ -23,8 +32,11 @@ function TodoItem({ todo, onTodoClick, onTodoDelete, onTodoUpdate }: Props) {
         )}
       </NeuDiv>
       <NeuButton
-        onClick={() => onTodoClick(todo)}
-        className={`m-0! w-full overflow-hidden! p-3! block! text-start`}
+        onClick={() => editable && onTodoClick?.(todo)}
+        className={`m-0! w-full overflow-hidden! p-3! block! text-start ${
+          !editable && "cursor-not-allowed!"
+        }`}
+        disabled={!editable}
       >
         <span
           className={`${
@@ -49,12 +61,12 @@ function TodoItem({ todo, onTodoClick, onTodoDelete, onTodoUpdate }: Props) {
         <NeuButton
           className="p-2! mb-2"
           icon="edit"
-          onClick={() => onTodoUpdate(todo)}
+          onClick={() => onTodoUpdate?.(todo)}
         ></NeuButton>
         <NeuButton
           className="p-2!"
           icon="delete"
-          onClick={() => onTodoDelete(todo.id!)}
+          onClick={() => onTodoDelete?.(todo.id!)}
         ></NeuButton>
       </div>
     </div>

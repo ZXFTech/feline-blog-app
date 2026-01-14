@@ -1,5 +1,3 @@
-// "use client";
-
 import Content from "@/components/Content";
 import { TagTodo } from "@/types/todo";
 import { getTodoList } from "@/db/todoAction";
@@ -16,17 +14,21 @@ const Todos = async ({ searchParams }) => {
   } = await getTodoList({ orderBy, finished: isFinished, content });
 
   const sortedList = {} as { [key: string]: TagTodo[] };
-  ((todoList as unknown as TagTodo[]) || []).forEach((todo) => {
+  (todoList || []).forEach((todo) => {
     const date = new Date(todo.createAt!);
     const dateKey = [
       date.getUTCFullYear(),
       (date.getUTCMonth() + 1).toString().padStart(2, "0"),
       (date.getUTCDate() + 1).toString().padStart(2, "0"),
     ].join("-");
+    const tagTodo = {
+      ...todo,
+      tags: todo.tags.map((item) => item.tag),
+    };
     if (sortedList[dateKey]) {
-      sortedList[dateKey].push(todo);
+      sortedList[dateKey].push(tagTodo);
     } else {
-      sortedList[dateKey] = [todo];
+      sortedList[dateKey] = [tagTodo];
     }
   });
 

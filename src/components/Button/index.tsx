@@ -67,7 +67,12 @@ const Button: FC<ButtonProps> = forwardRef<
   );
 
   return (
-    <button ref={ref} className={configClassNames} {...restProps}>
+    <button
+      disabled={disabled}
+      ref={ref}
+      className={configClassNames}
+      {...restProps}
+    >
       {loading && <IconSpinner size={btnSize} className="btn-loading" />}
       {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
       <span className="text-center">{children}</span>

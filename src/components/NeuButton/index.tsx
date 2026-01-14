@@ -18,6 +18,7 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
     className,
     buttonType,
     children,
+    disabled,
     href = "",
     ...restProps
   } = props;
@@ -28,6 +29,7 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
     {
       [`btn-${neuType}-${intensity}`]: neuType && intensity,
       [`neu-btn-${buttonType}`]: buttonType,
+      disabled: disabled,
     },
     className
   );
@@ -67,7 +69,7 @@ const NeuButton: FC<NeuButtonProps> = (props) => {
   // }
 
   return (
-    <Button className={classnames} {...restProps}>
+    <Button disabled={disabled} className={classnames} {...restProps}>
       {buttonType === "link" ? (
         <Link className="neu-btn-inner-link" href={href} {...restProps}>
           {children}

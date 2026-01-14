@@ -8,14 +8,19 @@
   background-color: var(--theme-customize-color);
   @include neu.neu-embossed-normal;
   // transition: box-shadow 0.1s;
-  &:active,
-  &[active] {
+  &:not(:disabled):active,
+  &:not([disabled])[active] {
     @include neu.neu-embossed-sm;
     scale: 99%;
   }
-  &:hover,
-  &[hover] {
+  &:not(:disabled):hover,
+  &:not([disabled])[hover] {
     background: var(--theme-customize-color);
+  }
+
+  &:disabled,
+  &[disabled] {
+    @include neu.neu-embossed-normal;
   }
 }
 

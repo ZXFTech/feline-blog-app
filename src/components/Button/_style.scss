@@ -20,7 +20,7 @@
   box-shadow: variables.$btn-box-shadow;
   cursor: pointer;
   transition: variables.$btn-transition;
-  &.disabled,
+  &:disabled,
   &[disabled] {
     cursor: not-allowed;
     opacity: variables.$btn-disabled-opacity;

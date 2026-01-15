@@ -131,31 +131,29 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       onOk={handleOk}
       title="新增 Todo"
     >
-      <div className="w-200">
-        <div className=" mb-4">
-          <NeuInput
-            disabled={loading}
-            className={classNames("w-full mb-1", {
-              "input-shake": shake,
-              "border-red-700!": validateMessage,
-            })}
-            value={todoData?.content || ""}
-            autoComplete="off"
-            onChange={(value) => {
-              setValidateMessage("");
-              onDataChange("content", value.target.value);
-            }}
-          />
-          {validateMessage && (
-            <span className="text-red-700 text-sm">{validateMessage}</span>
-          )}
-        </div>
-        <TagEditor
-          value={todoData.tags || []}
-          setValue={(tags) => onDataChange("tags", tags)}
-          options={optionTags}
+      <div className=" mb-4">
+        <NeuInput
+          disabled={loading}
+          className={classNames("w-full mb-1", {
+            "input-shake": shake,
+            "border-red-700!": validateMessage,
+          })}
+          value={todoData?.content || ""}
+          autoComplete="off"
+          onChange={(value) => {
+            setValidateMessage("");
+            onDataChange("content", value.target.value);
+          }}
         />
+        {validateMessage && (
+          <span className="text-red-700 text-sm">{validateMessage}</span>
+        )}
       </div>
+      <TagEditor
+        value={todoData.tags || []}
+        setValue={(tags) => onDataChange("tags", tags)}
+        options={optionTags}
+      />
     </Modal>
   );
 };

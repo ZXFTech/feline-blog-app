@@ -121,13 +121,13 @@ const Modal = ({
         onMouseDown={handleMouseDown}
         className={`model-mask ${
           mounted ? "fixed" : "hidden"
-        } z-999999999 transition-all duration-300 ease-in-out right-0 top-0  bottom-0 left-0 flex items-center justify-center flex-col ${
+        } z-999999999 transition-all duration-300 ease-in-out right-0 top-0 bottom-0 left-0 flex items-center justify-center flex-col ${
           show ? "bg-gray-400/40" : "bg-gray-400/0"
         }`}
       >
         <NeuDiv
           onClick={(e) => e.stopPropagation()}
-          className={`model-main flex flex-col min-w-100 max-w-[60%] min-h-50 ${
+          className={`model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 ${
             !show ? "scale-99 opacity-0" : "scale-100 opacity-100"
           } transition-all duration-300 ease-in-out`}
         >

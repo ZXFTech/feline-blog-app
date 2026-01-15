@@ -1,3 +1,4 @@
+import classNames from "classnames";
 import React, { FC, HTMLAttributes, ReactNode } from "react";
 
 interface ContentProps extends HTMLAttributes<HTMLDivElement> {
@@ -6,8 +7,8 @@ interface ContentProps extends HTMLAttributes<HTMLDivElement> {
 }
 
 const Content: FC<ContentProps> = ({
-  leftSideBar,
-  rightSideBar,
+  leftSideBar = "a",
+  rightSideBar = "b",
   children,
   className,
   ...restProps
@@ -15,16 +16,23 @@ const Content: FC<ContentProps> = ({
   return (
     <div
       {...restProps}
-      className={`content w-full flex  justify-center ${className || ""}`}
+      className={classNames(
+        "content-container relative flex justify-center gap-8 hide-scrollbar"
+      )}
     >
       {leftSideBar && (
-        <div className="hidden lh:block w-[20%]]">{leftSideBar}</div>
+        <div className="left-side-bar hide-scrollbar">{leftSideBar}</div>
       )}
-      <div className="w-2xl md:w-2xl xl:w-2xl h-[100vh] overflow-scroll hide-scrollbar pt-22 pb-10 relative">
+      <div
+        className={classNames(
+          "content h-[100vh] pt-22 pb-14 relative overflow-scroll hide-scrollbar",
+          className
+        )}
+      >
         {children}
       </div>
       {rightSideBar && (
-        <div className="hidden md:block w-[25%] h-[100vh] overflow-scroll hide-scrollbar pt-22 pb-10 px-4">
+        <div className="right-side-bar hide-scrollbar py-22 px-2">
           {rightSideBar}
         </div>
       )}

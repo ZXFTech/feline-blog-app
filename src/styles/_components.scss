@@ -17,10 +17,13 @@
 @use "../components/NotionBlock/styles" as NotionBlockStyle;
 
 // Neu Input
-@use "../components/NeuInput/style" as NeuInput;
+@use "../components/NeuInput/style" as NeuInputStyle;
 
 // pro message
-@use "../components/ProMessage/styles.scss" as ProMessage;
+@use "../components/ProMessage/styles.scss" as ProMessageStyle;
 
 // Nue Progress Bar
-@use "../components/NeuProgressBar/styles" as NeuProgressBar;
+@use "../components/NeuProgressBar/styles" as NeuProgressBarStyle;
+
+// content
+@use "../components/Content/styles" as ContentStyle;

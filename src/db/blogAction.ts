@@ -3,7 +3,7 @@
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 import { TagData } from "@/components/TagEditor";
-import { getCurrentUser } from "@/lib/auth/userAuth";
+import { getCurrentUser, requireAuth } from "@/lib/auth/userAuth";
 import { Role } from "../../generated/prisma/enums";
 
 export async function createBlog({
@@ -71,25 +71,46 @@ export async function createBlog({
   }
 }
 
-export async function getBlogById(blogId: number) {
+export async function getBlogById(id: number) {
   try {
-    const res = await db.blog.findFirst({
-      where: {
-        id: Number(blogId),
-      },
-      include: {
-        author: true,
-        tags: {
-          include: {
-            tag: true,
+    const user = await requireAuth();
+    const userId = user.id;
+    const blogId = Number(id);
+    const [blog, isLiked, isFavorite] = await db.$transaction([
+      db.blog.findFirst({
+        where: {
+          id: blogId,
+        },
+        include: {
+          author: true,
+          tags: {
+            include: {
+              tag: true,
+            },
           },
         },
-      },
-    });
-    return { blog: res };
+      }),
+      db.blogLike.findUnique({
+        where: {
+          blogId_userId: {
+            userId,
+            blogId,
+          },
+        },
+      }),
+      db.blogFavorite.findUnique({
+        where: {
+          blogId_userId: {
+            userId,
+            blogId,
+          },
+        },
+      }),
+    ]);
+    return { blog, isLiked: !!isLiked, isFavorite: !!isFavorite };
   } catch (err) {
     logger.error("Find blog failed!", err);
-    throw "Find blog failed!" + err;
+    throw err;
   }
 }
 
@@ -203,5 +224,105 @@ export async function getBlogList(
   } catch (err) {
     logger.error("err", err);
     throw "Query blog list failed!" + err;
+  }
+}
+
+// 点赞
+export async function likeBlog(blogId: number, like = true) {
+  try {
+    const user = await requireAuth();
+    const userId = user.id;
+
+    if (like) {
+      // 点赞
+      await db.$transaction([
+        db.blogLike.create({
+          data: {
+            blogId,
+            userId,
+          },
+        }),
+        db.blog.update({
+          where: {
+            id: blogId,
+          },
+          data: {
+            likeCount: { increment: 1 },
+          },
+        }),
+      ]);
+      return;
+    }
+    // 取消点赞
+    await db.$transaction([
+      db.blogLike.delete({
+        where: {
+          blogId_userId: {
+            blogId,
+            userId,
+          },
+        },
+      }),
+      db.blog.update({
+        where: {
+          id: blogId,
+        },
+        data: {
+          likeCount: { decrement: 1 },
+        },
+      }),
+    ]);
+  } catch (error) {
+    logger.error(`${like && "取消"}点赞失败,`, error);
+    throw error;
+  }
+}
+
+// 收藏
+export async function favoriteBlog(blogId: number, favorite: boolean) {
+  try {
+    const user = await requireAuth();
+    const userId = user.id;
+    if (favorite) {
+      await db.$transaction([
+        db.blogFavorite.create({
+          data: {
+            blogId,
+            userId,
+          },
+        }),
+        db.blog.update({
+          where: {
+            id: blogId,
+          },
+          data: {
+            favoriteCount: { increment: 1 },
+          },
+        }),
+      ]);
+      return;
+    }
+    // 取消收藏
+    await db.$transaction([
+      db.blogFavorite.delete({
+        where: {
+          blogId_userId: {
+            blogId,
+            userId,
+          },
+        },
+      }),
+      db.blog.update({
+        where: {
+          id: blogId,
+        },
+        data: {
+          favoriteCount: { decrement: 1 },
+        },
+      }),
+    ]);
+  } catch (error) {
+    logger.error(`${favorite && "取消"}收藏失败,`, error);
+    throw error;
   }
 }

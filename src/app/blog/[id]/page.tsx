@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm";
 import Content from "@/components/Content";
 import { message } from "@/lib/message";
 import BlogOperationBar from "@/components/Blog/BlogOperationBar";
+import NeuButton from "@/components/NeuButton";
 
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
@@ -42,11 +43,17 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   }
 
   return (
-    <Content>
+    <Content
+      rightSideBar={
+        <NeuButton buttonType="link" href={`/blog/edit/${blog.id}`}>
+          编辑
+        </NeuButton>
+      }
+    >
       <Head key={blog.title + blog.id}>
         <title>{blog.title}</title>
       </Head>
-      <div className="flex flex-col w-[80vw]">
+      <div className="flex flex-col">
         <NeuDiv className="sticky top-0">
           <h1>{blog.title}</h1>
           <div className="flex flex-wrap items-center justify-between">

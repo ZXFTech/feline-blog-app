@@ -1,3 +1,7 @@
+@use "variables";
+@use "neu";
+@use "mixin";
+
 /* shake.css */
 @keyframes shake {
   0% {
@@ -22,4 +26,34 @@
 
 .input-shake {
   animation: shake 0.3s ease-in-out;
+}
+
+/* 变色灯 */
+.color-cycle {
+  animation: shareColorCycle 8s infinite;
+  color: var(--theme-customize-color);
+}
+
+@keyframes shareColorCycle {
+  0% {
+    // color: variables.$weixin;
+    background: variables.$weixin;
+    @include neu.neu-custom(variables.$weixin);
+  }
+  25% {
+    background: variables.$qq;
+    @include neu.neu-custom(variables.$qq);
+  }
+  50% {
+    background: variables.$tiktok;
+    @include neu.neu-custom(variables.$tiktok);
+  }
+  75% {
+    background: variables.$github;
+    @include neu.neu-custom(variables.$github);
+  }
+  100% {
+    background: variables.$weixin;
+    @include neu.neu-custom(variables.$weixin);
+  }
 }

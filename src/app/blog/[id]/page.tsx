@@ -9,14 +9,12 @@ import { getBlogById } from "@/db/blogAction";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import Content from "@/components/Content";
-import BlogEditBar from "@/components/RightSideBar/BlogEditBar";
 import { message } from "@/lib/message";
-import { Suspense } from "react";
-import Loading from "@/app/loading";
+import BlogOperationBar from "@/components/Blog/BlogOperationBar";
 
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
-  const { blog } = await getBlogById(id);
+  const { blog, isLiked, isFavorite } = await getBlogById(id);
 
   if (!blog) {
     message.error("未找到博客");
@@ -44,63 +42,69 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   }
 
   return (
-    <Content rightSideBar={<BlogEditBar blogId={id} />}>
-      <Suspense fallback={<Loading />}>
-        <div className="flex flex-col py-3">
-          <NeuDiv
-            neuType="flat"
-            className="blog-content-container p-5 overflow-auto"
-          >
-            <Head>
-              <title>{blog.title}</title>
-            </Head>
-            <h1>{blog.title}</h1>
-            <div className="flex flex-wrap items-center justify-between mb-3">
-              {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
-              <Tag className="ml-0">{blog.author.username.toString()}</Tag>
-              {blog.tags.length ? (
-                <ul className="flex flex-wrap gap-1 p-0 mx-0 my-3">
-                  {blog.tags.map((item) => {
-                    return (
-                      <Tag
-                        color={item.tag.color}
-                        key={item.blogId + item.tagId}
-                      >
-                        {item.tag.content}
-                      </Tag>
-                    );
-                  })}
-                </ul>
-              ) : (
-                <></>
-              )}
-            </div>
-            <div className="blog-content text-left flex-1 overflow-scroll hide-scrollbar h-[calc(100vh-20rem))]">
-              <ReactMarkdown
-                components={{
-                  code({ className, children, ...props }) {
-                    const match = /language-(\w+)/.exec(className || "");
-                    return match ? (
-                      <CodeBlock
-                        title="test"
-                        code={children ? children.toString() : ""}
-                        language={match[1]}
-                      ></CodeBlock>
-                    ) : (
-                      <code className={className} {...props}>
-                        {children}
-                      </code>
-                    );
-                  },
-                }}
-                remarkPlugins={[remarkGfm]}
-              >
-                {blog.content}
-              </ReactMarkdown>
-            </div>
-          </NeuDiv>
+    <Content>
+      <Head key={blog.title + blog.id}>
+        <title>{blog.title}</title>
+      </Head>
+      <div className="flex flex-col w-[80vw]">
+        <NeuDiv className="sticky top-0">
+          <h1>{blog.title}</h1>
+          <div className="flex flex-wrap items-center justify-between">
+            {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
+            <Tag className="ml-0">{blog.author.username.toString()}</Tag>
+            {blog.tags.length ? (
+              <ul className="flex flex-wrap gap-1 p-0 mx-0">
+                {blog.tags.map((item) => {
+                  return (
+                    <Tag color={item.tag.color} key={item.blogId + item.tagId}>
+                      {item.tag.content}
+                    </Tag>
+                  );
+                })}
+              </ul>
+            ) : (
+              <></>
+            )}
+          </div>
+        </NeuDiv>
+        <NeuDiv
+          neuType="flat"
+          className="blog-content-container px-4 pt-2 pb-4 overflow-auto"
+        >
+          <div className="blog-content text-left flex-1 overflow-scroll hide-scrollbar">
+            <ReactMarkdown
+              components={{
+                code({ className, children, ...props }) {
+                  const match = /language-(\w+)/.exec(className || "");
+                  return match ? (
+                    <CodeBlock
+                      title="test"
+                      code={children ? children.toString() : ""}
+                      language={match[1]}
+                    ></CodeBlock>
+                  ) : (
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  );
+                },
+              }}
+              remarkPlugins={[remarkGfm]}
+            >
+              {blog.content}
+            </ReactMarkdown>
+          </div>
+        </NeuDiv>
+        <div className="sticky bottom-2 left-0 right-0">
+          <BlogOperationBar
+            likes={blog.likeCount}
+            favorite={blog.favoriteCount}
+            id={blog.id}
+            isLiked={isLiked}
+            isFavorite={isFavorite}
+          />
         </div>
-      </Suspense>
+      </div>
     </Content>
   );
 };

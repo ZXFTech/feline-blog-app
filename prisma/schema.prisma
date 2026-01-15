@@ -17,20 +17,22 @@ datasource db {
 }
 
 model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  phone     String?   @unique
-  username  String
-  password  String
-  avatar    String?
-  work      String?
-  role      Role      @default(USER) // USER ADMIN ROOT VISITOR
-  createdAt DateTime  @default(now())
-  updateAt  DateTime  @updatedAt
-  Blog      Blog[]
-  Tag       Tag[]
-  Todo      Todo[]
-  sessions  Session[]
+  id            String         @id @default(cuid())
+  email         String         @unique
+  phone         String?        @unique
+  username      String
+  password      String
+  avatar        String?
+  work          String?
+  role          Role           @default(USER) // USER ADMIN ROOT VISITOR
+  createdAt     DateTime       @default(now())
+  updateAt      DateTime       @updatedAt
+  Blog          Blog[]
+  Tag           Tag[]
+  Todo          Todo[]
+  sessions      Session[]
+  blogLikes     BlogLike[]
+  blogFavorites BlogFavorite[]
 
   @@map("users")
 }
@@ -64,6 +66,12 @@ model Blog {
   updatedAt DateTime      @updatedAt
   delete    Boolean       @default(false)
   tags      TagsOnBlogs[]
+
+  likeCount     Int @default(0)
+  favoriteCount Int @default(0)
+
+  likes     BlogLike[]
+  favorites BlogFavorite[]
 }
 
 model Tag {
@@ -120,4 +128,36 @@ enum Role {
   ADMIN
   ROOT
   VISITOR
+}
+
+model BlogLike {
+  id String @id @default(cuid())
+
+  blogId Int
+  userId String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([blogId, userId])
+  @@index([userId])
+  @@index([blogId])
+}
+
+model BlogFavorite {
+  id String @id @default(cuid())
+
+  blogId Int
+  userId String
+
+  blog Blog @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([blogId, userId])
+  @@index([userId])
+  @@index([blogId])
 }

@@ -9,10 +9,10 @@ import {
   useState,
 } from "react";
 import NeuDiv from "../NeuDiv";
-import { createPortal } from "react-dom";
 import Icon, { IconType } from "../Icon";
 import NeuButton from "../NeuButton";
 import { ButtonType } from "../Button";
+import Portal from "../Portal";
 
 type FooterType = "ok" | "cancel" | "default" | "none";
 
@@ -114,14 +114,14 @@ const Modal = ({
     );
   };
 
-  if (mounted && document) {
-    return createPortal(
+  return (
+    <Portal>
       <div
         onClick={handleMaskClick}
         onMouseDown={handleMouseDown}
         className={`model-mask ${
           mounted ? "fixed" : "hidden"
-        } z-999999999 transition-all duration-300 ease-in-out right-0 top-0 bottom-0 left-0 flex items-center justify-center flex-col ${
+        } z-1000 transition-all duration-300 ease-in-out right-0 top-0 bottom-0 left-0 flex items-center justify-center flex-col ${
           show ? "bg-gray-400/40" : "bg-gray-400/0"
         }`}
       >
@@ -149,11 +149,9 @@ const Modal = ({
             {Footer()}
           </div>
         </NeuDiv>
-      </div>,
-      document.body
-    );
-  }
-  return null;
+      </div>
+    </Portal>
+  );
 };
 
 export default Modal;

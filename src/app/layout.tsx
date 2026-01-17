@@ -7,6 +7,8 @@ import Footer from "@/components/Footer";
 import Head from "next/head";
 import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
+import { Ma_Shan_Zheng } from "next/font/google";
+import classNames from "classnames";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,6 +18,12 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+const maShanZheng = Ma_Shan_Zheng({
+  variable: "--font-ma-shan-zheng",
+  subsets: ["latin"],
+  weight: "400",
 });
 
 export const metadata: Metadata = {
@@ -31,7 +39,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="zh-cn" className={classNames(maShanZheng.variable)}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>

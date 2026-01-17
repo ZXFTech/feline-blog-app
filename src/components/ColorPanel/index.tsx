@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import NeuDiv from "../NeuDiv";
 import colors from "tailwindcss/colors";
 import NeuButton from "../NeuButton";
+import Floating from "../Floating";
 
 type TailwindColors = typeof colors;
 type ColorKeys = keyof TailwindColors;
@@ -30,6 +31,7 @@ const ColorPanel = ({
     if (!visible) return;
 
     const handleClickOutside = (event: MouseEvent) => {
+      event.preventDefault();
       const target = event.target as Node;
       if (panelRef.current?.contains(target)) {
         return;
@@ -50,6 +52,8 @@ const ColorPanel = ({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [visible, setVisible, setColor]);
+
+  useEffect(() => {}, []);
 
   const colorListMap = useMemo<{ name: string; color: string }[][]>(() => {
     return Object.keys(colors as TailwindColors)
@@ -74,12 +78,17 @@ const ColorPanel = ({
         icon="format_color_text"
         onClick={() => setVisible((prev) => !prev)}
       ></NeuButton>
-      {visible ? (
+      <Floating
+        anchorRef={buttonRef}
+        open={visible}
+        offset={-100}
+        align="right"
+      >
         <NeuDiv
           ref={panelRef}
-          className="absolute overflow-auto hide-scrollbar p-2! bottom-5/4 right-2 z-100 bg-linear-to-b from-black/30 to-white/20"
+          className="overflow-auto hide-scrollbar flex justify-center items-center h-45 w-90 bg-linear-to-b from-black/30 to-white/20"
         >
-          <div className="w-[100%] flex">
+          <div className="flex flex-wrap">
             {colorListMap.map((list, i) =>
               i >= colorFilter.i ? (
                 <div
@@ -94,7 +103,7 @@ const ColorPanel = ({
                           setColor(item.color);
                         }}
                         onMouseLeave={() => onColorPicked("")}
-                        className="h-4 w-4 m-[2px] cursor-pointer"
+                        className="h-4 w-4 m-0.5 cursor-pointer"
                         onClick={() => {
                           onColorPicked(item.color);
                           setVisible!(false);
@@ -111,7 +120,7 @@ const ColorPanel = ({
             )}
           </div>
         </NeuDiv>
-      ) : null}
+      </Floating>
     </div>
   );
 };

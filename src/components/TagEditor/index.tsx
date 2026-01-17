@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import NeuButton from "../NeuButton";
 import NeuDiv from "../NeuDiv";
 import Tag from "../Tag";
@@ -55,6 +55,7 @@ interface Props {
   options: TagData[];
   setValue: (tagData: TagData[]) => void;
   allowCreate?: boolean;
+  defaultOpen?: boolean;
 }
 
 const TagEditor = ({
@@ -62,6 +63,7 @@ const TagEditor = ({
   setValue,
   options = [],
   allowCreate = true,
+  defaultOpen = false,
 }: Props) => {
   const [visible, setVisible] = useState(false);
   const [tagValue, setTagValue] = useState<string>("");
@@ -71,6 +73,22 @@ const TagEditor = ({
   const [shake, setShake] = useState<boolean>(false);
 
   const [optionTags, setOptionTags] = useState<TagData[]>(options);
+
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setVisible(defaultOpen);
+  }, [defaultOpen]);
+
+  useLayoutEffect(() => {
+    const el = ref.current!;
+    if (!visible) {
+      el.style.height = 0 + "px";
+    } else {
+      el.style.height = el.scrollHeight + "px";
+      tagContentInput.current?.focus({ preventScroll: true });
+    }
+  }, [visible]);
 
   useEffect(() => {
     setOptionTags(options);
@@ -91,7 +109,6 @@ const TagEditor = ({
   const resetState = () => {
     setTagColor("");
     setTagValue("");
-    setVisible(false);
     setShake(false);
     setHighlight(false);
   };
@@ -105,6 +122,7 @@ const TagEditor = ({
   const updateTags = () => {
     // 更新 todo 标签
     if (!tagValue) {
+      tagContentInput.current?.focus();
       setHighlight(true);
       setShake(false);
       requestAnimationFrame(() => setShake(true));
@@ -142,37 +160,62 @@ const TagEditor = ({
 
   return (
     <NeuDiv className="tag-editor-container w-[100%] mb-4 p-0">
-      <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
-        {value.map((tag, index) => (
-          <Tag
-            key={tag.id + tag.content + index}
-            color={tag.color}
-            closable
-            onClose={() => handleRemoveTag(tag)}
-          >
-            {tag.content}
-          </Tag>
-        ))}
+      {value.length ? (
+        <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
+          {value.map((tag, index) => (
+            <Tag
+              key={tag.id + tag.content + index}
+              color={tag.color}
+              closable
+              onClose={() => handleRemoveTag(tag)}
+            >
+              {tag.content}
+            </Tag>
+          ))}
+        </div>
+      ) : null}
+      <div>
+        <NeuButton
+          className="p-1!"
+          style={{ lineHeight: 0 }}
+          onClick={() => {
+            if (visible) {
+              resetState();
+              setTagColor("");
+            }
+            setVisible((prev) => !prev);
+          }}
+        >
+          <Icon
+            icon="add"
+            className={classNames("transition-transform duration-500", {
+              "rotate-45": visible,
+            })}
+          />
+        </NeuButton>
       </div>
-      {allowCreate ? (
-        <div className="tag-editor flex flex-wrap items-center justify-end mb-2 min-h-9">
+      <div
+        ref={ref}
+        className={classNames(
+          "overflow-hidden transition-[height] duration-500"
+        )}
+      >
+        {allowCreate ? (
           <div
-            className={classNames(
-              "flex flex-wrap items-center justify-end max-h-9 min-h-9 transition duration-300",
-              // "scale-x-[95%]",
-              "opacity-0",
-              { "opacity-100": visible },
-              { "scale-x-[100%]": visible }
-            )}
+            className={classNames("flex flex-wrap items-center justify-end")}
           >
             <NeuInput
               style={{ color: tagColor }}
-              className={`font-medium! mr-1 ${highlight && "border-red-600!"} ${
-                shake ? "input-shake" : ""
-              }`}
+              className={`bg-red-500! mr-1 my-2 font-medium! ${
+                highlight && "border-red-600!"
+              } ${shake ? "input-shake" : ""}`}
               inputSize="xs"
               value={tagValue}
               ref={tagContentInput}
+              onBlur={() => {
+                setShake(false);
+                setHighlight(false);
+              }}
               onChange={(e) => {
                 setHighlight(false);
                 setTagValue(e.target.value);
@@ -186,58 +229,27 @@ const TagEditor = ({
             />
             <NeuButton icon="check" onClick={updateTags}></NeuButton>
           </div>
-          {/* <NeuButton
-            icon="close"
-            onClick={() => {
-              resetState();
-            }}
-          ></NeuButton> */}
-          <NeuButton
-            className="p-1!"
-            style={{ lineHeight: 0 }}
-            onClick={() => {
-              if (!visible) {
-                tagContentInput.current?.focus();
-                setVisible((prev) => !prev);
-              } else {
-                resetState();
-                setTagColor("");
-              }
-            }}
-          >
-            <Icon
-              icon="add"
-              className={classNames("transition-transform duration-200", {
-                "rotate-45": visible,
-              })}
-            />
-          </NeuButton>
-        </div>
-      ) : null}
-      <NeuDiv
-        neuType="debossed"
-        className="flex gap-1 flex-wrap items-start min-h-23"
-      >
-        {(filteredTags || []).map((tag) => {
-          return (
-            <Tag
-              onClick={() => {
-                setValue(value.concat(tag));
-                setOptionTags((prev) =>
-                  prev.filter((item) => item.content !== tag.content)
-                );
-                resetState();
-              }}
-              key={tag.id + tag.content}
-              color={tag.color}
-            >
-              {tag.content}
-            </Tag>
-          );
-        })}
-      </NeuDiv>
-
-      {/* <Modal visible={visible} onClose={handleCancel} onOk={handleOk}></Modal> */}
+        ) : null}
+        <NeuDiv neuType="debossed" className="flex gap-1 flex-wrap items-start">
+          {(filteredTags || []).map((tag) => {
+            return (
+              <Tag
+                onClick={() => {
+                  setValue(value.concat(tag));
+                  setOptionTags((prev) =>
+                    prev.filter((item) => item.content !== tag.content)
+                  );
+                  resetState();
+                }}
+                key={tag.id + tag.content}
+                color={tag.color}
+              >
+                {tag.content}
+              </Tag>
+            );
+          })}
+        </NeuDiv>
+      </div>
     </NeuDiv>
   );
 };

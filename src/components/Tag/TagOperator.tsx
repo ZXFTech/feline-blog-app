@@ -6,7 +6,7 @@ import NeuDiv from "../NeuDiv";
 import NeuInput from "../NeuInput";
 import NeuButton from "../NeuButton";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { debounce } from "@/utils/debounce ";
+import { debounce } from "@/utils/rateLimiting";
 
 function TagOperator() {
   const searchParams = useSearchParams();

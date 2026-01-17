@@ -5,7 +5,7 @@ import React, { useCallback, useMemo } from "react";
 import NeuButton from "../NeuButton";
 import NeuDiv from "../NeuDiv";
 import NeuInput from "../NeuInput";
-import { debounce } from "@/utils/debounce ";
+import { debounce } from "@/utils/rateLimiting";
 import { PermissionAccess } from "../Auth/PermissionAccess";
 
 export const BlogListOperationBar = () => {

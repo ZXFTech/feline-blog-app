@@ -6,7 +6,7 @@ import NeuDiv from "../NeuDiv";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TodoSearchParams } from "@/types/todo";
 import NeuInput from "../NeuInput";
-import { debounce } from "@/utils/debounce ";
+import { debounce } from "@/utils/rateLimiting";
 import { PermissionAccess } from "../Auth/PermissionAccess";
 import Icon from "../Icon";
 

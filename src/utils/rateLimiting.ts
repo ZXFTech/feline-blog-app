@@ -5,7 +5,7 @@
  * @param options 配置选项
  * @returns 防抖处理后的函数
  */
-function debounce<T extends (...args: any[]) => any>(
+function debounce<T extends (...args: Parameters<T>) => void>(
   fn: T,
   delay: number,
   options: {
@@ -32,7 +32,7 @@ function debounce<T extends (...args: any[]) => any>(
   // 执行函数
   const invokeFunc = () => {
     if (lastArgs) {
-      fn(...lastArgs);
+      fn(...(lastArgs as Parameters<T>));
       lastInvokeTime = Date.now();
       lastArgs = null;
     }
@@ -98,4 +98,84 @@ function debounce<T extends (...args: any[]) => any>(
   };
 }
 
-export { debounce };
+export type ThrottleOptions = {
+  leading?: boolean; // 是否立即执行
+  trailing?: boolean; // 是否在结束后补一次
+};
+
+export type ThrottledFunction<T extends (...args: Parameters<T>) => void> = {
+  (...args: Parameters<T>): void;
+  cancel: () => void;
+  flush: () => void;
+};
+
+function throttle<T extends (...args: Parameters<T>) => void>(
+  fn: T,
+  wait: number,
+  options: ThrottleOptions = {}
+): ThrottledFunction<T> {
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let lastInvokeTime: number | null = null;
+  const { leading = true, trailing = true } = options;
+  let lastArgs: Parameters<T> | null = null;
+
+  function invoke(time: number) {
+    lastInvokeTime = time;
+    fn(...(lastArgs as Parameters<T>));
+    lastArgs = null;
+  }
+  const throttled = function (...args: Parameters<T>) {
+    const now = Date.now();
+    lastArgs = args;
+    if (lastInvokeTime === null) {
+      // 首次
+      lastInvokeTime = now;
+      if (leading) {
+        // 开始先触发一次
+        invoke(now);
+      }
+    }
+
+    const remaining = wait - (now - lastInvokeTime);
+
+    if (remaining < 0) {
+      // 到时间了
+      if (timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+      invoke(now);
+    } else if (!timer && trailing) {
+      timer = setTimeout(() => {
+        timer = null;
+        if (lastArgs) {
+          invoke(Date.now());
+        }
+      }, remaining);
+    }
+  } as ThrottledFunction<T>;
+
+  throttled.flush = () => {
+    // 立即执行一次
+    if (timer) {
+      clearTimeout(timer);
+      timer = null;
+      if (lastArgs) {
+        invoke(Date.now());
+      }
+    }
+  };
+
+  throttled.cancel = () => {
+    if (timer) {
+      clearTimeout(timer);
+    }
+    timer = null;
+    lastInvokeTime = null;
+    lastArgs = null;
+  };
+
+  return throttled;
+}
+
+export { debounce, throttle };

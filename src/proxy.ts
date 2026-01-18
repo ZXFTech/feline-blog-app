@@ -1,4 +1,3 @@
-import { verify } from "crypto";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "./lib/jwt";
 
@@ -6,7 +5,7 @@ const protectedRoutes = ["/dashboard", "/profile", "/admin"];
 
 const adminRoutes = ["/admin"];
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   const isProtectedRoute = protectedRoutes.some((route) =>

@@ -73,8 +73,8 @@ export async function createBlog({
 
 export async function getBlogById(id: number) {
   try {
-    const user = await requireAuth();
-    const userId = user.id;
+    // const user = await requireAuth();
+    const userId = testUserId;
     const blogId = Number(id);
     const [blog, isLiked, isFavorite] = await db.$transaction([
       db.blog.findFirst({

@@ -72,12 +72,14 @@ function TodoList({ todoList }: Props) {
           );
         })}
       </div>
-      <TodoEditorBar
-        onOk={resetPanel}
-        onClose={resetPanel}
-        todo={targetTodo}
-        visible={panelVisible}
-      ></TodoEditorBar>
+      {panelVisible ? (
+        <TodoEditorBar
+          onOk={resetPanel}
+          onClose={resetPanel}
+          todo={targetTodo}
+          visible={panelVisible}
+        ></TodoEditorBar>
+      ) : null}
     </>
   );
 }

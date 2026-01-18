@@ -9,6 +9,7 @@ import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
 import { Ma_Shan_Zheng } from "next/font/google";
 import classNames from "classnames";
+import FelineLayout from "@/components/FelineLayout";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +50,7 @@ export default function RootLayout({
         <AuthProviders>
           <Navbar routeList={routeList} />
           <Toaster richColors visibleToasts={5} />
-          {children}
+          <FelineLayout>{children}</FelineLayout>
           <Footer />
         </AuthProviders>
       </body>

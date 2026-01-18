@@ -43,13 +43,14 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   }
 
   return (
-    <Content
-      rightSideBar={
-        <NeuButton buttonType="link" href={`/blog/edit/${blog.id}`}>
-          编辑
-        </NeuButton>
-      }
-    >
+    // <Content
+    //   rightSideBar={
+    //     <NeuButton buttonType="link" href={`/blog/edit/${blog.id}`}>
+    //       编辑
+    //     </NeuButton>
+    //   }
+    // >
+    <>
       <Head key={blog.title + blog.id}>
         <title>{blog.title}</title>
       </Head>
@@ -112,7 +113,7 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
           />
         </div>
       </div>
-    </Content>
+    </>
   );
 };
 

@@ -32,11 +32,7 @@ const Todos = async ({ searchParams }) => {
     }
   });
 
-  return (
-    <Content>
-      <TodoList todoList={sortedList} />
-    </Content>
-  );
+  return <TodoList todoList={sortedList} />;
 };
 
 export default Todos;

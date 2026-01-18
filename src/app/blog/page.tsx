@@ -21,9 +21,9 @@ export default async function Blog({ searchParams }: BlogPageProps) {
   });
 
   return (
-    <Content>
+    <>
       <BlogListOperationBar />
       <BlogList dataSource={blogs} />
-    </Content>
+    </>
   );
 }

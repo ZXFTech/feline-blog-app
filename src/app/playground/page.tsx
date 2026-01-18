@@ -1,8 +1,7 @@
 import Content from "@/components/Content";
 import db from "@/db/client";
 import { getTodoById } from "@/db/todoAction";
-import React from "react";
-import ClientPart from "./ClientPart";
+import { ProfileCard } from "@/components/Profile/ProfileCard";
 
 export default async function Playground() {
   const todoId = 49;
@@ -30,12 +29,13 @@ export default async function Playground() {
   });
 
   return (
-    <Content>
-      <ClientPart
+    <>
+      {/* <ClientPart
         todo={todo}
         initialTags={initialTags}
         valuableTags={valuableTags}
-      />
-    </Content>
+      /> */}
+      <ProfileCard />
+    </>
   );
 }

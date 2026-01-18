@@ -1,14 +1,16 @@
+import { SidebarComp } from "@/app/pathMeta";
 import classNames from "classnames";
-import React, { FC, HTMLAttributes, ReactNode } from "react";
+import { FC, HTMLAttributes } from "react";
+import Sidebar from "../Sidebar/Sidebar";
 
 interface ContentProps extends HTMLAttributes<HTMLDivElement> {
-  leftSideBar?: ReactNode;
-  rightSideBar?: ReactNode;
+  leftSideBar?: SidebarComp[];
+  rightSideBar?: SidebarComp[];
 }
 
 const Content: FC<ContentProps> = ({
-  leftSideBar = "a",
-  rightSideBar = "b",
+  leftSideBar,
+  rightSideBar,
   children,
   className,
   ...restProps
@@ -20,22 +22,24 @@ const Content: FC<ContentProps> = ({
         "content-container relative flex justify-center gap-8 hide-scrollbar"
       )}
     >
-      {leftSideBar && (
-        <div className="left-side-bar hide-scrollbar">{leftSideBar}</div>
-      )}
+      {leftSideBar?.length ? (
+        <div className="left-side-bar hide-scrollbar  pt-22">
+          <Sidebar compList={leftSideBar} />
+        </div>
+      ) : null}
       <div
         className={classNames(
-          "content h-[100vh] pt-22 pb-14 relative overflow-scroll hide-scrollbar",
+          "content h-[100vh] pb-14 relative overflow-scroll hide-scrollbar pt-22",
           className
         )}
       >
         {children}
       </div>
-      {rightSideBar && (
-        <div className="right-side-bar hide-scrollbar py-22 px-2">
-          {rightSideBar}
+      {rightSideBar?.length ? (
+        <div className="right-side-bar hide-scrollbar pt-22">
+          <Sidebar compList={rightSideBar} />
         </div>
-      )}
+      ) : null}
     </div>
   );
 };

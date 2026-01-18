@@ -48,6 +48,7 @@
     "@alicloud/tea-console": "^1.0.0",
     "@alicloud/tea-typescript": "^1.7.1",
     "@alicloud/tea-util": "^1.4.9",
+    "@svgr/webpack": "^8.1.0",
     "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20.17.32",

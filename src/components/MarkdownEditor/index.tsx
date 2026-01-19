@@ -38,8 +38,8 @@ const MarkdownEditor = ({
   }, [blog]);
 
   return (
-    <NeuDiv
-      className={`flex flex-col px-3! m-2! gap-2.5 transition-all duration-200 ease-in-out ${
+    <div
+      className={`flex flex-col px-3! gap-2.5 transition-all duration-200 ease-in-out ${
         fullScreen
           ? "fixed z-99999999 top-0 bottom-0 left-0 right-0 "
           : "h-[calc(100vh-9rem))]"
@@ -83,13 +83,11 @@ const MarkdownEditor = ({
         value={blog.title}
         onChange={onTitleChange as ChangeEventHandler}
       />
-      <NeuDiv neuType="flat">
-        <TagEditor
-          setValue={onTagChange}
-          value={blog.tags || []}
-          options={optionTags}
-        />
-      </NeuDiv>
+      <TagEditor
+        setValue={onTagChange}
+        value={blog.tags || []}
+        options={optionTags}
+      />
       <div className="full-screen-content flex grow mb-1 relative">
         <NeuInput
           textArea
@@ -97,7 +95,7 @@ const MarkdownEditor = ({
           className={`p-3 transition-all duration-400 ease-in-out ${
             preview ? "w-[49%]" : "w-full"
           } h-full resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60`}
-          placeholder="输入Markdown内容..."
+          placeholder="输入 Markdown 内容..."
           value={blog.content}
           onChange={onContentChange as ChangeEventHandler}
         />
@@ -131,7 +129,7 @@ const MarkdownEditor = ({
           </ReactMarkdown>
         </NeuDiv>
       </div>
-    </NeuDiv>
+    </div>
   );
 };
 

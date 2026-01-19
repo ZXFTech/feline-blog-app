@@ -40,7 +40,7 @@ const isContain = (targetTag: TagData) => {
 // 暂时用不上，用于区分 新增的 tag 和已有的 tag
 const splitExistArray = <T,>(
   list: T[],
-  func: (item: T) => boolean
+  func: (item: T) => boolean,
 ): [T | undefined, T[], T[]] => {
   const existedTag = list.find((item) => func(item));
   return [
@@ -144,7 +144,7 @@ const TagEditor = ({
           color: tagColor,
         });
         setOptionTags((prev) =>
-          prev.filter((item) => item.content !== tagValue)
+          prev.filter((item) => item.content !== tagValue),
         );
       } else {
         // 新增 tag, 正常处理
@@ -159,7 +159,7 @@ const TagEditor = ({
   };
 
   return (
-    <NeuDiv className="tag-editor-container w-[100%] mb-4 p-0">
+    <NeuDiv neuType="flat" className="tag-editor-container w-[100%] p-0">
       {value.length ? (
         <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
           {value.map((tag, index) => (
@@ -197,7 +197,7 @@ const TagEditor = ({
       <div
         ref={ref}
         className={classNames(
-          "overflow-hidden transition-[height] duration-500"
+          "overflow-hidden transition-[height] duration-500",
         )}
       >
         {allowCreate ? (
@@ -237,7 +237,7 @@ const TagEditor = ({
                 onClick={() => {
                   setValue(value.concat(tag));
                   setOptionTags((prev) =>
-                    prev.filter((item) => item.content !== tag.content)
+                    prev.filter((item) => item.content !== tag.content),
                   );
                   resetState();
                 }}

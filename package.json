@@ -30,6 +30,7 @@
     "bcryptjs": "^3.0.3",
     "classnames": "^2.5.1",
     "cookie": "^1.1.1",
+    "dayjs": "^1.11.19",
     "jsonwebtoken": "^9.0.3",
     "material-symbols": "^0.31.2",
     "next": "16.1.3",

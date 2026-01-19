@@ -1,0 +1,109 @@
+.flip-clock {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.separator {
+  font-size: 36px;
+  margin: 0 4px;
+}
+
+.flip-digit {
+  position: relative;
+  width: 48px;
+  height: 50px;
+  perspective: 600px;
+  overflow: hidden;
+  padding: 0;
+}
+
+.flip-digit::after {
+  content: "";
+  height: 1px;
+  width: 100%;
+  background-color: #fff;
+  position: absolute;
+  top: calc(50% - 1px);
+  z-index: 3;
+  background-color: inherit;
+}
+
+//初始状态 top, top-back bottom-back 放平
+.flip-digit .top,
+.flip-digit .top-back,
+.flip-digit .bottom-back,
+.flip-digit .bottom {
+  position: absolute;
+  width: 100%;
+  height: 25px;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  font-family: monospace;
+  font-weight: bold;
+  font-size: 50px;
+  line-height: 50px;
+}
+
+.flip-digit .top,
+.flip-digit .bottom {
+  z-index: 2;
+}
+
+.flip-digit .top-back,
+.flip-digit .bottom-back {
+  z-index: 1;
+}
+
+.flip-digit .top-back,
+.flip-digit .top {
+  top: 0;
+}
+
+.flip-digit .bottom-back,
+.flip-digit .bottom {
+  align-items: end;
+}
+
+.flip-digit .bottom,
+.flip-digit .bottom-back {
+  bottom: 0;
+}
+
+.flip-digit .top {
+  transform-origin: bottom center;
+  backface-visibility: hidden;
+  transform: rotateX(180deg);
+}
+
+.flip-digit.flip .top {
+  animation: flipTop 0.382s ease-out;
+}
+
+.flip-digit .bottom {
+  transform-origin: top center;
+  backface-visibility: hidden;
+}
+
+.flip-digit.flip .bottom {
+  animation: flipBottom 0.382s ease-out;
+}
+
+@keyframes flipTop {
+  0% {
+    transform: rotateX(0);
+  }
+  100% {
+    transform: rotateX(-180deg);
+  }
+}
+
+@keyframes flipBottom {
+  0% {
+    transform: rotateX(180deg);
+  }
+  100% {
+    transform: rotateX(0);
+  }
+}

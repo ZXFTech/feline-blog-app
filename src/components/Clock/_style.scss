@@ -1,7 +1,17 @@
 .flip-clock {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  font-size: 50px;
+  line-height: 50px;
+}
+
+.flip-clock.year-part {
+  font-size: 30px;
+  font-weight: 600;
+  gap: 2px;
 }
 
 .separator {
@@ -18,15 +28,20 @@
   padding: 0;
 }
 
+.flip-clock.year-part .flip-digit {
+  width: 36px;
+  height: 50px;
+}
+
 .flip-digit::after {
   content: "";
-  height: 1px;
+  height: 2px;
   width: 100%;
   background-color: #fff;
   position: absolute;
   top: calc(50% - 1px);
   z-index: 3;
-  background-color: inherit;
+  background-color: var(--neu-border-color);
 }
 
 //初始状态 top, top-back bottom-back 放平
@@ -42,8 +57,6 @@
   justify-content: center;
   font-family: monospace;
   font-weight: bold;
-  font-size: 50px;
-  line-height: 50px;
 }
 
 .flip-digit .top,

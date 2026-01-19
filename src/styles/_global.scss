@@ -36,6 +36,9 @@
   width: 100vw;
   color: var(--neu-font-color);
   transition: background-color 0.618s;
+  & * {
+    background-color: inherit;
+  }
 }
 
 .neu-light {

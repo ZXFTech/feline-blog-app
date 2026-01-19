@@ -122,7 +122,7 @@ const Modal = ({
         className={`model-mask ${
           mounted ? "fixed" : "hidden"
         } z-1000 transition-all duration-300 ease-in-out right-0 top-0 bottom-0 left-0 flex items-center justify-center flex-col ${
-          show ? "bg-gray-400/40" : "bg-gray-400/0"
+          show ? "bg-gray-400/40!" : "bg-gray-400/0!"
         }`}
       >
         <NeuDiv

@@ -95,16 +95,14 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
     setBlogData((prev) => ({ ...prev, title: e.target.value }));
 
   return (
-    <Content>
-      <MarkdownEditor
-        blog={blogData}
-        onContentChange={onContentChange}
-        onTitleChange={onTitleChange}
-        handleSubmit={handleSubmit}
-        loading={loading}
-        onTagChange={onTagChange}
-      />
-    </Content>
+    <MarkdownEditor
+      blog={blogData}
+      onContentChange={onContentChange}
+      onTitleChange={onTitleChange}
+      handleSubmit={handleSubmit}
+      loading={loading}
+      onTagChange={onTagChange}
+    />
   );
 };
 

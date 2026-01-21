@@ -40,18 +40,18 @@
   $hover-background: color.adjust($background, $lightness: 5%),
   // $hover-background: darken($background, 5%),
   $hover-color: $color,
-  $active-background: color.adjust($background, $lightness: -5%)
-    // $active-background: darken($background, 10%)
+  $active-background: color.adjust($background, $lightness: -5%) // $active-background: darken($background, 10%)
 ) {
   color: $color;
   background-color: $background;
   outline: none;
-  &:hover {
+  &:not(:disabled):hover,
+  &:not([disabled])[hover] {
     background-color: $hover-background;
     color: $hover-color;
   }
-  &:active,
-  &.active {
+  &:not(:disabled):active,
+  &:not([disabled])[active] {
     // color: $active-color;
     background-color: $active-background;
   }

@@ -161,3 +161,52 @@ model BlogFavorite {
   @@index([userId])
   @@index([blogId])
 }
+
+// 每日统计
+model DailyStat {
+  id   Int      @id @default(autoincrement())
+  date DateTime @unique
+
+  typingCount Int @default(0) // 当天打字数量
+  stepCount   Int @default(0) // 当天步数
+
+  workouts WorkoutItem[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 健身项目
+model WorkoutItem {
+  id         Int    @id @default(autoincrement())
+  name       String // 如：俯卧撑、深蹲、引体向上
+  exerciseId Int
+
+  dailyStatId Int
+  dailyStat   DailyStat @relation(fields: [dailyStatId], references: [id], onDelete: Cascade)
+
+  sets WorkoutSet[]
+
+  createdAt DateTime @default(now())
+
+  @@unique([dailyStatId, exerciseId])
+}
+
+// 健身数量
+model WorkoutSet {
+  id Int @id @default(autoincrement())
+
+  reps     Int? // 每组做了多少个
+  order    Int? // 第几组（1、2、3…）
+  weight   Float? // 负重多少kg
+  duration Int // 持续时间，单位秒
+  calories Int    @default(0) // 消耗热量，单位 Kcal
+
+  workoutItemId Int
+  workoutItem   WorkoutItem @relation(fields: [workoutItemId], references: [id], onDelete: Cascade)
+}
+
+model Exercise {
+  id   Int    @id @default(autoincrement())
+  name String @unique
+}

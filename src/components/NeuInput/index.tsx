@@ -68,7 +68,7 @@ const NeuInput = forwardRef<
       defaultValue,
       ...restProps
     },
-    ref
+    ref,
   ) => {
     const internalRef = useRef<HTMLInputElement>(null);
     const mergedRef = composeRef(internalRef, ref);
@@ -78,7 +78,7 @@ const NeuInput = forwardRef<
     const mergedValue = isControlled ? value : innerValue;
 
     const handleChange = (
-      e: ChangeEvent<HTMLInputElement> & ChangeEvent<HTMLTextAreaElement>
+      e: ChangeEvent<HTMLInputElement> & ChangeEvent<HTMLTextAreaElement>,
     ) => {
       if (!isControlled) {
         setInnerValue(e.target.value);
@@ -129,7 +129,7 @@ const NeuInput = forwardRef<
           <input
             ref={mergedRef}
             {...restProps}
-            className={`${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none disabled:bg-gray-500/20 disabled:opacity-60 grow-1`}
+            className={`min-w-0! w-full ${inputSizeMap[inputSize].font} p-${inputSizeMap[inputSize].p} focus:bg-white/10 focus:outline-none disabled:bg-gray-500/20 disabled:opacity-60 grow-1`}
             value={mergedValue}
             onChange={handleChange}
           />
@@ -155,7 +155,7 @@ const NeuInput = forwardRef<
         ) : null}
       </NeuDiv>
     );
-  }
+  },
 );
 
 NeuInput.displayName = "NeuInput";

@@ -33,3 +33,6 @@
 
 // Blog
 @use "../app/blog/[id]/styles" as BlogStyle;
+
+// profile
+@use "../components/Profile/styles" as ProfileStyle;

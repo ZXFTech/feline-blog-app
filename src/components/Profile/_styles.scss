@@ -1,0 +1,43 @@
+.font-ma-shan-zheng {
+  font-family: var(--font-ma-shan-zheng), sans-serif;
+}
+
+.profile-container .cursor {
+  background: currentColor;
+  animation: blink 1.1s step-end infinite;
+}
+
+.dedication {
+  // background-image: url("/traffic-light.png");
+  // background-size: cover;
+  // background-position: right;
+  // background-repeat: no-repeat;
+
+  .neon-green {
+    animation: neonGlowGreen 2s ease-in-out infinite;
+  }
+}
+
+.uni-app-color {
+  color: #2a9938;
+}
+
+.vue-color {
+  color: #35495e;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+@keyframes neonGlowGreen {
+  0%,
+  100% {
+    box-shadow: 0 0 40px 30px rgba(13, 255, 58, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 40px 30px rgba(13, 255, 58, 0.7);
+  }
+}

@@ -65,7 +65,7 @@ const TagEditor = ({
   allowCreate = true,
   defaultOpen = false,
 }: Props) => {
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(defaultOpen);
   const [tagValue, setTagValue] = useState<string>("");
   const [tagColor, setTagColor] = useState<string>("");
   const [highlight, setHighlight] = useState<boolean>(false);
@@ -75,10 +75,6 @@ const TagEditor = ({
   const [optionTags, setOptionTags] = useState<TagData[]>(options);
 
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setVisible(defaultOpen);
-  }, [defaultOpen]);
 
   useLayoutEffect(() => {
     const el = ref.current!;
@@ -197,7 +193,7 @@ const TagEditor = ({
       <div
         ref={ref}
         className={classNames(
-          "overflow-hidden transition-[height] duration-500",
+          "overflow-hidden transition-[height] duration-500 h-0",
         )}
       >
         {allowCreate ? (

@@ -144,7 +144,7 @@ const Modal = ({
               ) : null}
             </div>
           </div>
-          <div className="flex-1 px-2">{children}</div>
+          <div className="flex-1 px-2 mb-2">{children}</div>
           <div className="modal-footer flex items-center justify-end px-1">
             {Footer()}
           </div>

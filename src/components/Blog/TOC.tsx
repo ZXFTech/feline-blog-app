@@ -117,9 +117,9 @@ function TOC() {
         <div className=" rounded-lg border border-gray-200 p-4">
           <h3 className="font-bold text-sm mb-4">本文内容</h3>
           <nav className="space-y-1 text-sm">
-            {toc.map((heading) => (
+            {toc.map((heading, i) => (
               <button
-                key={heading.id}
+                key={heading.id + "_" + i}
                 onClick={() =>
                   document
                     .getElementById(heading.id)

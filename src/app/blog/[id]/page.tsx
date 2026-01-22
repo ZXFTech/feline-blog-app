@@ -8,10 +8,13 @@ import Image from "next/image";
 import { getBlogById } from "@/db/blogAction";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import Content from "@/components/Content";
 import { message } from "@/lib/message";
 import BlogOperationBar from "@/components/Blog/BlogOperationBar";
+import TOC from "../../../components/Blog/TOC";
+import rehypeSlug from "rehype-slug";
+import Content from "@/components/Content";
 import NeuButton from "@/components/NeuButton";
+import { PermissionAccess } from "@/components/Auth/PermissionAccess";
 
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
@@ -43,43 +46,53 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   }
 
   return (
-    // <Content
-    //   rightSideBar={
-    //     <NeuButton buttonType="link" href={`/blog/edit/${blog.id}`}>
-    //       编辑
-    //     </NeuButton>
-    //   }
-    // >
-    <>
+    <Content
+      rightSideBar={
+        <div>
+          <PermissionAccess>
+            <NeuButton buttonType="link" href={`/blog/edit/${blog.id}`}>
+              编辑
+            </NeuButton>
+          </PermissionAccess>
+          <TOC />
+        </div>
+      }
+    >
       <Head key={blog.title + blog.id}>
         <title>{blog.title}</title>
       </Head>
-      <div className="flex flex-col">
-        <NeuDiv className="sticky top-0">
-          <h1>{blog.title}</h1>
-          <div className="flex flex-wrap items-center justify-between">
-            {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
-            <Tag className="ml-0">{blog.author.username.toString()}</Tag>
-            {blog.tags.length ? (
-              <ul className="flex flex-wrap gap-1 p-0 mx-0">
-                {blog.tags.map((item) => {
-                  return (
-                    <Tag color={item.tag.color} key={item.blogId + item.tagId}>
-                      {item.tag.content}
-                    </Tag>
-                  );
-                })}
-              </ul>
-            ) : (
-              <></>
-            )}
-          </div>
-        </NeuDiv>
+      <div className="flex flex-col" id="blog-container">
         <NeuDiv
           neuType="flat"
           className="blog-content-container px-4 pt-2 pb-4 overflow-auto"
         >
-          <div className="blog-content text-left flex-1 overflow-scroll hide-scrollbar">
+          <div className="mb-2">
+            <h1 id={blog.title}>{blog.title}</h1>
+            <div className="flex flex-wrap items-center justify-between">
+              {/* <Tag className="ml-0">{blog.author.username}</Tag> */}
+              <Tag className="ml-0">{blog.author.username.toString()}</Tag>
+              {blog.tags.length ? (
+                <ul className="flex flex-wrap gap-1 p-0 mx-0">
+                  {blog.tags.map((item) => {
+                    return (
+                      <Tag
+                        color={item.tag.color}
+                        key={item.blogId + item.tagId}
+                      >
+                        {item.tag.content}
+                      </Tag>
+                    );
+                  })}
+                </ul>
+              ) : (
+                <></>
+              )}
+            </div>
+          </div>
+          <div
+            id="blog-content"
+            className="blog-content text-left flex-1 overflow-scroll hide-scrollbar"
+          >
             <ReactMarkdown
               components={{
                 code({ className, children, ...props }) {
@@ -98,22 +111,21 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
                 },
               }}
               remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeSlug]}
             >
               {blog.content}
             </ReactMarkdown>
           </div>
         </NeuDiv>
-        <div className="sticky bottom-2 left-0 right-0">
-          <BlogOperationBar
-            likes={blog.likeCount}
-            favorite={blog.favoriteCount}
-            id={blog.id}
-            isLiked={isLiked}
-            isFavorite={isFavorite}
-          />
-        </div>
+        <BlogOperationBar
+          likes={blog.likeCount}
+          favorite={blog.favoriteCount}
+          id={blog.id}
+          isLiked={isLiked}
+          isFavorite={isFavorite}
+        />
       </div>
-    </>
+    </Content>
   );
 };
 

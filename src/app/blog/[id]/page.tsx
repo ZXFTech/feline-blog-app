@@ -15,6 +15,7 @@ import rehypeSlug from "rehype-slug";
 import Content from "@/components/Content";
 import NeuButton from "@/components/NeuButton";
 import { PermissionAccess } from "@/components/Auth/PermissionAccess";
+import AdjacentBlogs from "@/components/Blog/AdjacentBlogs";
 
 const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
   const { id } = await params;
@@ -124,6 +125,7 @@ const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
           isLiked={isLiked}
           isFavorite={isFavorite}
         />
+        <AdjacentBlogs id={blog.id} />
       </div>
     </Content>
   );

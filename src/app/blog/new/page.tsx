@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentUser } from "@/lib/auth/userAuth";
 import BlogEditor from "@/components/BlogList/BlogEditor";
+import Content from "@/components/Content";
 
 const New = async () => {
   const user = await getCurrentUser();
@@ -8,7 +9,11 @@ const New = async () => {
     redirect("/login");
   }
 
-  return <BlogEditor />;
+  return (
+    <Content>
+      <BlogEditor />
+    </Content>
+  );
 };
 
 export default New;

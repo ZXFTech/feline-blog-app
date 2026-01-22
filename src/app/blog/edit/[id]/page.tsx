@@ -2,6 +2,7 @@ import { message } from "@/lib/message";
 import BlogEditor from "@/components/BlogList/BlogEditor";
 import { getBlogById } from "@/db/blogAction";
 import { redirect } from "next/navigation";
+import Content from "@/components/Content";
 
 const Edit = async ({ params }) => {
   const { id } = await params;
@@ -22,7 +23,13 @@ const Edit = async ({ params }) => {
 
   // blog state
 
-  return <BlogEditor blog={formattedBlog} />;
+  return (
+    <div>
+      <Content>
+        <BlogEditor />
+      </Content>
+    </div>
+  );
 };
 
 export default Edit;

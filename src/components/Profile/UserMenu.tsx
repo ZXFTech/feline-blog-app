@@ -1,13 +1,12 @@
 "use client";
 
-import React from "react";
 import NeuButton from "../NeuButton";
-import { useAuth } from "@/hooks/useAuth";
 import { useCtxAuth } from "@/providers/AuthProviders";
+import { useRouter } from "next/navigation";
 
 export const UserMenu = () => {
   const { user } = useCtxAuth();
-  const { logout } = useAuth();
+  const router = useRouter();
   if (!user) {
     return (
       <NeuButton buttonType="link" href="/login">
@@ -19,7 +18,8 @@ export const UserMenu = () => {
     <NeuButton
       icon="person"
       className="profile-container m-0! text-center flex items-center gap-1"
-      onClick={logout}
+      // onClick={logout}
+      onClick={() => router.push("/daily")}
     >
       <span>{user.username}</span>
     </NeuButton>

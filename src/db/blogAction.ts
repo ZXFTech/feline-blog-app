@@ -116,7 +116,7 @@ export async function getBlogById(id: number) {
 
 export async function updateBlogById(
   blogId: number,
-  { title, content, tags }: { title: string; content: string; tags: TagData[] }
+  { title, content, tags }: { title: string; content: string; tags: TagData[] },
 ) {
   try {
     const existingUser = await getCurrentUser();
@@ -141,7 +141,7 @@ export async function updateBlogById(
           color: tag.color,
           userId: authorId,
         },
-      })
+      }),
     );
 
     const tagResult = await Promise.all(tagOperation);
@@ -180,7 +180,7 @@ export async function getBlogList(
     content?: string;
     orderBy: "desc" | "asc";
   },
-  userId = testUserId // 仅查询个人的
+  userId = testUserId, // 仅查询个人的
 ) {
   try {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -225,6 +225,50 @@ export async function getBlogList(
     logger.error("err", err);
     throw "Query blog list failed!" + err;
   }
+}
+
+export async function getAdjacentBlogs(blogId: number) {
+  const current = await db.blog.findUnique({
+    where: {
+      id: blogId,
+    },
+    select: {
+      id: true,
+      createdAt: true,
+    },
+  });
+
+  if (!current) {
+    return { prev: null, next: null };
+  }
+
+  const [prev, next] = await db.$transaction([
+    db.blog.findFirst({
+      where: {
+        createdAt: { lt: current.createdAt },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        title: true,
+        id: true,
+        createdAt: true,
+      },
+    }),
+    db.blog.findFirst({
+      where: {
+        createdAt: { gt: current.createdAt },
+      },
+      select: {
+        title: true,
+        id: true,
+        createdAt: true,
+      },
+    }),
+  ]);
+
+  return { prev, next };
 }
 
 // 点赞

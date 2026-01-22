@@ -23,6 +23,7 @@ interface BaseButtonProps {
   children?: ReactNode;
   loading?: boolean;
   icon?: IconType;
+  suffixIcon?: IconType;
 }
 
 // 配置联合类型
@@ -38,6 +39,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
     children,
     loading,
     icon,
+    suffixIcon,
     buttonType,
     ...restProps
   } = props;
@@ -54,7 +56,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       disabled: disabled,
       loading: loading,
     },
-    className
+    className,
   );
 
   return (
@@ -67,6 +69,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       {loading && <IconSpinner size={btnSize} className="btn-loading" />}
       {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
       <span className="text-center">{children}</span>
+      {suffixIcon && (
+        <Icon icon={suffixIcon} size={btnSize} className={`btn-icon`} />
+      )}
     </button>
   );
 });

@@ -71,6 +71,7 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
         content: "",
         tags: [],
       });
+
       router.push(`/blog/${result.blogId}`);
     } catch (error) {
       message.error("创建失败!" + error);
@@ -97,6 +98,7 @@ const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
   return (
     <MarkdownEditor
       blog={blogData}
+      id={blog?.id}
       onContentChange={onContentChange}
       onTitleChange={onTitleChange}
       handleSubmit={handleSubmit}

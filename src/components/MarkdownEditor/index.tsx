@@ -14,7 +14,8 @@ import TagEditor, { TagData } from "../TagEditor";
 interface Props {
   handleSubmit: () => void;
   loading?: boolean;
-  blog: { title: string; content: string; id?: number; tags?: TagData[] };
+  blog: { title: string; content: string };
+  id?: number;
   onTitleChange: ChangeEventHandler<HTMLInputElement>;
   onContentChange: ChangeEventHandler<HTMLTextAreaElement>;
   onTagChange: (tags: TagData[]) => void;
@@ -23,6 +24,7 @@ interface Props {
 const MarkdownEditor = ({
   handleSubmit,
   blog,
+  id,
   onTitleChange,
   onContentChange,
   onTagChange,
@@ -34,8 +36,8 @@ const MarkdownEditor = ({
   const [optionTags, setOptionTags] = useState<TagData[]>([]);
 
   useEffect(() => {
-    getOptionTagsById("blog", blog?.id).then((res) => setOptionTags(res));
-  }, [blog]);
+    getOptionTagsById("blog", id).then((res) => setOptionTags(res));
+  }, [id]);
 
   return (
     <div

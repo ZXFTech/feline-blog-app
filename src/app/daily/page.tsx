@@ -18,6 +18,7 @@ import DailySummary from "../../components/DailyStatus/DailySummary";
 import WorkoutEditor, {
   WorkoutItemData,
 } from "../../components/DailyStatus/WorkoutEditor";
+import Content from "@/components/Content";
 
 export type WorkoutSetData = {
   reps?: number | null;
@@ -156,39 +157,32 @@ function Daily() {
   };
 
   return (
-    <div className="flex flex-col gap-2">
-      <div>
-        <NeuButton onClick={() => setVisible(true)}>添加新训练</NeuButton>
-        <NeuButton buttonType="link" href="/playground/workItem">
-          训练项目管理
-        </NeuButton>
+    <Content>
+      <div className="flex flex-col gap-2">
+        <div>
+          <NeuButton onClick={() => setVisible(true)}>添加新训练</NeuButton>
+          <NeuButton buttonType="link" href="/playground/workItem">
+            训练项目管理
+          </NeuButton>
+        </div>
+        <WeeklyView
+          weeklyStatus={weeklyStatus}
+          onWeekChanged={onWeekChanged}
+          onDateSelect={(date) => setSelectedDate(date)}
+          selectedDate={selectedDate}
+        />
+        <DailySummary dailyData={dailyStatus} loading={dailyLoading} />
+        <WorkoutEditor
+          visible={visible}
+          onSubmit={handleSubmit}
+          onClose={() => {
+            setVisible(false);
+            setLoading(false);
+          }}
+          loading={loading}
+        />
       </div>
-      <WeeklyView
-        weeklyStatus={weeklyStatus}
-        onWeekChanged={onWeekChanged}
-        onDateSelect={(date) => setSelectedDate(date)}
-        selectedDate={selectedDate}
-      />
-      <DailySummary dailyData={dailyStatus} loading={dailyLoading} />
-      <WorkoutEditor
-        visible={visible}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setVisible(false);
-          setLoading(false);
-        }}
-        loading={loading}
-      />
-    </div>
-  );
-  return (
-    <div>
-      {/* <WorkoutCalendar
-        onDateSelect={() => {}}
-        workoutDates={[]}
-        selectedDate={new Date()}
-      /> */}
-    </div>
+    </Content>
   );
 }
 

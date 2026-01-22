@@ -87,11 +87,10 @@ export async function updateDailyStatus({
 }: DailyStatus) {
   try {
     if (!date) {
-      const today = new Date("2026-01-26");
+      const today = new Date();
       date = today.toISOString().split("T")[0];
     }
     const formatDate = new Date(date);
-    console.log("formatDate", formatDate);
     const a = await db.dailyStat.findUnique({
       where: {
         date: formatDate,

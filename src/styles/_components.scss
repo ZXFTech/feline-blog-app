@@ -30,3 +30,6 @@
 
 // FlipClock
 @use "../components/Clock/style" as FlipClockStyle;
+
+// Blog
+@use "../app/blog/[id]/styles" as BlogStyle;

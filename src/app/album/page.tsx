@@ -7,10 +7,11 @@ import NeuInput from "@/components/NeuInput";
 import { toast } from "@/components/ProMessage";
 import Tag from "@/components/Tag";
 import NeuProgressBar from "@/components/NeuProgressBar";
+import Content from "@/components/Content";
 
 const Album = () => {
   return (
-    <div>
+    <Content className="flex flex-col gap-4 p-4">
       <NeuDiv neuType="debossed" className="flex flex-col gap-4">
         <span className="text-sm">进度条</span>
         <NeuProgressBar value={55} max={100} />
@@ -163,7 +164,7 @@ const Album = () => {
           onChange={(e) => console.log("e.target.value", e.target.value)}
         />
       </NeuDiv>
-    </div>
+    </Content>
   );
 };
 

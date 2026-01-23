@@ -2,8 +2,7 @@ import React, { FC } from "react";
 
 import NeuDiv from "../NeuDiv";
 import Tag from "../Tag";
-
-import { CombinedBlog } from "./BlogEditor";
+import { CombinedBlog } from "@/types/blog";
 
 const ListItem: FC<CombinedBlog> = (blog) => {
   const { author, title, createdAt, tags = [] } = blog;
@@ -24,7 +23,11 @@ const ListItem: FC<CombinedBlog> = (blog) => {
         <ul className="flex gap-1 p-0 m-0">
           {tags.map((item) => {
             return (
-              <Tag key={item.tagId} color={item.tag.color}>
+              <Tag
+                className="transition-all duration-400 group-hover:!shadow-none"
+                key={item.tagId}
+                color={item.tag.color}
+              >
                 {item.tag.content}
               </Tag>
             );

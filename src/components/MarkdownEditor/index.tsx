@@ -14,7 +14,7 @@ import TagEditor, { TagData } from "../TagEditor";
 interface Props {
   handleSubmit: () => void;
   loading?: boolean;
-  blog: { title: string; content: string };
+  blog: { title: string; content: string; tags?: TagData[] };
   id?: number;
   onTitleChange: ChangeEventHandler<HTMLInputElement>;
   onContentChange: ChangeEventHandler<HTMLTextAreaElement>;

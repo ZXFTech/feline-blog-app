@@ -5,33 +5,8 @@ import { createBlog, updateBlogById } from "@/db/blogAction";
 import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
 import { useState, ChangeEventHandler } from "react";
-import { Role } from "../../../generated/prisma/enums";
 import { TagData } from "@/components/TagEditor";
-import Content from "../Content";
-
-export type CombinedBlog = {
-  author?: {
-    password: string;
-    createdAt: Date;
-    id: string;
-    email: string;
-    phone: string | null;
-    username: string;
-    avatar: string | null;
-    work: string | null;
-    role: Role;
-    updateAt: Date;
-  };
-  tags?: TagData[];
-} & {
-  title: string;
-  content: string;
-  createdAt: Date;
-  updatedAt: Date;
-  delete: boolean;
-  id: number;
-  authorId: string;
-};
+import { CombinedBlog } from "@/types/blog";
 
 const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
   const router = useRouter();

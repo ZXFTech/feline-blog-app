@@ -1,7 +1,12 @@
-import React from "react";
+import Content from "@/components/Content";
+import { ProfileCard } from "@/components/Profile/ProfileCard";
 
 const Contact = () => {
-  return <div>Contact</div>;
+  return (
+    <Content>
+      <ProfileCard />
+    </Content>
+  );
 };
 
 export default Contact;

@@ -9,8 +9,8 @@
   "scripts": {
     "dev": "dotenv -e .env.development -- next dev --turbopack",
     "start": "next start",
-    "lint": "next lint",
-    "fix": "next lint --fix",
+    "lint": "eslint",
+    "fix": "eslint --fix",
     "prisma-migrate-build": "dotenv -e .env.production -- npx prisma migrate deploy",
     "prisma-migrate:dev": "dotenv -e .env.development -- prisma migrate dev --name init",
     "prisma-migrate:prod": "dotenv -e .env.production -- prisma migrate dev --name init",

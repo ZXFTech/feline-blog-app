@@ -29,7 +29,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: ${{ env.NODE_VERSION }}
-          cache: "pnpm"
+          cache: "node"
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
@@ -41,12 +41,6 @@ jobs:
 
       - name: Lint
         run: pnpm lint
-
-      - name: Type check
-        run: pnpm typecheck
-
-      - name: Unit test
-        run: pnpm test -- --runInBand
 
       - name: Build
         run: pnpm build

@@ -26,7 +26,7 @@ const Edit = async ({ params }) => {
   return (
     <div>
       <Content>
-        <BlogEditor />
+        <BlogEditor blog={formattedBlog} />
       </Content>
     </div>
   );

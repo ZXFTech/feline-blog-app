@@ -1,28 +1,14 @@
 @use "variables";
 
 :root {
-  --theme-neu-light: #fafafa;
-  --theme-neu-dark: #525252;
-  --theme-light: $gray-100;
-  --theme-dark: $gray-900;
-  --theme-color-r: 254;
-  --theme-color-g: 223;
-  --theme-color-b: 168;
-  --theme-customize-color: rgba(
-    var(--theme-color-r),
-    var(--theme-color-g),
-    var(--theme-color-b),
-    1
-  );
-  --neu-light-shadow-num: 255, 255, 194;
-  --neu-light-shadow: rgb(var(--neu-light-shadow-num));
-  --neu-dark-shadow: rgb(216, 190, 144);
-  // --theme-high-contrast:
-  --neu-font-color: #3c095a;
-  --neu-border-color: hsl(38, 66%, 65%);
+  --theme-customize-color1: rgba(254, 223, 168, 1);
+  --color-shadow-light1: rgb(255, 255, 194);
+  --color-shadow-dark1: rgb(216, 190, 144);
+  --theme-high-contrast: 
+
 
   // neu shadow
-  --shadow-size-xs: 0.1rem;
+    --shadow-size-xs: 0.1rem;
   --shadow-blur-xs: 0.2rem;
   --shadow-size-sm: 0.25rem;
   --shadow-blur-sm: 0.4rem;
@@ -32,29 +18,88 @@
   --shadow-blur-lg: 1rem;
 }
 
-.body-content {
+body {
   width: 100vw;
-  color: var(--neu-font-color);
+  color: var(---color-font);
+  background: var(--color-bg);
   transition: background-color 0.618s;
-  // & * {
-  //   // background-color: inherit;
-  // }
+  border-color: var(--color-border);
+  & * {
+    // background-color: inherit;
+    transition: background-color 0.618s;
+  }
 }
 
-.neu-light {
-  background: var(--theme-customize-color);
+[data-theme="dark"] {
+  --color-bg: #212121;
+  --color-font: #b3b3b3;
+  --color-shadow-light: #404040;
+  --color-shadow-dark: #121212;
+  --color-border: #000000;
 }
 
-.neu-dark {
-  background: var(--theme-dark);
+[data-theme="high-contrast"] {
+  --theme-customize-color: black;
 }
 
-.light {
-  background: variables.$light;
+[data-theme="sugar"] {
+  --color-bg: #f0cfd0;
+  --color-surface: #c47f82;
+  --color-font: #09060a;
+  --color-font-light: #09060a;
+  --color-font-dark: #ffffff;
+
+  --color-shadow-light: #ffeeef;
+  --color-shadow-dark: #ccb0b1;
+
+  /* === Text === */
+  --color-text: #09060a;
+  --color-text-muted: #09060a;
+  --color-text-invert: #09060a;
+
+  /* === Brand / Action === */
+  --color-primary: #2d3653;
+  --color-primary-hover: #796a92;
+  --color-danger: #9c2f12;
+  --color-danger-hover: #ce3e2b;
+  --color-success: #589d13;
+  --color-success-hover: #589d13;
+  --color-warning: #febd5d;
+  --color-warning-hover: #febd5d;
+  --color-warning: #2697d0;
+  --color-warning-hover: #2697d0;
+
+  /* === Border === */
+  --color-border: #c47f82;
 }
 
-.dark {
-  background: variables.$dark;
+[data-theme="sunshine"] {
+  --color-bg: rgba(254, 223, 168, 1);
+  --color-font: rgb(60, 9, 90);
+  /* --color-border: rgb(79, 51, 3); */
+  --color-border: rgb(216, 190, 144);
+
+  --color-shadow-light: rgb(255, 255, 194);
+  --color-shadow-dark: rgb(216, 190, 144);
+
+  /* === Text === */
+  --color-text: 226 232 240;
+  --color-text-muted: 148 163 184;
+  --color-text-invert: 15 23 42;
+
+  /* === Brand / Action === */
+  --color-primary: #046582;
+  --color-primary-hover: #046582;
+  --color-danger: #9c2f12;
+  --color-danger-hover: #ce3e2b;
+  --color-success: #589d13;
+  --color-success-hover: #589d13;
+  --color-warning: #febd5d;
+  --color-warning-hover: #febd5d;
+  --color-warning: #2697d0;
+  --color-warning-hover: #2697d0;
+
+  /* === Border === */
 }
 
 .hide-scrollbar {

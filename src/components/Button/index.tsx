@@ -48,6 +48,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
   const configClassNames = classNames(
     "btn",
     "inline-flex items-center justify-center",
+    "text-font",
     `${children ? "gap-1" : "gap-0"}`,
     !children && "p-1!",
     {

@@ -1,21 +1,5 @@
 @use "../../styles/neu";
 
-.neu-div {
-  // box-sizing: border-box;
-  // // @include neu-embossed-normal;
-  // $normal-radius: 0.4rem;
-  // padding: 0.5rem;
-  // // padding: var(--shadow-blur-normal);
-  // margin: 0.5rem;
-  // border-radius: $normal-radius;
-  // border: 1px solid var(--neu-border-color);
-  // transition: all 0.1s;
-  // margin: var(--shadow-size-normal);
-  // content: "";
-  background-color: var(--theme-customize-color);
-  border-color: var(--neu-border-color);
-}
-
 .neu-embossed-normal {
   @include neu.neu-embossed-normal;
 }

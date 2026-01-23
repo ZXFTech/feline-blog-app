@@ -10,8 +10,7 @@ const ListItem: FC<CombinedBlog> = (blog) => {
   return (
     <NeuDiv
       neuType="raised"
-      style={{ border: "2px solid var(--neu-border-color)" }}
-      className="blog-list-item mb-2! text-left transition-all group duration-618 hover:transition-none "
+      className="blog-list-item mb-2 border-1 border-border text-left transition-all! group duration-618! hover:transition-none! "
     >
       <div className="px-1 py-0 text-2xl font-bold">{title}</div>
       <div className="flex flex-wrap items-center justify-between my-1">

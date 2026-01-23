@@ -18,19 +18,17 @@ const NeuDiv = forwardRef<HTMLDivElement, NeuContainerProps>((props, ref) => {
 
   const configClassNames = classNames(
     "neu-div",
+    "bg-bg text-font",
+    "p-2 transition duration-100 border border-border rounded-lg ",
     {
       [`neu-${neuType}-${intensity}`]: neuType && intensity,
       "p-1": neuType === "embossed",
     },
-    className
+    className,
   );
 
   return (
-    <div
-      ref={ref}
-      className={`p-2 transition duration-100 border rounded-lg ${configClassNames}`}
-      {...restProps}
-    >
+    <div ref={ref} className={configClassNames} {...restProps}>
       {children}
     </div>
   );

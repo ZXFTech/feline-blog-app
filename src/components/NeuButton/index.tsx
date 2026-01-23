@@ -28,13 +28,14 @@ const NeuButton = forwardRef<HTMLButtonElement, NeuButtonProps>(
 
     const classnames = classNames(
       "neu-btn",
+      "bg-bg text-font",
       "m-1",
       {
         [`btn-${neuType}-${intensity}`]: neuType && intensity,
         [`neu-btn-${buttonType}`]: buttonType,
         disabled: disabled,
       },
-      className
+      className,
     );
 
     // const [combineStyle, setCombineStyle] = useState<React.CSSProperties>({});
@@ -87,7 +88,7 @@ const NeuButton = forwardRef<HTMLButtonElement, NeuButtonProps>(
         )}
       </Button>
     );
-  }
+  },
 );
 
 NeuButton.displayName = "NeuButton";

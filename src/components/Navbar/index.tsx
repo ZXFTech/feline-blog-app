@@ -3,6 +3,8 @@ import NeuDiv from "../NeuDiv";
 import Link from "next/link";
 import { IconNeonCat } from "../Icon/presetIcon";
 import { UserMenu } from "../Profile/UserMenu";
+import { ThemeToggle } from "../ToggleSwitch/themeToggle";
+import Theme from "../Theme";
 
 interface NavbarProps {
   leftSlot?: ReactNode;
@@ -23,7 +25,7 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
           return (
             <NeuDiv className="!p-0 mx-0 my-2" neuType="raised" key={route}>
               <Link
-                className="block px-4 py-1 mx-2 my-1 font-medium rounded-md navbar-link"
+                className="block px-4 py-1 mx-2 my-1 font-medium rounded-md navbar-link text-font!"
                 href={`/${route === "home" ? "" : route}`}
               >
                 {route.toUpperCase()}
@@ -32,6 +34,7 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
           );
         })}
       </ul>
+      <Theme />
       <div className="w-20">{isDev ? <UserMenu /> : null}</div>
     </NeuDiv>
   );

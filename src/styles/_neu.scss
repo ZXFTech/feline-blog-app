@@ -1,36 +1,27 @@
 @use "sass:color";
 
 @mixin neu-embossed-sm {
-  box-shadow: calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
-      var(--shadow-blur-sm) var(--neu-light-shadow),
+  box-shadow:
+    calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
+      var(--shadow-blur-sm) var(--color-shadow-light),
     var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm)
-      var(--neu-dark-shadow);
-  // box-shadow: -0.2rem -0.2rem $shadow-blur var(--neu-light-shadow),
-  //   0.2rem 0.2rem $shadow-blur var(--neu-dark-shadow);
+      var(--color-shadow-dark);
 }
 
 @mixin neu-embossed-normal {
-  // transform-origin: 50% 0%;
-  // font-size: 103%;
-  box-shadow: calc(var(--shadow-size-normal) * -1)
-      calc(var(--shadow-size-normal) * -1) var(--shadow-blur-normal)
-      var(--neu-light-shadow),
+  box-shadow:
+    calc(var(--shadow-size-normal) * -1) calc(var(--shadow-size-normal) * -1)
+      var(--shadow-blur-normal) var(--color-shadow-light),
     var(--shadow-size-normal) var(--shadow-size-normal)
-      var(--shadow-blur-normal) var(--neu-dark-shadow);
-  // box-shadow: -0.2rem -0.2rem $shadow-blur var(--neu-light-shadow),
-  //   0.2rem 0.2rem $shadow-blur var(--neu-dark-shadow);
-  // & > * {
-  //   scale: 103%;
-  // }
+      var(--shadow-blur-normal) var(--color-shadow-dark);
 }
 
 @mixin neu-embossed-lg {
-  box-shadow: calc(var(--shadow-size-lg) * -1) calc(var(--shadow-size-lg) * -1)
-      var(--shadow-blur-lg) var(--neu-light-shadow),
+  box-shadow:
+    calc(var(--shadow-size-lg) * -1) calc(var(--shadow-size-lg) * -1)
+      var(--shadow-blur-lg) var(--color-shadow-light),
     var(--shadow-size-lg) var(--shadow-size-lg) var(--shadow-blur-lg)
-      var(--neu-dark-shadow);
-  // box-shadow: -0.2rem -0.2rem $shadow-blur var(--neu-light-shadow),
-  //   0.2rem 0.2rem $shadow-blur var(--neu-dark-shadow);
+      var(--color-shadow-dark);
 }
 
 @mixin neu-flat {
@@ -39,26 +30,26 @@
 }
 
 @mixin neu-debossed-sm {
-  // font-size: 97%;
-  box-shadow: inset calc(var(--shadow-size-sm) * -1)
-      calc(var(--shadow-size-sm) * -1) var(--shadow-blur-sm)
-      var(--neu-light-shadow),
+  box-shadow:
+    inset calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
+      var(--shadow-blur-sm) var(--color-shadow-light),
     inset var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm)
-      var(--neu-dark-shadow);
+      var(--color-shadow-dark);
 }
 
 @mixin neu-debossed-normal {
-  // font-size: 97%;
-  box-shadow: inset calc(var(--shadow-size-normal) * -1)
+  box-shadow:
+    inset calc(var(--shadow-size-normal) * -1)
       calc(var(--shadow-size-normal) * -1) var(--shadow-blur-normal)
-      var(--neu-light-shadow),
+      var(--color-shadow-light),
     inset var(--shadow-size-normal) var(--shadow-size-normal)
-      var(--shadow-blur-normal) var(--neu-dark-shadow);
+      var(--shadow-blur-normal) var(--color-shadow-dark);
 }
 
 @mixin neu-custom($shadow-color) {
-  box-shadow: calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
-      var(--shadow-blur-sm) var(--neu-light-shadow),
+  box-shadow:
+    calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
+      var(--shadow-blur-sm) var(--color-shadow-light),
     var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-normal)
       color.scale($shadow-color, $lightness: -40%);
 }

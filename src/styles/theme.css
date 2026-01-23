@@ -1,0 +1,29 @@
+@theme {
+  /* 表面颜色要浅一点 */
+  --color-bg: #dbdbdb;
+  --color-font: #343434;
+
+  --color-shadow-dark: #bababa;
+  --color-shadow-light: #fcfcfc;
+
+  /* === Text === */
+  --color-text: 226 232 240;
+  --color-text-muted: 148 163 184;
+  --color-text-invert: 15 23 42;
+
+  /* === Brand / Action === */
+  --color-primary: #046582;
+  --color-primary-hover: #046582;
+  --color-danger: #9c2f12;
+  --color-danger-hover: #ce3e2b;
+  --color-success: #589d13;
+  --color-success-hover: #589d13;
+  --color-warning: #febd5d;
+  --color-warning-hover: #febd5d;
+  --color-warning: #2697d0;
+  --color-warning-hover: #2697d0;
+
+  /* === Border === */
+  /* --color-border: rgb(51 65 85); */
+  --color-border: #bababa;
+}

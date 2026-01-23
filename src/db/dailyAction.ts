@@ -156,7 +156,6 @@ export async function updateDailyStatus({
         return workout.sets.map((reps, i) => {
           return {
             workoutItemId: item!,
-            order: i,
             ...reps,
           };
         });

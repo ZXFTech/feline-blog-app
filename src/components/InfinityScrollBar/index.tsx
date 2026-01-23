@@ -1,242 +1,299 @@
-import classNames from "classnames";
-import React, { useRef, useState, useEffect, useCallback } from "react";
+"use client";
 
-interface InfiniteRulerProps {
-  step?: number; // 主刻度间隔
-  minorStep?: number; // 次刻度间隔
-  unit?: string; // 单位
-  width?: number; // 可视宽度
-  height?: number; // 高度
-  targetValue?: number; // 初始居中的刻度
-  onChange?: (value: number) => void; // 滚动结束回调
-  allowGrab?: boolean; // 是否全程抓取
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useImperativeHandle,
+  forwardRef,
+  ReactNode,
+  useCallback,
+} from "react";
+
+export interface InfiniteRulerHandle {
+  scrollToValue: (value: number, smooth?: boolean) => void;
+  getCurrentValue: () => number;
+  reset: (values?: number[]) => void;
 }
 
-const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
-  step = 10,
-  minorStep = 2,
-  unit = "",
-  width = 600,
-  height = 60,
-  targetValue = 25,
-  onChange,
-  allowGrab = true,
-}) => {
-  const range = 10; // 每次左右扩展的刻度数量
-  const [values, setValues] = useState<number[]>(
-    Array.from({ length: 50 }, (_, i) => i),
-  );
+interface InfiniteRulerProps {
+  step?: number;
+  minorStep?: number;
+  unit?: string;
+  width?: number;
+  height?: number;
+  initialValue?: number;
+  buffer?: number;
+  inertia?: boolean;
+  itemWidth?: number;
+  showPointer?: boolean;
+  scrollDebounce?: number;
+  minValue?: number;
+  maxValue?: number;
+  renderItem?: (value: number) => ReactNode;
+  onChange?: (value: number) => void;
+}
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+const InfiniteRuler = forwardRef<InfiniteRulerHandle, InfiniteRulerProps>(
+  (
+    {
+      step = 10,
+      minorStep = 2,
+      unit = "",
+      width = 600,
+      height = 60,
+      initialValue = 25,
+      buffer = 10,
+      inertia = true,
+      itemWidth = 100,
+      showPointer = true,
+      scrollDebounce = 100,
+      minValue,
+      maxValue,
+      renderItem,
+      onChange,
+    },
+    ref,
+  ) => {
+    const [values, setValues] = useState<number[]>(
+      Array.from({ length: 50 }, (_, i) => i),
+    );
+    const scrollRef = useRef<HTMLDivElement>(null);
 
-  // 拖动状态
-  const isDragging = useRef(false);
-  const startX = useRef(0);
-  const scrollLeftStart = useRef(0);
+    // 拖动状态
+    const isDragging = useRef(false);
+    const startX = useRef(0);
+    const scrollLeftStart = useRef(0);
 
-  // 惯性滚动状态
-  const velocity = useRef(0);
-  const lastX = useRef(0);
-  const lastTime = useRef(0);
-  const momentumFrame = useRef<number | null>(null);
+    // 惯性滚动
+    const velocity = useRef(0);
+    const lastX = useRef(0);
+    const lastTime = useRef(0);
+    const momentumFrame = useRef<number | null>(null);
 
-  const scrollToValue = (value: number) => {
-    const container = scrollRef.current;
-    if (!container) return;
+    // 初始化滚动
+    useEffect(() => {
+      const container = scrollRef.current;
+      if (!container) return;
+      container.scrollLeft =
+        initialValue * itemWidth - container.clientWidth / 2;
+    }, [initialValue, itemWidth]);
 
-    const itemWidth = container.children[0].clientWidth;
-    const containerWidth = container.clientWidth;
-    const targetScrollLeft = value * itemWidth - containerWidth / 2;
-    container.scrollLeft = targetScrollLeft;
-  };
+    // 暴露方法给父组件
+    useImperativeHandle(ref, () => ({
+      scrollToValue: (value: number, smooth = true) => {
+        const container = scrollRef.current;
+        if (!container) return;
+        const targetScrollLeft =
+          value * itemWidth - itemWidth / 2 - container.clientWidth / 2;
+        container.scrollTo({
+          left: targetScrollLeft,
+          behavior: smooth ? "smooth" : "auto",
+        });
+      },
+      getCurrentValue: () => {
+        const container = scrollRef.current;
+        if (!container) return 0;
+        const center = container.scrollLeft + container.clientWidth / 2;
+        const items = Array.from(container.children) as HTMLDivElement[];
+        let closestItem = items[0];
+        let minDistance = Infinity;
+        items.forEach((item) => {
+          const itemCenter = item.offsetLeft + item.clientWidth / 2;
+          const distance = Math.abs(itemCenter - center);
+          if (distance < minDistance) {
+            minDistance = distance;
+            closestItem = item;
+          }
+        });
+        return parseInt(closestItem.textContent || "0");
+      },
+      reset: (newValues?: number[]) => {
+        if (newValues && newValues.length) setValues(newValues);
+      },
+    }));
 
-  // 初始化滚动到 targetValue
-  useEffect(() => {
-    scrollToValue(targetValue);
-  }, [targetValue]);
-  // 无限滚动逻辑
-  const handleInfiniteScroll = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const scrollLeft = container.scrollLeft;
-    const clientWidth = container.clientWidth;
-    const scrollWidth = container.scrollWidth;
-    const itemWidth = container.children[0].clientWidth;
+    // 无限滚动
+    const handleInfiniteScroll = useCallback(() => {
+      const container = scrollRef.current;
+      if (!container) return;
+      const scrollLeft = container.scrollLeft;
+      const clientWidth = container.clientWidth;
+      const scrollWidth = container.scrollWidth;
 
-    // 左边扩展
-    if (scrollLeft < 10) {
-      const newArr = Array.from(
-        { length: range },
-        (_, i) => values[0] - range + i,
-      ).concat(values.slice(0, values.length - range));
-      setValues(newArr);
-      container.scrollLeft = scrollLeft + itemWidth * range;
-    }
-
-    // 右边扩展
-    if (scrollLeft + clientWidth > scrollWidth - 10) {
-      const newArr = values
-        .slice(range)
-        .concat(
-          Array.from(
-            { length: range },
-            (_, i) => values[values.length - 1] + 1 + i,
-          ),
-        );
-      setValues(newArr);
-      container.scrollLeft = scrollLeft - itemWidth * range;
-    }
-  }, [values]);
-
-  // 滚动结束后居中最近元素
-  const centerNearestItem = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const items = Array.from(container.children) as HTMLDivElement[];
-    const center = container.scrollLeft + container.clientWidth / 2;
-
-    let closestItem: HTMLDivElement = items[0];
-    let minDistance = Infinity;
-    items.forEach((item) => {
-      const itemCenter = item.offsetLeft + item.clientWidth / 2;
-      const distance = Math.abs(itemCenter - center);
-      if (distance < minDistance) {
-        minDistance = distance;
-        closestItem = item;
+      // 左扩展
+      if (scrollLeft < 10) {
+        const newArr = Array.from(
+          { length: buffer },
+          (_, i) => values[0] - buffer + i,
+        ).concat(values.slice(0, values.length - buffer));
+        if (minValue === undefined || newArr[0] >= minValue) setValues(newArr);
+        container.scrollLeft = scrollLeft + itemWidth * buffer;
       }
-    });
 
-    const targetScrollLeft =
-      closestItem.offsetLeft +
-      closestItem.clientWidth / 2 -
-      container.clientWidth / 2;
-    console.log("targetScrollLeft", targetScrollLeft);
-    container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
-    onChange?.(parseInt(closestItem.textContent || "0"));
-  }, [onChange]);
-
-  // 鼠标拖动 + 惯性滚动
-  useEffect(() => {
-    if (!allowGrab) {
-      return;
-    }
-    const container = scrollRef.current;
-    if (!container) return;
-
-    const onMouseDown = (e: MouseEvent) => {
-      isDragging.current = true;
-      startX.current = e.pageX - container.offsetLeft;
-      scrollLeftStart.current = container.scrollLeft;
-      lastX.current = e.pageX;
-      lastTime.current = Date.now();
-
-      container.style.cursor = "grabbing";
-      container.style.userSelect = "none";
-
-      // 停止惯性
-      if (momentumFrame.current) {
-        cancelAnimationFrame(momentumFrame.current);
-        momentumFrame.current = null;
-      }
-    };
-
-    const onMouseMove = (e: MouseEvent) => {
-      if (!isDragging.current) return;
-      e.preventDefault();
-      const x = e.pageX - container.offsetLeft;
-      const walk = x - startX.current;
-      container.scrollLeft = scrollLeftStart.current - walk;
-
-      // 计算速度
-      const now = Date.now();
-      const dt = now - lastTime.current;
-      if (dt > 0) {
-        velocity.current = (lastX.current - e.pageX) / dt;
-        lastX.current = e.pageX;
-        lastTime.current = now;
-      }
-    };
-
-    const onMouseUp = () => {
-      if (!isDragging.current) return;
-      isDragging.current = false;
-      container.style.cursor = "grab";
-      container.style.removeProperty("user-select");
-
-      // 惯性滚动
-      const decay = 0.95; // 阻力系数
-      const step = () => {
-        if (Math.abs(velocity.current) < 0.01) {
-          // 滚动结束后自动居中
-          centerNearestItem();
-          return;
+      // 右扩展
+      if (scrollLeft + clientWidth > scrollWidth - 20) {
+        const newArr = values
+          .slice(buffer)
+          .concat(
+            Array.from(
+              { length: buffer },
+              (_, i) => values[values.length - 1] + 1 + i,
+            ),
+          );
+        if (maxValue === undefined || newArr[newArr.length - 1] <= maxValue) {
+          setValues(newArr);
+          container.scrollLeft = scrollLeft - itemWidth * buffer;
         }
-        container.scrollLeft += velocity.current * 20; // 放大系数
-        velocity.current *= decay;
+      }
+    }, [values, buffer, minValue, maxValue, itemWidth]);
 
-        handleInfiniteScroll();
-        momentumFrame.current = requestAnimationFrame(step);
+    // 居中最近元素
+    const centerNearestItem = useCallback(() => {
+      const container = scrollRef.current;
+      if (!container) return;
+      const center = container.scrollLeft + container.clientWidth / 2;
+      const items = Array.from(container.children) as HTMLDivElement[];
+      let closestItem = items[0];
+      let minDistance = Infinity;
+      items.forEach((item) => {
+        const itemCenter = item.offsetLeft + item.clientWidth / 2;
+        const distance = Math.abs(itemCenter - center);
+        if (distance < minDistance) {
+          minDistance = distance;
+          closestItem = item;
+        }
+      });
+
+      const targetScrollLeft =
+        closestItem.offsetLeft +
+        closestItem.clientWidth / 2 -
+        container.clientWidth / 2;
+
+      container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
+      onChange?.(parseInt(closestItem.textContent || "0"));
+    }, [onChange]);
+
+    // 鼠标拖动 + 惯性滚动
+    useEffect(() => {
+      const container = scrollRef.current;
+      if (!container) return;
+
+      const onMouseDown = (e: MouseEvent) => {
+        isDragging.current = true;
+        startX.current = e.pageX - container.offsetLeft;
+        scrollLeftStart.current = container.scrollLeft;
+        lastX.current = e.pageX;
+        lastTime.current = Date.now();
+
+        container.style.cursor = "grabbing";
+        container.style.userSelect = "none";
+
+        if (momentumFrame.current) {
+          cancelAnimationFrame(momentumFrame.current);
+          momentumFrame.current = null;
+        }
       };
 
-      momentumFrame.current = requestAnimationFrame(step);
-    };
+      const onMouseMove = (e: MouseEvent) => {
+        if (!isDragging.current) return;
+        e.preventDefault();
+        const x = e.pageX - container.offsetLeft;
+        const walk = x - startX.current;
+        container.scrollLeft = scrollLeftStart.current - walk;
 
-    container.addEventListener("mousedown", onMouseDown);
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
+        if (!inertia) return;
 
-    return () => {
-      container.removeEventListener("mousedown", onMouseDown);
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [values, handleInfiniteScroll, centerNearestItem, allowGrab]);
+        const now = Date.now();
+        const dt = now - lastTime.current;
+        if (dt > 0) {
+          velocity.current = (lastX.current - e.pageX) / dt;
+          lastX.current = e.pageX;
+          lastTime.current = now;
+        }
+      };
 
-  // 监听 scroll 事件，实现无限滚动 + 自动居中（滚动停止检测）
-  useEffect(() => {
-    const container = scrollRef.current;
-    if (!container) return;
-    let scrollTimeout: NodeJS.Timeout;
+      const onMouseUp = () => {
+        if (!isDragging.current) return;
+        isDragging.current = false;
+        container.style.cursor = "grab";
+        container.style.removeProperty("user-select");
 
-    const handleScroll = () => {
-      handleInfiniteScroll();
+        if (inertia) {
+          const decay = 0.95;
+          const step = () => {
+            if (Math.abs(velocity.current) < 0.01) {
+              centerNearestItem();
+              return;
+            }
+            container.scrollLeft += velocity.current * 20;
+            velocity.current *= decay;
+            handleInfiniteScroll();
+            momentumFrame.current = requestAnimationFrame(step);
+          };
+          momentumFrame.current = requestAnimationFrame(step);
+        } else {
+          centerNearestItem();
+        }
+      };
 
-      clearTimeout(scrollTimeout);
-      scrollTimeout = setTimeout(() => {
-        centerNearestItem();
-      }, 150); // 150ms 内无滚动认为滚动结束
-    };
+      container.addEventListener("mousedown", onMouseDown);
+      window.addEventListener("mousemove", onMouseMove);
+      window.addEventListener("mouseup", onMouseUp);
 
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
-  }, [values]);
+      return () => {
+        container.removeEventListener("mousedown", onMouseDown);
+        window.removeEventListener("mousemove", onMouseMove);
+        window.removeEventListener("mouseup", onMouseUp);
+      };
+    }, [values, inertia, handleInfiniteScroll, centerNearestItem]);
 
-  return (
-    <div className="relative">
-      {/* 中间指针 */}
-      <div className="absolute h-4 w-[20px] bg-red-500 left-[50%] transform -translate-x-1/2 z-10" />
+    // 监听 scroll 事件，实现无限滚动 + 滚动结束检测
+    useEffect(() => {
+      const container = scrollRef.current;
+      if (!container) return;
+      let scrollTimeout: NodeJS.Timeout;
 
-      <div
-        ref={scrollRef}
-        className={classNames(
-          "w-full overflow-x-scroll h-10 border flex hide-scrollbar",
-          {
-            "cursor-grab": allowGrab,
-          },
+      const handleScroll = () => {
+        handleInfiniteScroll();
+        clearTimeout(scrollTimeout);
+        scrollTimeout = setTimeout(() => {
+          centerNearestItem();
+        }, scrollDebounce);
+      };
+
+      container.addEventListener("scroll", handleScroll);
+      return () => container.removeEventListener("scroll", handleScroll);
+    }, [values, handleInfiniteScroll, centerNearestItem, scrollDebounce]);
+
+    return (
+      <div className="relative">
+        {showPointer && (
+          <div className="absolute h-4 w-1 bg-red-500! left-[50%] transform -translate-x-1/2 z-10" />
         )}
-        style={{ width, height }}
-      >
-        {values.map((v) => (
-          <div
-            key={v}
-            className="h-4 w-[100px] flex-shrink-0 text-center border-r"
-          >
-            {v}
-          </div>
-        ))}
+        <div
+          ref={scrollRef}
+          className="w-full overflow-x-scroll border cursor-grab flex hide-scrollbar"
+          style={{ width, height }}
+        >
+          {values.map((v) =>
+            renderItem ? (
+              <React.Fragment key={v}>{renderItem(v)}</React.Fragment>
+            ) : (
+              <div
+                key={v}
+                className="w-[100px] flex-shrink-0 text-center border-r"
+              >
+                {v}
+              </div>
+            ),
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  },
+);
+
+InfiniteRuler.displayName = "InfiniteRuler";
 
 export default InfiniteRuler;

@@ -41,7 +41,7 @@
   position: absolute;
   top: calc(50% - 1px);
   z-index: 3;
-  background-color: var(--neu-border-color);
+  background-color: var(--color-border);
 }
 
 //初始状态 top, top-back bottom-back 放平
@@ -57,7 +57,7 @@
   justify-content: center;
   font-family: monospace;
   font-weight: bold;
-  background-color: var(--theme-customize-color);
+  background-color: var(--color-bg);
 }
 
 .flip-digit .top,

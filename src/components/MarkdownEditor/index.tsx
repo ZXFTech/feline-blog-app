@@ -40,7 +40,7 @@ const MarkdownEditor = ({
   }, [id]);
 
   return (
-    <div
+    <NeuDiv
       className={`flex flex-col px-3! gap-2.5 transition-all duration-200 ease-in-out ${
         fullScreen
           ? "fixed z-99999999 top-0 bottom-0 left-0 right-0 "
@@ -131,7 +131,7 @@ const MarkdownEditor = ({
           </ReactMarkdown>
         </NeuDiv>
       </div>
-    </div>
+    </NeuDiv>
   );
 };
 

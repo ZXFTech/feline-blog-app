@@ -24,10 +24,10 @@ export default function FlipDigit({ value }: Props) {
 
   return (
     <NeuDiv className="flip-digit" ref={ref}>
-      <div className="top">{prevNum}</div>
-      <div className="top-back">{value}</div>
-      <div className="bottom">{value}</div>
-      <div className="bottom-back">{prevNum}</div>
+      <div className="bg-bg top">{prevNum}</div>
+      <div className="bg-bg top-back">{value}</div>
+      <div className="bg-bg bottom">{value}</div>
+      <div className="bg-bg bottom-back">{prevNum}</div>
     </NeuDiv>
   );
 }

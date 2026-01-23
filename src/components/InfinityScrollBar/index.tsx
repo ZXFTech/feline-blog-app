@@ -13,9 +13,6 @@ interface InfiniteRulerProps {
 }
 
 const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
-  step = 10,
-  minorStep = 2,
-  unit = "",
   width = 600,
   height = 60,
   targetValue = 25,
@@ -209,7 +206,7 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
 
     container.addEventListener("scroll", handleScroll);
     return () => container.removeEventListener("scroll", handleScroll);
-  }, [values]);
+  }, [values, centerNearestItem, handleInfiniteScroll]);
 
   return (
     <div className="relative">

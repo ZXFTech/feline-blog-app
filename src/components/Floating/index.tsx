@@ -9,14 +9,13 @@ import {
   useState,
 } from "react";
 import Portal from "../Portal";
-import { debounce, throttle } from "@/utils/rateLimiting";
 
 interface Props {
   anchorRef: RefObject<HTMLElement>;
   open: boolean;
   children: ReactNode;
   offset?: number;
-  position: "top" | "bottom";
+  position?: "top" | "bottom";
   align: "center" | "left" | "right";
 }
 
@@ -61,8 +60,8 @@ function Floating({
         align === "left"
           ? rect.left
           : align === "right"
-          ? rect.right - popupWidth
-          : rect.left - popupWidth / 2;
+            ? rect.right - popupWidth
+            : rect.left - popupWidth / 2;
       if (left + popupWidth > vw) {
         left = vw - popupWidth;
       } else if (left < 0) {

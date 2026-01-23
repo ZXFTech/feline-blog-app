@@ -30,7 +30,6 @@ export function getStartOfWeek(date: Date): Date {
 
 export function WeeklyView({
   weeklyStatus,
-  onDateSelect,
   selectedDate,
   onWeekChanged,
 }: WeeklyViewProps) {
@@ -46,7 +45,6 @@ export function WeeklyView({
   }, [selectedDate]);
 
   const [weeklySummary, setWeeklySummary] = useState<DaySummary[]>([]);
-  const [panelVisible, setPanelVisible] = useState(false);
 
   const selectedDateStr = useMemo(() => {
     return selectedDate.toISOString().split("T")[0];
@@ -158,11 +156,7 @@ export function WeeklyView({
           {weeklySummary.map((day, index) => (
             <NeuDiv
               key={day.date}
-              onClick={() =>
-                day.date === selectedDateStr
-                  ? setPanelVisible((prev) => !prev)
-                  : router.replace(`${pathname}?date=${day.date}`)
-              }
+              onClick={() => router.replace(`${pathname}?date=${day.date}`)}
               className={classNames(
                 "border border-border rounded-lg p-3! flex flex-col gap-1 min-h-16 cursor-pointer",
                 {

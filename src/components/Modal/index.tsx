@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
 import {
@@ -32,6 +33,9 @@ interface Props {
   children?: ReactNode;
 }
 
+const ENTER_DELAY = 20;
+const EXIT_DURATION = 300;
+
 const Modal = ({
   visible,
   onClose,
@@ -47,106 +51,97 @@ const Modal = ({
   cancelType = "default",
   closeIcon = true,
 }: Props) => {
-  const mouseDownRef = useRef<EventTarget | null>(null);
-  const [show, setShow] = useState(false);
-  const [mounted, setMounted] = useState(true);
+  const mouseDownTarget = useRef<EventTarget | null>(null);
 
+  const [mounted, setMounted] = useState(visible);
+  const [show, setShow] = useState(false);
+
+  // 统一管理进入 / 退出动画
   useEffect(() => {
+    let timer: NodeJS.Timeout;
+
     if (visible) {
       setMounted(true);
-      const timer = setTimeout(() => {
-        setShow(true);
-      }, 30);
-      return () => {
-        clearTimeout(timer);
-      };
+      timer = setTimeout(() => setShow(true), ENTER_DELAY);
     } else {
       setShow(false);
-      const timer = setTimeout(() => {
-        setMounted(false);
-      }, 300);
-      return () => {
-        clearTimeout(timer);
-      };
+      timer = setTimeout(() => setMounted(false), EXIT_DURATION);
     }
+
+    return () => clearTimeout(timer);
   }, [visible]);
 
   const handleMouseDown: MouseEventHandler<HTMLDivElement> = (e) => {
-    mouseDownRef.current = e.target;
+    mouseDownTarget.current = e.target;
   };
 
   const handleMaskClick: MouseEventHandler<HTMLDivElement> = (e) => {
-    if (e.target === mouseDownRef.current) {
+    if (e.target === mouseDownTarget.current) {
       onClose();
     }
   };
 
-  useEffect(() => {
-    if (!show) {
-    }
-  }, [show]);
-
-  const Footer = (): ReactElement | null => {
-    if (footer === "none") {
-      return null;
-    }
+  const renderFooter = (): ReactElement | null => {
+    if (footer === "none") return null;
 
     return (
       <>
-        {footer === "ok" ||
-          (footer === "default" && (
-            <NeuButton
-              icon={okIcon}
-              loading={okLoading}
-              buttonType={okType}
-              onClick={onOk}
-            >
-              {okText || "确认"}
-            </NeuButton>
-          ))}
-        {footer === "cancel" ||
-          (footer === "default" && (
-            <NeuButton buttonType={cancelType} onClick={onClose}>
-              {cancelText || "取消"}
-            </NeuButton>
-          ))}
+        {(footer === "ok" || footer === "default") && (
+          <NeuButton
+            icon={okIcon}
+            loading={okLoading}
+            buttonType={okType}
+            onClick={onOk}
+          >
+            {okText}
+          </NeuButton>
+        )}
+
+        {(footer === "cancel" || footer === "default") && (
+          <NeuButton buttonType={cancelType} onClick={onClose}>
+            {cancelText}
+          </NeuButton>
+        )}
       </>
     );
   };
 
+  if (!mounted) return null;
+
   return (
     <Portal>
       <div
-        onClick={handleMaskClick}
         onMouseDown={handleMouseDown}
-        className={`model-mask ${
-          mounted ? "fixed" : "hidden"
-        } z-1000 transition-all duration-300 ease-in-out right-0 top-0 bottom-0 left-0 flex items-center justify-center flex-col ${
+        onClick={handleMaskClick}
+        className={`fixed inset-0 z-1000 flex items-center justify-center transition-colors duration-300! ${
           show ? "bg-gray-400/40!" : "bg-gray-400/0!"
         }`}
       >
         <NeuDiv
           onClick={(e) => e.stopPropagation()}
-          className={`model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 ${
-            !show ? "scale-99 opacity-0" : "scale-100 opacity-100"
-          } transition-all duration-300 ease-in-out`}
+          className={`model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
+            show ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          }`}
         >
+          {/* Header */}
           <div className="modal-title-bar flex items-center justify-between mb-3 px-1">
-            <div className="text-lg font-medium">{title || ""}</div>
-            <div className="leading-0">
-              {closeIcon ? (
-                <Icon
-                  onClick={onClose}
-                  size="md"
-                  className="cursor-pointer transition-all duration-200 hover:rotate-180"
-                  icon={closeIcon === true ? "close" : closeIcon}
-                />
-              ) : null}
-            </div>
+            <div className="text-lg font-medium">{title}</div>
+            {closeIcon && (
+              <Icon
+                onClick={onClose}
+                size="md"
+                className="cursor-pointer transition-transform duration-200 hover:rotate-180"
+                icon={closeIcon === true ? "close" : closeIcon}
+              />
+            )}
           </div>
+
+          {/* Content */}
           <div className="flex-1 px-2 mb-2">{children}</div>
-          <div className="modal-footer flex items-center justify-end px-1">
-            {Footer()}
+
+          {/* Footer */}
+          <div className="modal-footer flex items-center justify-end gap-2 px-1">
+            {renderFooter()}
           </div>
         </NeuDiv>
       </div>

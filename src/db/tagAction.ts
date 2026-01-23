@@ -44,7 +44,6 @@ export async function getOptionTagsById(target: "blog" | "todo", id?: number) {
         createdAt: "desc",
       },
     });
-    console.log("result", result);
     return result;
   } catch (error) {
     logger.error("获取可选 tags 出错,", error);
@@ -54,7 +53,7 @@ export async function getOptionTagsById(target: "blog" | "todo", id?: number) {
 
 export async function getSortedTags(
   countBy: "blogs" | "todos",
-  sort?: "desc" | "asc"
+  sort?: "desc" | "asc",
 ) {
   try {
     // const user = await requireAuth();

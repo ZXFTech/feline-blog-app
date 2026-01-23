@@ -91,7 +91,7 @@ export async function updateDailyStatus({
       date = today.toISOString().split("T")[0];
     }
     const formatDate = new Date(date);
-    const a = await db.dailyStat.findUnique({
+    await db.dailyStat.findUnique({
       where: {
         date: formatDate,
       },

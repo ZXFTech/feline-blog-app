@@ -91,26 +91,26 @@ function Daily() {
   }, [dateParams]);
 
   useEffect(() => {
+    const getData = async () => {
+      try {
+        setDailyLoading(true);
+        const dailyData = await getDailyStatus(
+          selectedDate.toISOString().split("T")[0],
+        );
+        setDailyStatus(dailyData);
+      } catch (error) {
+        logger.error("获取今日数据出错.", error);
+        toast.error("获取今日数据出错");
+      } finally {
+        setDailyLoading(false);
+      }
+    };
+
     getData();
   }, [selectedDate]);
 
   const onWeekChanged = (startOfWeek: Date) => {
     getWeeklyData(startOfWeek);
-  };
-
-  const getData = async () => {
-    try {
-      setDailyLoading(true);
-      const dailyData = await getDailyStatus(
-        selectedDate.toISOString().split("T")[0],
-      );
-      setDailyStatus(dailyData);
-    } catch (error) {
-      logger.error("获取今日数据出错.", error);
-      toast.error("获取今日数据出错");
-    } finally {
-      setDailyLoading(false);
-    }
   };
 
   const getWeeklyData = async (date?: Date) => {

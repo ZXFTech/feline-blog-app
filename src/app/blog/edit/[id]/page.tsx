@@ -4,7 +4,11 @@ import { getBlogById } from "@/db/blogAction";
 import { redirect } from "next/navigation";
 import Content from "@/components/Content";
 
-const Edit = async ({ params }) => {
+interface Props {
+  params: Promise<{ id: number }>;
+}
+
+const Edit = async ({ params }: Props) => {
   const { id } = await params;
   if (!id) {
     message.error("未找到博客");

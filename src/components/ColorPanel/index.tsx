@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { RefObject, useEffect, useMemo, useRef, useState } from "react";
 import NeuDiv from "../NeuDiv";
 import colors from "tailwindcss/colors";
 import NeuButton from "../NeuButton";
@@ -58,14 +58,14 @@ const ColorPanel = ({
   const colorListMap = useMemo<{ name: string; color: string }[][]>(() => {
     return Object.keys(colors as TailwindColors)
       .filter(
-        (color) => typeof colors[color as keyof TailwindColors] === "object"
+        (color) => typeof colors[color as keyof TailwindColors] === "object",
       )
       .map((key) => ({ name: key, colorList: colors[key as ColorKeys] }))
       .map((item) =>
         Object.keys(item.colorList).map((num) => ({
           name: item.name + "-" + num,
           color: item.colorList[num as keyof typeof item.colorList],
-        }))
+        })),
       );
   }, []);
 
@@ -79,7 +79,7 @@ const ColorPanel = ({
         onClick={() => setVisible((prev) => !prev)}
       ></NeuButton>
       <Floating
-        anchorRef={buttonRef}
+        anchorRef={buttonRef as RefObject<HTMLButtonElement>}
         open={visible}
         offset={-100}
         align="right"
@@ -113,10 +113,10 @@ const ColorPanel = ({
                           background: item.color,
                         }}
                       ></div>
-                    ) : null
+                    ) : null,
                   )}
                 </div>
-              ) : null
+              ) : null,
             )}
           </div>
         </NeuDiv>

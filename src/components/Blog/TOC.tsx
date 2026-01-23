@@ -32,13 +32,17 @@ function TOC() {
 
     const headings = Array.from(article.querySelectorAll("h1,h2,h3"));
 
-    setToc(
-      headings.map((el) => ({
-        id: el.id,
-        text: el.textContent || "",
-        level: Number(el.tagName[1]),
-      })),
-    );
+    const nextToc = headings.map((el) => ({
+      id: el.id,
+      text: el.textContent || "",
+      level: Number(el.tagName[1]),
+    }));
+
+    const id = requestAnimationFrame(() => {
+      setToc(nextToc);
+    });
+
+    return () => cancelAnimationFrame(id);
   }, []);
 
   useEffect(() => {
@@ -71,7 +75,6 @@ function TOC() {
   });
 
   useEffect(() => {
-    const article = articleRef.current;
     const container = containerRef.current;
     if (!container) {
       return;
@@ -80,13 +83,11 @@ function TOC() {
     let ticking = false;
 
     const onScroll = () => {
-      console.log("111", 111);
       if (ticking) {
         return;
       }
       ticking = true;
       requestAnimationFrame(() => {
-        console.log("container.clientHeight", container.clientHeight);
         const total = container?.scrollHeight - container.clientHeight;
         const top = container.scrollTop;
         const current = top;
@@ -99,19 +100,15 @@ function TOC() {
     return () => container.removeEventListener("scroll", onScroll);
   }, []);
 
-  useEffect(() => {
-    console.log("progress", progress);
-  }, [progress]);
-
   return (
     <div className="">
       {/* 进度条 */}
-      {/* <div className="sticky-header fixed top-22 left-0 right-0 h-2 bg-white z-100">
+      <div className="sticky-header fixed top-22 left-0 right-0 h-2 bg-white z-100">
         <div
           className="progress-bar bg-black h-full"
           style={{ transform: `scaleX(${progress})`, transformOrigin: "left" }}
         />
-      </div> */}
+      </div>
       {/* 目录 */}
       <aside className="toc">
         <div className=" rounded-lg border border-gray-200 p-4">
@@ -132,7 +129,7 @@ function TOC() {
                 }`}
                 style={{ paddingLeft: `${12 + (heading.level - 1) * 12}px` }}
               >
-                {heading.id}
+                {heading.text}
               </button>
             ))}
           </nav>

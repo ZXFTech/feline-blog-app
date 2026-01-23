@@ -1,6 +1,6 @@
 "use client";
 
-import React, { FC, forwardRef } from "react";
+import React, { forwardRef } from "react";
 import Button, { ButtonProps } from "../Button";
 import classNames from "classnames";
 import { NeuIntensity, NeuButtonType } from "@/types";

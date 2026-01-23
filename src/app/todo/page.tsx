@@ -3,15 +3,23 @@ import { TagTodo } from "@/types/todo";
 import { getTodoList } from "@/db/todoAction";
 import TodoList from "./TodoList";
 
-const Todos = async ({ searchParams }) => {
+interface Props {
+  searchParams: Promise<{
+    content: string;
+    orderBy: "desc" | "asc" | undefined;
+    finished: "true";
+  }>;
+}
+
+const Todos = async ({ searchParams }: Props) => {
   const { orderBy, finished, content } = await searchParams;
   const isFinished = finished ? (finished === "true" ? true : false) : null;
 
-  const {
-    todoList,
-    total,
-    finished: finishedTodos,
-  } = await getTodoList({ orderBy, finished: isFinished, content });
+  const { todoList } = await getTodoList({
+    orderBy,
+    finished: isFinished,
+    content,
+  });
 
   const sortedList = {} as { [key: string]: TagTodo[] };
   (todoList || []).forEach((todo) => {

@@ -11,27 +11,27 @@ export function useAuth() {
   const router = useRouter();
   const { setUser, user } = useCtxAuth();
 
-  const checkAuth = async function () {
-    try {
-      const res = await fetch("/api/auth/me");
-
-      if (res.ok) {
-        const { data } = await res.json();
-        setUser(data.user);
-      } else {
-        setUser(null);
-      }
-    } catch (error) {
-      logger.error("认证检查失败:", error);
-      setUser(null);
-    } finally {
-      setAuthLoading(false);
-    }
-  };
-
   useEffect(() => {
+    const checkAuth = async function () {
+      try {
+        const res = await fetch("/api/auth/me");
+
+        if (res.ok) {
+          const { data } = await res.json();
+          setUser(data.user);
+        } else {
+          setUser(null);
+        }
+      } catch (error) {
+        logger.error("认证检查失败:", error);
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
     checkAuth();
-  }, []);
+  }, [setUser]);
 
   const login = async function (email: string, password: string) {
     try {
@@ -57,7 +57,7 @@ export function useAuth() {
   const register = async function (
     email: string,
     password: string,
-    username: string
+    username: string,
   ) {
     try {
       const res = await fetch("/api/auth/register", {

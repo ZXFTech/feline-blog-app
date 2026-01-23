@@ -17,10 +17,10 @@ const Toast = ({ message, removeMessage }: ToastProps) => {
               message.type === "success"
                 ? "bg-green-100 text-green-800 border-green-200"
                 : message.type === "error"
-                ? "bg-red-100 text-red-800 border-red-200"
-                : message.type === "warning"
-                ? "bg-yellow-100 text-yellow-800 border-yellow-200"
-                : "bg-blue-100 text-blue-800 border-blue-200"
+                  ? "bg-red-100 text-red-800 border-red-200"
+                  : message.type === "warning"
+                    ? "bg-yellow-100 text-yellow-800 border-yellow-200"
+                    : "bg-blue-100 text-blue-800 border-blue-200"
             } border`}
     >
       <span className={`mr-2`}>
@@ -56,19 +56,20 @@ export function MessageContainer() {
 
   // 自动移除逻辑
   useEffect(() => {
+    const timers = timerList.current;
     messages.forEach((msg) => {
-      if (!msg.paused && !timerList.current.has(msg.id)) {
+      if (!msg.paused && !timers.has(msg.id)) {
         const timer = setTimeout(() => {
           removeMessage(msg.id);
-          timerList.current.delete(msg.id);
+          timers.delete(msg.id);
         }, msg.remaining);
-        timerList.current.set(msg.id, timer);
+        timers.set(msg.id, timer);
       }
     });
 
     return () => {
-      timerList.current.forEach((timer) => clearTimeout(timer));
-      timerList.current.clear();
+      timers.forEach((timer) => clearTimeout(timer));
+      timers.clear();
     };
   }, [messages, removeMessage]);
 

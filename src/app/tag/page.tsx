@@ -10,7 +10,14 @@ export type CountedTag = ITag & {
   count: number;
 };
 
-async function TagPage({ searchParams }) {
+interface Props {
+  searchParams: Promise<{
+    show: "blogs" | "todos";
+    orderBy: "desc" | "asc" | undefined;
+  }>;
+}
+
+async function TagPage({ searchParams }: Props) {
   const { show, orderBy } = await searchParams;
   const { tags, max } = await getSortedTags(show || "todos", orderBy);
   return (

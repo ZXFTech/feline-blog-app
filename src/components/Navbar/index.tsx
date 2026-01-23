@@ -3,7 +3,6 @@ import NeuDiv from "../NeuDiv";
 import Link from "next/link";
 import { IconNeonCat } from "../Icon/presetIcon";
 import { UserMenu } from "../Profile/UserMenu";
-import { ThemeToggle } from "../ToggleSwitch/themeToggle";
 import Theme from "../Theme";
 
 interface NavbarProps {

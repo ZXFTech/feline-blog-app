@@ -1,9 +1,7 @@
-import React from "react";
-import { DailyData, WorkoutData } from "./ClientPart";
-import NeuProgressBar from "@/components/NeuProgressBar";
 import { Dumbbell, Flame, Logs, TimerIcon } from "lucide-react";
 import NeuTag from "@/components/Tag";
 import NeuDiv from "@/components/NeuDiv";
+import { WorkoutData } from "@/app/daily/page";
 
 interface Props {
   data: WorkoutData;

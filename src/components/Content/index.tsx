@@ -1,7 +1,5 @@
-import { SidebarComp } from "@/app/pathMeta";
 import classNames from "classnames";
 import { FC, HTMLAttributes, ReactNode } from "react";
-import Sidebar from "../Sidebar/Sidebar";
 
 interface ContentProps extends HTMLAttributes<HTMLDivElement> {
   leftSideBar?: ReactNode;

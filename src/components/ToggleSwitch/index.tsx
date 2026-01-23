@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import classNames, * as cn from "classnames";
+import classNames from "classnames";
 
 interface ToggleSwitchProps {
   checked?: boolean;

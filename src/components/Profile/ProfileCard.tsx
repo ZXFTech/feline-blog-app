@@ -19,12 +19,12 @@ import {
 } from "../Logo/svg";
 import NeuButton from "../NeuButton";
 
-const welcome = [
-  "有朋自远方来, 不亦乐乎",
-  "We warmly welcome your visit.",
-  "Мы рады приветствовать вас.",
-  "ご来訪を心より歓迎いたします。",
-];
+// const welcome = [
+//   "有朋自远方来, 不亦乐乎",
+//   "We warmly welcome your visit.",
+//   "Мы рады приветствовать вас.",
+//   "ご来訪を心より歓迎いたします。",
+// ];
 
 export const ProfileCard = () => {
   // 先放页面上, 后续放到数据库里

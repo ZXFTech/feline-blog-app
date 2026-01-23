@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useMemo, useState } from "react";
+import React, { useCallback, useMemo } from "react";
 import Icon from "../Icon";
 import NeuDiv from "../NeuDiv";
 import NeuInput from "../NeuInput";
@@ -25,16 +25,16 @@ function TagOperator() {
       }
       router.replace(`${pathname}?${params}`);
     },
-    [searchParams, router, pathname]
+    [searchParams, router, pathname],
   );
 
   const debounceUpdate = useMemo(
     () =>
       debounce(
         (key: string, value: string) => updateSearchParams(key, value),
-        500
+        500,
       ),
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   return (

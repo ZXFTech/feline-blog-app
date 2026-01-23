@@ -31,25 +31,6 @@ export type TagsOnTodo = {
 
 type MakeOptional<T, K extends keyof T> = Omit<T, K> & Partial<Pick<T, K>>;
 
-const isContain = (targetTag: TagData) => {
-  return (comparedTag: TagData) => {
-    return targetTag.content === comparedTag.content;
-  };
-};
-
-// 暂时用不上，用于区分 新增的 tag 和已有的 tag
-const splitExistArray = <T,>(
-  list: T[],
-  func: (item: T) => boolean,
-): [T | undefined, T[], T[]] => {
-  const existedTag = list.find((item) => func(item));
-  return [
-    existedTag,
-    list.filter((item) => !func(item)),
-    list.filter((item) => func(item)),
-  ];
-};
-
 interface Props {
   value: TagData[];
   options: TagData[];

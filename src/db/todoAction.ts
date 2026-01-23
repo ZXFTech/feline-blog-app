@@ -9,10 +9,10 @@ import { TagData } from "@/components/TagEditor";
 
 export async function getTodoList(
   searchParams?: TodoSearchParams,
-  userId?: string
+  userId?: string,
 ) {
   try {
-    const { finished, content, tags, orderBy } = searchParams || {};
+    const { finished, content, orderBy } = searchParams || {};
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {
@@ -72,7 +72,7 @@ export async function addTodo({
   tags = [],
 }: {
   content: string;
-  tags?: Tag[];
+  tags?: TagData[];
 }) {
   try {
     const user = await requireAuth();
@@ -94,7 +94,7 @@ export async function addTodo({
           color: tag.color,
           userId,
         },
-      })
+      }),
     );
 
     const tagResult = await Promise.all(tagOperation);
@@ -166,7 +166,7 @@ export async function updateTodo({
             color: tag.color,
             userId,
           },
-        })
+        }),
       );
       const tagResult = await Promise.all(tagOperation);
       res = await db.todo.update({
@@ -234,7 +234,7 @@ export async function deleteTodo(todoId: number) {
 export async function getTodoById(
   todoId: number,
   userId?: string,
-  tags = false
+  tags = false,
 ) {
   try {
     const res = await db.todo.findFirst({

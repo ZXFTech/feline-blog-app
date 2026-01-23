@@ -1,6 +1,6 @@
 import { NeuIntensity, NeuType } from "@/types";
 import classNames from "classnames";
-import React, { FC, forwardRef, HTMLAttributes } from "react";
+import React, { forwardRef, HTMLAttributes } from "react";
 
 interface NeuContainerProps extends HTMLAttributes<HTMLDivElement> {
   neuType?: NeuType;

@@ -17,7 +17,11 @@ import NeuButton from "@/components/NeuButton";
 import { PermissionAccess } from "@/components/Auth/PermissionAccess";
 import AdjacentBlogs from "@/components/Blog/AdjacentBlogs";
 
-const Blog = async ({ params }: { params: Promise<{ id: number }> }) => {
+interface Props {
+  params: Promise<{ id: number }>;
+}
+
+const Blog = async ({ params }: Props) => {
   const { id } = await params;
   const { blog, isLiked, isFavorite } = await getBlogById(id);
 

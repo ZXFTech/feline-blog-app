@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/hooks/useAuth";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { toast as message } from "@/components/ProMessage";
 import { useRouter } from "next/navigation";
 
@@ -11,25 +11,25 @@ interface Props {
 }
 
 export const ProtectRoute = ({ children, requiredRole }: Props) => {
-  const { loading, isAdmin, isRoot, isAuthenticated, user } = useAuth();
+  const { authLoading, isAuthenticated, user } = useAuth();
 
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
+    if (!authLoading && !isAuthenticated) {
       message.warning("未登录或登录过期, 请先登录.");
       router.push("/login");
     }
 
-    if (!loading && isAuthenticated && requiredRole) {
+    if (!authLoading && isAuthenticated && requiredRole) {
       const hasRequiredRole = requiredRole.includes(user!.role);
       if (!hasRequiredRole) {
         router.push("/unauthorized");
       }
     }
-  }, [loading, isAuthenticated, user, router, requiredRole]);
+  }, [authLoading, isAuthenticated, user, router, requiredRole]);
 
-  if (loading) {
+  if (authLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>

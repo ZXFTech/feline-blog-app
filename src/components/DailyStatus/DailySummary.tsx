@@ -2,7 +2,6 @@ import React from "react";
 import { DailyData } from "@/app/daily/page";
 import NeuDiv from "@/components/NeuDiv";
 import { IconSpinner } from "@/components/Icon/presetIcon";
-import { Footprints, Icon, PenLine } from "lucide-react";
 import WorkoutCard from "./WorkoutCard";
 import Tag from "@/components/Tag";
 import dayjs from "dayjs";

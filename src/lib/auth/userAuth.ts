@@ -2,7 +2,6 @@ import { cookies } from "next/headers";
 import { verifyToken } from "../jwt";
 import { checkUser } from "@/db/userAction";
 import logger from "../logger/Logger";
-import { Role } from "../../../generated/prisma/enums";
 
 export async function getCurrentUser() {
   try {
@@ -33,8 +32,4 @@ export async function requireAuth() {
     throw "用户未登录";
   }
   return user;
-}
-
-export async function requirePermission(Role: Role) {
-  return;
 }

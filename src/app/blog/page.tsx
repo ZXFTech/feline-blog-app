@@ -13,9 +13,9 @@ interface BlogPageProps {
 }
 
 export default async function Blog({ searchParams }: BlogPageProps) {
-  const { orderBy = "desc", page, tags, content } = await searchParams;
+  const { orderBy = "desc", content } = await searchParams;
 
-  const { blogs, pageBean, total } = await getBlogList(1, 20, {
+  const { blogs } = await getBlogList(1, 20, {
     orderBy,
     content,
   });

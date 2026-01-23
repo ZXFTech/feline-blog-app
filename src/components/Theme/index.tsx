@@ -6,7 +6,13 @@ import { Candy, Moon, Sun, Sunset } from "lucide-react";
 
 function Theme() {
   const setTheme = (theme: string) => {
+    const root = document.body;
+
+    root.classList.add("theme-transition");
     document.body.setAttribute("data-theme", theme);
+    window.setTimeout(() => {
+      root.classList.remove("theme-transition");
+    }, 1500);
   };
 
   return (

@@ -18,6 +18,18 @@
   --shadow-blur-lg: 1rem;
 }
 
+.theme-transition *,
+.theme-transition *::before,
+.theme-transition *::after {
+  transition:
+    background-color 1236ms ease,
+    color 1236ms ease,
+    border-color 1236ms ease,
+    fill 1236ms ease,
+    box-shadow 1236ms ease,
+    stroke 1236ms ease;
+}
+
 body {
   width: 100vw;
   color: var(---color-font);

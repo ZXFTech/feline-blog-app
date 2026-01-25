@@ -1,0 +1,233 @@
+﻿name: CI/CD - Next.js + Prisma (ECS + systemd)
+
+on:
+  # 推送到 main：执行 CI + 自动部署生产（可配合 environment 审批）
+  push:
+    branches: ["main"]
+
+  # PR：只跑 CI，不部署
+  pull_request:
+    branches: ["main"]
+
+  # 手动触发：可用于紧急重部署
+  workflow_dispatch:
+
+# 防止同一分支的多次提交同时部署，后提交会取消前提交
+concurrency:
+  group: prod-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  NODE_VERSION: "22.21.1"
+  PNPM_VERSION: "10.28.1"
+  NEXT_TELEMETRY_DISABLED: "1"
+
+jobs:
+  ci:
+    name: CI - Install / Generate / Build / Package
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1) 拉取代码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 2) 安装指定 Node 版本（不启用 setup-node 的 pnpm cache，避免 pnpm 未就绪时报错）
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      # 3) 通过 Corepack 固定 pnpm 版本（与你要求一致）
+      - name: Enable pnpm via Corepack
+        run: |
+          corepack enable
+          corepack prepare pnpm@${{ env.PNPM_VERSION }} --activate
+          pnpm -v
+
+      # 4) 计算 pnpm store 路径（用于缓存依赖下载，提高 CI 速度）
+      - name: Get pnpm store path
+        id: pnpm-store
+        run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      # 5) 缓存 pnpm store（命中后可显著减少 install 下载时间）
+      - name: Cache pnpm store
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # 6) 缓存 Next.js 编译缓存（.next/cache），加速二次构建
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: .next/cache
+          key: ${{ runner.os }}-nextcache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('next.config.*', 'src/**', 'pages/**', 'app/**') }}
+          restore-keys: |
+            ${{ runner.os }}-nextcache-${{ hashFiles('pnpm-lock.yaml') }}-
+
+      # 7) 安装依赖（严格锁定 lockfile，保证可重复构建）
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # 8) Prisma 客户端生成（通常不需要真实连库，但有时要求 DATABASE_URL 存在）
+      #    生产迁移建议在服务器执行（migrate deploy），避免 CI 无法访问阿里云 RDS
+      - name: Prisma generate
+        env:
+          DATABASE_URL: "mysql://root:root@127.0.0.1:3306/app_ci"
+        run: pnpm exec prisma generate
+
+      # 9) 质量检查（若你没有 lint/test 脚本，不会失败）
+      - name: Lint (if present)
+        run: pnpm run --if-present lint
+
+      - name: Test (if present)
+        run: pnpm run --if-present test
+
+      # 10) 构建 Next.js 产物（你项目如果构建依赖某些 env，请在此处注入 GitHub Secrets）
+      - name: Build
+        run: pnpm build
+
+      # 11) 打包产物（不包含 node_modules；部署机上执行 pnpm install --prod）
+      #     - .next / public：Next.js 运行所需
+      #     - prisma：包含 schema 和 migrations（便于服务器端 migrate deploy）
+      #     - package.json + pnpm-lock.yaml：用于服务器端安装 prod 依赖，确保一致性
+      - name: Package artifact
+        run: |
+          mkdir -p dist
+          tar -czf dist/app.tgz \
+            .next \
+            public \
+            prisma \
+            package.json \
+            pnpm-lock.yaml \
+            next.config.* \
+            prisma.config.* \
+            || true
+
+      # 12) 上传 artifact，供 deploy job 直接下载使用（同一次 workflow run 内）
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app
+          path: dist/app.tgz
+          if-no-files-found: error
+          retention-days: 14
+
+  deploy:
+    name: CD - Deploy to ECS (systemd)
+    runs-on: ubuntu-latest
+    needs: ci
+
+    # PR 不部署；仅 push main / 手动触发才部署
+    if: github.event_name != 'pull_request'
+
+    # 建议在 GitHub Environments 建立 production，并开启审批（可选）
+    environment: production
+
+    steps:
+      # 1) 下载同一次 run 的构建产物
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: app
+          path: dist
+
+      # 2) 将产物上传到服务器临时目录（/tmp）
+      - name: Upload package to server (SCP)
+        uses: appleboy/scp-action@v0.1.6
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT }}
+          source: "dist/app.tgz"
+          target: "/tmp"
+
+      # 3) SSH 到服务器执行发布脚本：
+      #    - 解压到 releases/<timestamp>-<sha>
+      #    - 链接 shared/.env.production
+      #    - 安装生产依赖（pnpm install --prod）
+      #    - 执行 prisma migrate deploy（服务器端直连阿里云 RDS）
+      #    - 切换 current 软链接
+      #    - systemd restart 服务
+      #    - 清理旧版本（保留最新 5 个 releases）
+      - name: Deploy on server (SSH)
+        uses: appleboy/ssh-action@v1.2.4
+        with:
+          host: ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          port: ${{ secrets.PROD_PORT }}
+          fingerprint: ${{ secrets.PROD_HOST_FINGERPRINT }}
+          script: |
+            set -euo pipefail
+
+            APP_DIR="${{ secrets.PROD_APP_DIR }}"
+            SERVICE="${{ secrets.PROD_SERVICE }}"
+            SHA="${{ github.sha }}"
+            RELEASE_ID="$(date +%Y%m%d%H%M%S)-${SHA}"
+            RELEASE_DIR="${APP_DIR}/releases/${RELEASE_ID}"
+
+            echo "[1/9] Ensure base directories"
+            mkdir -p "${APP_DIR}/releases" "${APP_DIR}/shared"
+            mkdir -p "${RELEASE_DIR}"
+
+            echo "[2/9] Extract artifact"
+            if [ ! -f "/tmp/dist/app.tgz" ]; then
+              echo "Missing /tmp/dist/app.tgz on server."
+              exit 1
+            fi
+            tar -xzf /tmp/dist/app.tgz -C "${RELEASE_DIR}"
+
+            echo "[3/9] Link production env (.env.production)"
+            if [ ! -f "${APP_DIR}/shared/.env.production" ]; then
+              echo "Missing ${APP_DIR}/shared/.env.production"
+              exit 1
+            fi
+            ln -sf "${APP_DIR}/shared/.env.production" "${RELEASE_DIR}/.env.production"
+            # 在每次发布的 release 目录里创建一个名为 .env 的软链接，指向共享目录里的 .env.production
+            ln -sf "${APP_DIR}/shared/.env.production" "${RELEASE_DIR}/.env"
+
+            echo "[4/9] Install prod dependencies (pnpm@10.28.1)"
+            cd "${RELEASE_DIR}"
+            command -v node >/dev/null 2>&1 || (echo "node not found" && exit 1)
+            corepack prepare "pnpm@${{ env.PNPM_VERSION }}" --activate
+            corepack pnpm -v
+            corepack pnpm install --prod --frozen-lockfile
+
+            echo "[5/9] Prisma migrate deploy (server side)"
+
+            # prisma 通常放在 devDependencies，--prod 不会安装它
+            # 因此用 pnpm dlx 基于 package.json 声明的版本范围临时执行
+            PRISMA_VER="$(node -p "require('./package.json')?.devDependencies?.prisma || require('./package.json')?.dependencies?.prisma || ''")"
+            if [ -n "${PRISMA_VER}" ] && [ -f "prisma/schema.prisma" ]; then
+              corepack pnpm dlx "prisma@${PRISMA_VER}" migrate deploy --schema prisma/schema.prisma
+            else
+              echo "Skip migrate: prisma version or prisma/schema.prisma not found."
+            fi
+
+            echo "[6/9] Switch current symlink to new release"
+            ln -sfn "${RELEASE_DIR}" "${APP_DIR}/current"
+
+            echo "[7/9] Restart systemd service"
+            #改为 非交互 sudo
+            SYSTEMCTL="/usr/bin/systemctl"
+
+            # 去掉 secrets 里可能带的换行/回车（非常常见，尤其是复制粘贴时）
+            SERVICE="$(printf '%s' "${SERVICE}" | tr -d '\r\n' | xargs)"
+
+            echo "Restart service: [$SERVICE]"
+            sudo -n "${SYSTEMCTL}" restart "${SERVICE}"
+            sudo -n "${SYSTEMCTL}" --no-pager --full status "${SERVICE}" | head -n 80
+            sudo -n "${SYSTEMCTL}" is-active "${SERVICE}"
+
+            echo "[8/9] Cleanup old releases (keep latest 5)"
+            ls -1dt "${APP_DIR}/releases/"* | tail -n +6 | xargs -r rm -rf
+
+            echo "[9/9] Done: ${RELEASE_ID}"

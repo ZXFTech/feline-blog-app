@@ -1,12 +1,12 @@
-import { cookies } from "next/headers";
 import { verifyToken } from "../jwt";
 import { checkUser } from "@/db/userAction";
 import logger from "../logger/Logger";
+import { getCookieData } from "../cookieStore";
 
 export async function getCurrentUser() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get("token")?.value;
+    const cookieToken = await getCookieData("token");
+    const token = cookieToken?.value;
 
     if (!token) {
       return null;

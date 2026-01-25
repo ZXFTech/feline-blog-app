@@ -11,6 +11,7 @@
     "start": "next start",
     "lint": "eslint",
     "fix": "eslint --fix",
+    "build": "next build",
     "prisma-migrate-build": "dotenv -e .env.production -- npx prisma migrate deploy",
     "prisma-migrate:dev": "dotenv -e .env.development -- prisma migrate dev --name init",
     "prisma-migrate:prod": "dotenv -e .env.production -- prisma migrate dev --name init",
@@ -20,13 +21,12 @@
     "prisma:prod": "dotenv -e .env.production -- prisma",
     "prisma-studio:dev": "dotenv -e .env.development -- prisma studio",
     "prisma-studio:prod": "dotenv -e .env.production -- prisma studio",
-    "build": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts",
-    "build:dev": "dotenv -e .env.development -- prisma generate && dotenv -e .env.development -- node --loader ts-node/esm ./bin/build.ts --dev",
-    "next-build": "next build"
+    "build-local:dev": "dotenv -e .env.development -- prisma generate && dotenv -e .env.development -- node --loader ts-node/esm ./bin/build.ts --dev",
+    "build-local:prod": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.2.0",
-    "@prisma/client": "^7.2.0",
+    "@prisma/client": "^7.3.0",
     "bcryptjs": "^3.0.3",
     "classnames": "^2.5.1",
     "cookie": "^1.1.1",
@@ -64,10 +64,16 @@
     "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
-    "prisma": "^7.2.0",
+    "prisma": "^7.3.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",
     "tsc": "^2.0.4",
     "typescript": "^5"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma"
+    ]
   }
 }

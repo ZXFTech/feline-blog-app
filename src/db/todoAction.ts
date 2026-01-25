@@ -2,7 +2,7 @@
 
 import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
-import { Tag, Todo } from "../../generated/prisma/client";
+import { Todo } from "../../generated/prisma/client";
 import { TodoSearchParams } from "@/types/todo";
 import { requireAuth } from "@/lib/auth/userAuth";
 import { TagData } from "@/components/TagEditor";

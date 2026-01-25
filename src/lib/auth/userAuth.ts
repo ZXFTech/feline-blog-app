@@ -44,3 +44,12 @@ export async function hasTodoRoles() {
 
   throw "无 Todo 编辑权限";
 }
+
+export async function hasBlogRoles() {
+  const blogRoles: Role[] = [Role.ROOT];
+  const user = await requireAuth();
+  if (blogRoles.includes(user.role)) {
+    return user;
+  }
+  throw "无 Todo 编辑权限";
+}

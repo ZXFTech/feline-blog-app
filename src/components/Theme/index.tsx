@@ -17,16 +17,28 @@ function Theme() {
 
   return (
     <div className="flex gap items-center">
-      <NeuButton onClick={() => setTheme("")}>
+      <NeuButton
+        className="bg-(--light-color-bg)! text-(--light-color-font)!"
+        onClick={() => setTheme("")}
+      >
         <Sun />
       </NeuButton>
-      <NeuButton onClick={() => setTheme("dark")}>
+      <NeuButton
+        className="bg-(--dark-color-bg)! text-(--dark-color-font)!"
+        onClick={() => setTheme("dark")}
+      >
         <Moon />
       </NeuButton>
-      <NeuButton onClick={() => setTheme("sugar")}>
+      <NeuButton
+        className="bg-(--sugar-color-bg)! text-(--sugar-color-font)!"
+        onClick={() => setTheme("sugar")}
+      >
         <Candy />
       </NeuButton>
-      <NeuButton onClick={() => setTheme("warm")}>
+      <NeuButton
+        className="bg-(--warm-color-bg)! text-(--warm-color-font)!"
+        onClick={() => setTheme("warm")}
+      >
         <Sunset />
       </NeuButton>
     </div>

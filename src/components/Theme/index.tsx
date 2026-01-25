@@ -26,7 +26,7 @@ function Theme() {
       <NeuButton onClick={() => setTheme("sugar")}>
         <Candy />
       </NeuButton>
-      <NeuButton onClick={() => setTheme("sunshine")}>
+      <NeuButton onClick={() => setTheme("warm")}>
         <Sunset />
       </NeuButton>
     </div>

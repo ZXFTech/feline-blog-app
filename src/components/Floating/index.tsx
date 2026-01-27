@@ -39,16 +39,11 @@ function Floating({
         return;
       }
 
-      if (!open && !anchorRef.current && !popupRef.current) {
-        return;
-      }
       const rect = anchorRef.current?.getBoundingClientRect();
       const vh = window.innerHeight;
       const vw = window.innerWidth;
       const popupHeight = popupRef.current?.clientHeight || 0;
       const popupWidth = popupRef.current?.clientWidth || 0;
-      console.log("popupHeight", popupHeight);
-      console.log("popupWidth", popupWidth);
       let top =
         position === "top" ? rect.top - popupHeight - 10 : rect.bottom + 10;
       if (top < 0) {
@@ -84,7 +79,7 @@ function Floating({
 
     return () => {
       window.removeEventListener("scroll", throttleUpdate, true);
-      window.removeEventListener("resize", throttleUpdate);
+      window.removeEventListener("resize", throttleUpdate, true);
     };
   }, [open, anchorRef, offset, popupRef, align, position]);
 

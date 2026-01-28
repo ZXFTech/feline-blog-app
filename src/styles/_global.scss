@@ -4,11 +4,9 @@
   --theme-customize-color1: rgba(254, 223, 168, 1);
   --color-shadow-light1: rgb(255, 255, 194);
   --color-shadow-dark1: rgb(216, 190, 144);
-  --theme-high-contrast: 
-
 
   // neu shadow
-    --shadow-size-xs: 0.1rem;
+  --shadow-size-xs: 0.1rem;
   --shadow-blur-xs: 0.2rem;
   --shadow-size-sm: 0.25rem;
   --shadow-blur-sm: 0.4rem;
@@ -16,6 +14,50 @@
   --shadow-blur-normal: 0.55rem;
   --shadow-size-lg: 0.6rem;
   --shadow-blur-lg: 1rem;
+
+  // 亮色主题
+  --light-color-bg: #dbdbdb;
+  --light-color-font: #343434;
+
+  --light-color-shadow-dark: #bababa;
+  --light-color-shadow-light: #fcfcfc;
+
+  // 暗色主题
+  --dark-color-bg: #212121;
+  --dark-color-font: #b3b3b3;
+  --dark-color-shadow-light: #404040;
+  --dark-color-shadow-dark: #121212;
+
+  /*== Border ==*/
+  --dark-color-border: #000000;
+
+  // sugar 主题
+  --sugar-color-bg: #f0cfd0;
+  --sugar-color-surface: #c47f82;
+  --sugar-color-font: #09060a;
+  --sugar-color-font-light: #09060a;
+  --sugar-color-font-dark: #ffffff;
+  --sugar-color-shadow-light: #ffeeef;
+  --sugar-color-shadow-dark: #ccb0b1;
+
+  /* === Text === */
+  --sugar-color-text: #09060a;
+  --sugar-color-text-muted: #09060a;
+  --sugar-color-text-invert: #09060a;
+
+  /* === Brand / Action === */
+  --sugar-color-primary: #2d3653;
+  --sugar-color-primary-hover: #796a92;
+
+  /* === Border === */
+  --sugar-color-border: #c47f82;
+
+  // warm 主题
+  --warm-color-bg: rgba(254, 223, 168, 1);
+  --warm-color-font: rgb(60, 9, 90);
+  --warm-color-shadow-light: rgb(255, 255, 194);
+  --warm-color-shadow-dark: rgb(216, 190, 144);
+  --warm-color-border: rgb(216, 190, 144);
 }
 
 .theme-transition *,
@@ -43,11 +85,16 @@ body {
 }
 
 [data-theme="dark"] {
-  --color-bg: #212121;
-  --color-font: #b3b3b3;
-  --color-shadow-light: #404040;
-  --color-shadow-dark: #121212;
-  --color-border: #000000;
+  // --color-bg: #212121;
+  // --color-font: #b3b3b3;
+  // --color-shadow-light: #404040;
+  // --color-shadow-dark: #121212;
+  // --color-border: #000000;
+  --color-bg: var(--dark-color-bg);
+  --color-font: var(--dark-color-font);
+  --color-shadow-light: var(--dark-color-shadow-light);
+  --color-shadow-dark: var(--dark-color-shadow-dark);
+  --color-border: var(--dark-color-border);
 }
 
 [data-theme="high-contrast"] {
@@ -55,63 +102,35 @@ body {
 }
 
 [data-theme="sugar"] {
-  --color-bg: #f0cfd0;
-  --color-surface: #c47f82;
-  --color-font: #09060a;
-  --color-font-light: #09060a;
-  --color-font-dark: #ffffff;
-
-  --color-shadow-light: #ffeeef;
-  --color-shadow-dark: #ccb0b1;
+  --color-bg: var(--sugar-color-bg);
+  --color-surface: var(--sugar-color-surface);
+  --color-font: var(--sugar-color-font);
+  --color-font-light: var(--sugar-color-font-light);
+  --color-font-dark: var(--sugar-color-font-dark);
+  --color-shadow-light: var(--sugar-color-shadow-light);
+  --color-shadow-dark: var(--sugar-color-shadow-dark);
 
   /* === Text === */
-  --color-text: #09060a;
-  --color-text-muted: #09060a;
-  --color-text-invert: #09060a;
-
+  --color-text: var(--sugar-color-text);
+  --color-text-muted: var(--sugar-color-text-muted);
+  --color-text-invert: var(--sugar-color-text-invert);
   /* === Brand / Action === */
-  --color-primary: #2d3653;
-  --color-primary-hover: #796a92;
-  --color-danger: #9c2f12;
-  --color-danger-hover: #ce3e2b;
-  --color-success: #589d13;
-  --color-success-hover: #589d13;
-  --color-warning: #febd5d;
-  --color-warning-hover: #febd5d;
-  --color-warning: #2697d0;
-  --color-warning-hover: #2697d0;
+  --color-primary: var(--sugar-color-primary);
+  --color-primary-hover: var(--sugar-color-primary);
 
   /* === Border === */
-  --color-border: #c47f82;
+  --color-border: var(--sugar-color-border);
 }
 
-[data-theme="sunshine"] {
-  --color-bg: rgba(254, 223, 168, 1);
-  --color-font: rgb(60, 9, 90);
-  /* --color-border: rgb(79, 51, 3); */
-  --color-border: rgb(216, 190, 144);
+[data-theme="warm"] {
+  --color-bg: var(--warm-color-bg);
+  --color-font: var(--warm-color-font);
 
-  --color-shadow-light: rgb(255, 255, 194);
-  --color-shadow-dark: rgb(216, 190, 144);
-
-  /* === Text === */
-  --color-text: 226 232 240;
-  --color-text-muted: 148 163 184;
-  --color-text-invert: 15 23 42;
-
-  /* === Brand / Action === */
-  --color-primary: #046582;
-  --color-primary-hover: #046582;
-  --color-danger: #9c2f12;
-  --color-danger-hover: #ce3e2b;
-  --color-success: #589d13;
-  --color-success-hover: #589d13;
-  --color-warning: #febd5d;
-  --color-warning-hover: #febd5d;
-  --color-warning: #2697d0;
-  --color-warning-hover: #2697d0;
+  --color-shadow-light: var(--warm-color-shadow-light);
+  --color-shadow-dark: var(--warm-color-shadow-dark);
 
   /* === Border === */
+  --color-border: var(--warm-color-border);
 }
 
 .hide-scrollbar {

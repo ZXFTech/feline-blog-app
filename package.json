@@ -22,7 +22,9 @@
     "prisma-studio:dev": "dotenv -e .env.development -- prisma studio",
     "prisma-studio:prod": "dotenv -e .env.production -- prisma studio",
     "build-local:dev": "dotenv -e .env.development -- prisma generate && dotenv -e .env.development -- node --loader ts-node/esm ./bin/build.ts --dev",
-    "build-local:prod": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts"
+    "build-local:prod": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
   "dependencies": {
     "@prisma/adapter-mariadb": "^7.2.0",
@@ -41,6 +43,7 @@
     "react-dom": "^19.0.0",
     "react-markdown": "^10.1.0",
     "react-syntax-highlighter": "^15.6.1",
+    "react-virtuoso": "^4.18.1",
     "rehype-slug": "^6.0.0",
     "remark-gfm": "^4.0.1",
     "sass": "^1.87.0"
@@ -64,6 +67,9 @@
     "dotenv-cli": "^11.0.0",
     "eslint": "^9",
     "eslint-config-next": "^16.1.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
     "prisma": "^7.3.0",
     "tailwindcss": "^4",
     "ts-node": "^10.9.2",

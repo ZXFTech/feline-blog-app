@@ -1,0 +1,29 @@
+# 禁止直接提交到保护分支 main|master|develop
+BRANCH="$(git rev-parse --abbrev-ref HEAD)"
+case "$BRANCH" in
+  (main|master|develop)
+    echo "❌ 禁止在 $BRANCH 上直接提交，请创建 feature/hotfix 分支走 PR"
+    exit 1
+    ;;
+esac
+
+# 禁止 .env 文件提交
+if git diff --cached --name-only | grep -E '(^|/)\.env(\.|$)'; then
+  echo "❌ Do not commit .env files"
+  exit 1
+fi
+
+# 禁止提交超过 5MB 的文件（示例阈值）,如必须提交必须走大文件豁免
+MAX=$((5 * 1024 * 1024))
+for f in $(git diff --cached --name-only); do
+  if [ -f "$f" ]; then
+    size=$(wc -c <"$f")
+    if [ "$size" -gt "$MAX" ]; then
+      echo "❌ File too large: $f (${size} bytes)"
+      exit 1
+    fi
+  fi
+done
+
+# 只对 staged 的文件跑任务
+npx lint-staged

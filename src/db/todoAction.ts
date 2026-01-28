@@ -4,7 +4,7 @@ import db, { testUserId } from "./client";
 import logger from "@/lib/logger/Logger";
 import { Todo } from "../../generated/prisma/client";
 import { TodoSearchParams } from "@/types/todo";
-import { requireAuth } from "@/lib/auth/userAuth";
+import { hasTodoRoles } from "@/lib/auth/userAuth";
 import { TagData } from "@/components/TagEditor";
 
 export async function getTodoList(
@@ -75,7 +75,8 @@ export async function addTodo({
   tags?: TagData[];
 }) {
   try {
-    const user = await requireAuth();
+    const user = await hasTodoRoles();
+
     const userId = user.id;
     // 先处理所有 tags
     const tagOperation = tags.map((tag) =>
@@ -141,7 +142,8 @@ export async function updateTodo({
   tags?: TagData[];
 }) {
   try {
-    const user = await requireAuth();
+    const user = await hasTodoRoles();
+
     const userId = user.id;
     const data = {} as Todo;
     if (finished !== undefined) data.finished = finished;
@@ -212,6 +214,7 @@ export async function updateTodo({
 
 export async function deleteTodo(todoId: number) {
   try {
+    await hasTodoRoles();
     const res = await db.todo.update({
       where: {
         id: todoId,

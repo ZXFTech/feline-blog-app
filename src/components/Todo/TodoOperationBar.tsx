@@ -52,7 +52,7 @@ export const TodoOperationBar = ({
       }
       router.replace(`${pathname}?${params}`);
     },
-    [searchParams, router, pathname]
+    [searchParams, router, pathname],
   );
 
   const debounceUpdate = useMemo(
@@ -60,9 +60,9 @@ export const TodoOperationBar = ({
       debounce(
         (key: keyof TodoSearchParams, value: string) =>
           updateSearchParams(key, value),
-        500
+        500,
       ),
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   const switchTodoStatus = (status: string) => {
@@ -74,7 +74,7 @@ export const TodoOperationBar = ({
   };
 
   return (
-    <div className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100">
+    <div className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100 bg-bg">
       <div className="flex flex-row gap-2">
         <NeuInput
           prefix={<Icon icon="search" />}

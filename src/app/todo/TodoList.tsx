@@ -7,6 +7,7 @@ import { TodoOperationBar } from "@/components/Todo/TodoOperationBar";
 import { TagTodo } from "@/types/todo";
 import { deleteTodo, updateTodo } from "@/db/todoAction";
 import { useRouter } from "next/navigation";
+import { useSoundManager } from "@/hooks/useSoundManager";
 
 interface Props {
   todoList: { [key: string]: TagTodo[] };
@@ -14,6 +15,18 @@ interface Props {
 
 function TodoList({ todoList }: Props) {
   const router = useRouter();
+
+  const { unlock, play } = useSoundManager([
+    {
+      id: "notify",
+      src: "/sounds/notify.mp3",
+      preload: "auto",
+      concurrency: "restart", // 连点时重启播放（提示音常用）
+      cooldownMs: 80, // 80ms 内只响一次，避免疯狂连点刺耳
+      volume: 1,
+      iosUnlockHack: false, // 如遇 iOS 首次无声，可尝试 true
+    },
+  ]);
 
   // 编辑 todo 相关
   const [targetTodo, setTargetTodo] = useState<TagTodo | null>(null);
@@ -24,6 +37,8 @@ function TodoList({ todoList }: Props) {
       if (!todo.id) {
         throw new Error("未找到 todo");
       }
+      await unlock();
+      await play("notify");
       await updateTodo({
         id: todo.id,
         finished: !todo.finished,

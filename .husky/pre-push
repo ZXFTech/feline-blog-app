@@ -1,0 +1,20 @@
+
+BASE_BRANCH="origin/master"
+git fetch origin master --quiet
+BASE_SHA="$(git merge-base HEAD "$BASE_BRANCH")"
+CHANGED_FILES="$(git diff --name-only "$BASE_SHA"...HEAD)"
+
+# 检查是否有落后的提交,
+AHEAD_BEHIND="$(git rev-list --left-right --count "$BASE_BRANCH"...HEAD)"
+BEHIND="$(echo "$AHEAD_BEHIND" | awk '{print $1}')"
+
+if [ "$BEHIND" -gt 0 ]; then
+  echo "❌ 你的分支落后 $BASE_BRANCH（behind=$BEHIND），请先 rebase/merge 再 push"
+  exit 1
+fi
+
+# build smoke
+# 只有改到 web 应用才 build
+if echo "$CHANGED_FILES" | grep -qE '^apps/web/|^packages/'; then
+  npm run -w apps/web build
+fi

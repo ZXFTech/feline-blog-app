@@ -234,11 +234,7 @@ export async function deleteTodo(todoId: number) {
   }
 }
 
-export async function getTodoById(
-  todoId: number,
-  userId?: string,
-  tags = false,
-) {
+export async function getTodoById(todoId: number, userId?: string) {
   try {
     const res = await db.todo.findFirst({
       where: {
@@ -247,8 +243,12 @@ export async function getTodoById(
       },
       include: {
         tags: {
-          include: {
-            tag: tags,
+          select: {
+            tag: {
+              select: {
+                content: true,
+              },
+            },
           },
         },
       },
@@ -263,6 +263,49 @@ export async function getTodoById(
     return formattedTodo;
   } catch (error) {
     const errorMessage = "Get todo failed! " + error;
+    logger.error(errorMessage);
+    throw errorMessage;
+  }
+}
+
+export async function getTodoByTags(
+  // tags: TagData[],
+  tags: string[],
+  startDate: Date,
+  endDate: Date,
+) {
+  try {
+    // const tagContentList = tags.map((t) => t.content);
+    const result = await db.todo.findMany({
+      where: {
+        tags: {
+          some: {
+            tag: {
+              content: {
+                in: tags,
+              },
+            },
+          },
+        },
+        createAt: {
+          gte: startDate,
+          lte: endDate,
+        },
+        delete: {
+          equals: false,
+        },
+      },
+      include: {
+        tags: {
+          include: {
+            tag: true,
+          },
+        },
+      },
+    });
+    return result;
+  } catch (error) {
+    const errorMessage = "query todo by tags failed! " + error;
     logger.error(errorMessage);
     throw errorMessage;
   }

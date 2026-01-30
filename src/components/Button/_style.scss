@@ -2,11 +2,6 @@
 @use "../../styles/variables";
 
 .btn {
-  position: relative;
-  white-space: nowrap;
-  background-image: none;
-  border: none;
-  outline: none;
   @include mixin.button-size(
     variables.$btn-padding-x,
     variables.$btn-padding-y,
@@ -14,7 +9,6 @@
     variables.$border-radius
   );
   box-shadow: variables.$btn-box-shadow;
-  cursor: pointer;
   transition: variables.$btn-transition;
   &:disabled,
   &[disabled] {

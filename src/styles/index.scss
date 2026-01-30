@@ -2,16 +2,16 @@
 @use "./variables";
 
 // layout
-@use "./reboot.scss";
+@use "./reboot";
 
 // global
-@use "./global.scss";
+@use "./global";
 
 // mixin
-@use "./_mixin.scss";
+@use "./mixin";
 
 // neu
-@use "./_neu.scss";
+@use "./neu";
 
 // components
 @use "./components";

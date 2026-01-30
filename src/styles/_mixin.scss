@@ -9,10 +9,8 @@
 @mixin button-style(
   $background,
   $color,
-  // $hover-background: lighten($background, 10%),
   $hover-background: color.adjust($background, $lightness: 10%),
   $hover-color: $color,
-  // $active-color: darken($background, 10%),
   $active-color: color.adjust($background, $lightness: -10%)
 ) {
   color: $color;

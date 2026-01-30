@@ -5,7 +5,7 @@ import db from "./client";
 const checkUser = async (
   identifier: "id" | "email",
   payload: string,
-  password = false
+  password = false,
 ) => {
   const user = await db.user.findFirst({
     where: {
@@ -20,6 +20,9 @@ const checkUser = async (
       password,
     },
   });
+  if (!user) {
+    throw "用户不存在";
+  }
   return user;
 };
 

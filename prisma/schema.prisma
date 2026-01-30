@@ -226,9 +226,12 @@ model tomatoTaskList {
   id String @id @default(cuid())
 
   createAt   DateTime @default(now())
+  startedAt  DateTime
   finishedAt DateTime
   isFinished Boolean
   summary    String?
+  focusTime  Int
+  breakTime  Int
 
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -20,7 +20,7 @@ export const IconSpinner: FC<Partial<IconProps>> = (props) => {
 export const IconNeonCat = () => {
   return (
     <div className="cursor-pointer icon-neon-cat">
-      <Link href="/playground">
+      <Link href="/tomato">
         <Image
           src="/neoncat.svg"
           alt="neoncat-icon"

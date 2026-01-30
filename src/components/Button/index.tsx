@@ -47,7 +47,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
   // 配置 classnames
   const configClassNames = classNames(
     "btn",
-    "inline-flex items-center justify-center",
+    "inline-flex items-center justify-center relative",
+    "outline-none whitespace-nowrap cursor-pointer",
     "text-font",
     `${children ? "gap-1" : "gap-0"}`,
     !children && "p-1!",
@@ -68,11 +69,9 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       {...restProps}
     >
       {loading && <IconSpinner size={btnSize} className="btn-loading" />}
-      {icon && <Icon icon={icon} size={btnSize} className={`btn-icon`} />}
+      {icon && <Icon icon={icon} size={btnSize} />}
       <span className="text-center">{children}</span>
-      {suffixIcon && (
-        <Icon icon={suffixIcon} size={btnSize} className={`btn-icon`} />
-      )}
+      {suffixIcon && <Icon icon={suffixIcon} size={btnSize} />}
     </button>
   );
 });

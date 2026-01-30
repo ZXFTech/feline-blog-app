@@ -7,7 +7,7 @@ const config = {
   "*.{js,jsx,ts,tsx}": [
     "eslint --fix",
     "prettier --write --ignore-unknown",
-    "node scripts/check-no-debug-code.mjs",
+    "node bin/check-no-debug-code.mjs",
   ],
 
   // 对其他常见文本：只跑 prettier

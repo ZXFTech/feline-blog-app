@@ -73,7 +73,7 @@ function TodoList({ todoList }: Props) {
   return (
     <>
       <TodoOperationBar setPanelVisible={setPanelVisible} />
-      <div className="w-full px-2">
+      <div className="flex flex-col item-start gap-4 mb-3 w-full px-2">
         {Object.keys(todoList).map((key) => {
           return (
             <TodoDatePart

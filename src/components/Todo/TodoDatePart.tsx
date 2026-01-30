@@ -20,8 +20,10 @@ const TodoDatePart = ({
   handleUpdate,
 }: Props) => {
   return (
-    <div className="flex flex-col item-start gap-4 mb-3">
-      <Tag>{new Date(dateKey).toLocaleDateString("zh-CN")}</Tag>
+    <>
+      <Tag className="mb-0! sticky top-17 bg-bg! z-10">
+        {new Date(dateKey).toLocaleDateString("zh-CN")}
+      </Tag>
       {todoList.map((todo) => {
         return (
           <TodoItem
@@ -33,7 +35,7 @@ const TodoDatePart = ({
           />
         );
       })}
-    </div>
+    </>
   );
 };
 

@@ -1,19 +1,21 @@
 # 禁止直接提交到保护分支 main|master|develop
+echo "检查提交的分支是否为受保护分支..."
 BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 case "$BRANCH" in
   (main|master|develop)
     echo "❌ 禁止在 $BRANCH 上直接提交，请创建 feature/hotfix 分支走 PR"
     exit 1
-    ;;
 esac
 
 # 禁止 .env 文件提交
+echo "检查是否包含 .env 文件..."
 if git diff --cached --name-only | grep -E '(^|/)\.env(\.|$)'; then
   echo "❌ Do not commit .env files"
   exit 1
 fi
 
 # 禁止提交超过 5MB 的文件（示例阈值）,如必须提交必须走大文件豁免
+echo "检查文件是否超过 5 MB..."
 MAX=$((5 * 1024 * 1024))
 for f in $(git diff --cached --name-only); do
   if [ -f "$f" ]; then

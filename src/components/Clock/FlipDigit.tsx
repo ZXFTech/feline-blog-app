@@ -31,16 +31,16 @@ export default function FlipDigit({ value, countdown }: Props) {
 
   return (
     <NeuDiv className="flip-digit border-none" ref={ref}>
-      <div className="bg-bg border-border border-[1px] rounded-tr-lg rounded-tl-lg box-border top">
+      <div className="bg-bg font-mono! border-border border-[1px] rounded-tr-lg rounded-tl-lg box-border top">
         {prevNum}
       </div>
-      <div className="bg-bg border-border border-[1px] rounded-tr-lg rounded-tl-lg box-border top-back">
+      <div className="bg-bg font-mono! border-border border-[1px] rounded-tr-lg rounded-tl-lg box-border top-back">
         {value}
       </div>
-      <div className="bg-bg border-border border-[1px] rounded-br-lg rounded-bl-lg box-border bottom">
+      <div className="bg-bg font-mono! border-border border-[1px] rounded-br-lg rounded-bl-lg box-border bottom">
         {value}
       </div>
-      <div className="bg-bg border-border border-[1px] rounded-br-lg rounded-bl-lg box-border bottom-back">
+      <div className="bg-bg font-mono! border-border border-[1px] rounded-br-lg rounded-bl-lg box-border bottom-back">
         {prevNum}
       </div>
     </NeuDiv>

@@ -47,3 +47,6 @@ next-env.d.ts
 # prisma generate
 /generated/prisma
 dbBackup/*.sql
+
+# temp
+feline-temp.*

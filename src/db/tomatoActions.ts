@@ -12,14 +12,15 @@ export async function addTomatoHistory(data: PomodoroData) {
     throw "记录为空";
   }
 
-  const { startAt, endAt, duration, type, finished } = data;
+  const { startAt, endAt, durationMs, actualDurationMs, type, finished } = data;
 
   const user = await requireAuth();
   await db.pomodoroRecord.create({
     data: {
       startAt: startAt,
       endAt: endAt,
-      duration,
+      durationMs,
+      actualDurationMs,
       type,
       summary: "",
       finished,
@@ -69,6 +70,13 @@ export async function getTomatoHistory(range: DateRange, userId?: string) {
     where,
     orderBy: {
       createAt: "desc",
+    },
+    include: {
+      user: {
+        select: {
+          username: true,
+        },
+      },
     },
   });
 

@@ -98,7 +98,8 @@ function transformStateToData(state: PomodoroState): PomodoroData {
     startAt: startDate,
     endAt: endDate,
     type: phaseType(phase) as PomodoroType,
-    duration,
+    durationMs: duration,
+    actualDurationMs: duration - remainingMs,
     finished: remainingMs === 0,
   };
 }

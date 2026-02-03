@@ -21,12 +21,13 @@ export const initialState: PomodoroState = {
   phase: "idle",
   run: "stopped",
   remainingMs: ms(defaultSettings.focusMin),
+  startAt: null,
   endAt: null,
   completedFocus: 0,
   settings: defaultSettings,
 };
 
-function durationMsFor(phase: TimerKind, s: PomodoroSettings) {
+export function durationMsFor(phase: TimerKind, s: PomodoroSettings) {
   switch (phase) {
     case "focus":
       return ms(s.focusMin);
@@ -62,7 +63,11 @@ function stopRunning(state: PomodoroState): PomodoroState {
 }
 
 function startRunning(state: PomodoroState, now: number): PomodoroState {
-  return { ...state, run: "running", endAt: now + state.remainingMs };
+  return {
+    ...state,
+    run: "running",
+    endAt: now + state.remainingMs,
+  };
 }
 
 function computeRemaining(endAt: number, now: number) {
@@ -111,7 +116,10 @@ export function pomodoroReducer(
         state.run === "paused"
           ? state.remainingMs
           : durationMsFor(phase, state.settings);
-      return startRunning({ ...state, phase, remainingMs }, action.now);
+      return startRunning(
+        { ...state, phase, remainingMs, startAt: action.now },
+        action.now,
+      );
     }
 
     case "PAUSE": {
@@ -137,6 +145,7 @@ export function pomodoroReducer(
         run: "stopped",
         remainingMs: durationMsFor("focus", state.settings),
         endAt: null,
+        startAt: null,
       };
     }
 
@@ -156,11 +165,12 @@ export function pomodoroReducer(
         run: "stopped",
         remainingMs: nextRemaining,
         endAt: null,
+        startAt: null,
         completedFocus,
       };
 
       return state.settings.autoStartNext
-        ? startRunning(nextState, action.now)
+        ? startRunning({ ...nextState, startAt: action.now }, action.now)
         : nextState;
     }
 

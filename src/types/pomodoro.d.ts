@@ -5,6 +5,7 @@ import {
   playResumeSound,
   playStartSound,
 } from "@/lib/audio/tomato";
+import { PomodoroRecord } from "../../generated/prisma/client";
 
 export type Phase = "idle" | "focus" | "short_break" | "long_break";
 export type RunState = "stopped" | "running" | "paused";
@@ -26,6 +27,7 @@ export interface PomodoroState {
   run: RunState;
 
   remainingMs: number; // 当前阶段剩余
+  startAt: number | null; // 开始时间
   endAt: number | null; // running 时：预计结束时间戳（ms）
 
   completedFocus: number; // 已完成专注次数（用来决定长休息）
@@ -101,3 +103,8 @@ export type PomodoroPlugin<S> = {
     ctx: PluginContext<S>,
   ) => PomodoroActions;
 };
+
+export type PomodoroData = Omit<
+  PomodoroRecord,
+  "id" | "createAt" | "updateAt" | "userId" | "summary"
+>;

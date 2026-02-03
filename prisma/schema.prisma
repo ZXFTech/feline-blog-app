@@ -244,10 +244,10 @@ model PomodoroRecord {
   finished Boolean
   summary  String?      @db.Text
 
-  startAt  DateTime // 开始时间
-  endAt    DateTime // 实际结束时间
-  duration Float // 目标时长
-
-  createAt DateTime @default(now())
-  updateAt DateTime @updatedAt
+  startAt          DateTime // 开始时间
+  endAt            DateTime // 实际结束时间
+  durationMs       Float // 目标时长
+  actualDurationMs Float // 实际时长
+  createAt         DateTime @default(now())
+  updateAt         DateTime @updatedAt
 }

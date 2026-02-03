@@ -21,7 +21,7 @@ const Content: FC<ContentProps> = ({
       )}
     >
       {leftSideBar ? (
-        <div className="left-side-bar hide-scrollbar pt-22 flex flex-col">
+        <div className="left-side-bar hide-scrollbar pt-22 flex flex-col h-[100vh] pb-14">
           {leftSideBar}
         </div>
       ) : null}
@@ -35,7 +35,7 @@ const Content: FC<ContentProps> = ({
         {children}
       </div>
       {rightSideBar ? (
-        <div className="right-side-bar hide-scrollbar pt-22 flex flex-col">
+        <div className="right-side-bar hide-scrollbar pt-22 flex flex-col h-[100vh] pb-14">
           {rightSideBar}
         </div>
       ) : null}

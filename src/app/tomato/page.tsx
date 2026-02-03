@@ -1,10 +1,14 @@
 import Content from "@/components/Content";
 import { Pomodoro } from "@/components/pomodoro";
+import History from "@/components/pomodoro/PomodoroList";
+import { getTomatoHistory } from "@/db/tomatoActions";
 import React from "react";
 
-function Tomato() {
+async function Tomato() {
+  const dataSource = await getTomatoHistory({});
+
   return (
-    <Content>
+    <Content rightSideBar={<History dataSource={dataSource} />}>
       <Pomodoro />
     </Content>
   );

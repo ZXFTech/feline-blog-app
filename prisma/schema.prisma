@@ -17,23 +17,22 @@ datasource db {
 }
 
 model User {
-  id              String           @id @default(cuid())
-  email           String           @unique
-  phone           String?          @unique
-  username        String
-  password        String
-  avatar          String?
-  work            String?
-  role            Role             @default(USER) // USER ADMIN ROOT VISITOR
-  createdAt       DateTime         @default(now())
-  updateAt        DateTime         @updatedAt
-  Blog            Blog[]
-  Tag             Tag[]
-  Todo            Todo[]
-  sessions        Session[]
-  blogLikes       BlogLike[]
-  blogFavorites   BlogFavorite[]
-  tomatoTaskLists tomatoTaskList[]
+  id            String         @id @default(cuid())
+  email         String         @unique
+  phone         String?        @unique
+  username      String
+  password      String
+  avatar        String?
+  work          String?
+  role          Role           @default(USER) // USER ADMIN ROOT VISITOR
+  createdAt     DateTime       @default(now())
+  updateAt      DateTime       @updatedAt
+  Blog          Blog[]
+  Tag           Tag[]
+  Todo          Todo[]
+  sessions      Session[]
+  blogLikes     BlogLike[]
+  blogFavorites BlogFavorite[]
 
   @@map("users")
 }
@@ -220,18 +219,4 @@ model Prompt {
   originId String
   imageUrl String?
   marks    String
-}
-
-model tomatoTaskList {
-  id String @id @default(cuid())
-
-  createAt   DateTime @default(now())
-  finishedAt DateTime
-  isFinished Boolean
-  summary    String?
-
-  userId String
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([id, userId])
 }

@@ -1,3 +1,11 @@
+import {
+  playBreakSound,
+  playEndSound,
+  playPauseSound,
+  playResumeSound,
+  playStartSound,
+} from "@/lib/audio/tomato";
+
 export type Phase = "idle" | "focus" | "short_break" | "long_break";
 export type RunState = "stopped" | "running" | "paused";
 
@@ -24,6 +32,20 @@ export interface PomodoroState {
   settings: PomodoroSettings;
 }
 
+type PomodoroSound = "end" | "pause" | "resume" | "start" | "break";
+const SOUND: Record<PomodoroSound, (v: number) => void> = {
+  end: playEndSound,
+  pause: playPauseSound,
+  resume: playResumeSound,
+  start: playStartSound,
+  break: playBreakSound,
+};
+
+export type PomodoroSoundRule = {
+  when: (prev: PomodoroState, curr: PomodoroState) => boolean;
+  sound: PomodoroSound;
+};
+
 export type Action =
   | { type: "HYDRATE"; now: number; state: PomodoroState } // 恢复
   | { type: "SET_SETTINGS"; settings: Partial<PomodoroSettings> }
@@ -33,3 +55,49 @@ export type Action =
   | { type: "STOP" } // 回 idle
   | { type: "SKIP"; now: number } // 跳到下一阶段
   | { type: "TICK"; now: number }; // 驱动倒计时（仅 running 有效）
+
+export type DispatchSource =
+  | "user"
+  | "tick"
+  | "hydrate"
+  | "remote"
+  | "internal";
+
+export type DispatchMeta = {
+  source: DispatchSource;
+  /** 用于跨 tab 同步：消息来源实例 id（避免回声） */
+  origin?: string;
+  /** 可选：标记本次更新原因，便于去重/调试 */
+  reason?: string;
+};
+
+export type PomodoroActions = {
+  start: () => void;
+  pause: () => void;
+  resume: () => void;
+  stop: () => void;
+  skip: () => void;
+  setSettings: (partial: Partial<PomodoroState["settings"]>) => void;
+};
+
+export type PluginContext<S> = {
+  runtime: Map<string, unknown>;
+  getState: () => S;
+  // dispatch: (action: PomodoroAction, meta?: DispatchMeta) => void;
+  // getLastDispatch: () => {
+  //   action: PomodoroAction | null;
+  //   meta: DispatchMeta | null;
+  //   at: number;
+  // };
+  actions: PomodoroActions;
+};
+
+export type PomodoroPlugin<S> = {
+  name: string;
+  setup?: (ctx: PluginContext<S>) => void | (() => void);
+  onStateChange?: (prev: S, next: S, ctx: PluginContext<S>) => void;
+  wrapActions?: (
+    actions: PomodoroActions,
+    ctx: PluginContext<S>,
+  ) => PomodoroActions;
+};

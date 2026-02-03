@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useCallback } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { initialState } from "@/lib/pomodoro/reducer";
 import { pomodoroReducer } from "@/lib/pomodoro/reducer";
-import type { PomodoroSettings, PomodoroState } from "@/types/pomodoro";
-import {
-  playBreakSound,
-  playEndSound,
-  playPauseSound,
-  playResumeSound,
-  playStartSound,
-} from "@/lib/audio/tomato";
+import type {
+  PluginContext,
+  PomodoroPlugin,
+  PomodoroSettings,
+  PomodoroState,
+} from "@/types/pomodoro";
+
+import { AudioPlugin } from "@/lib/pomodoro/plugins";
 
 const STORAGE_KEY = "pomodoro:v1";
 
@@ -23,7 +23,13 @@ function safeParse(json: string | null): PomodoroState | null {
   }
 }
 
-export function usePomodoro() {
+interface Props {
+  plugins?: PomodoroPlugin<PomodoroState>[];
+}
+
+const defaultPlugins = [AudioPlugin()];
+
+export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
   const [state, dispatch] = useReducer(pomodoroReducer, initialState);
   const intervalRef = useRef<number | null>(null);
 
@@ -79,56 +85,81 @@ export function usePomodoro() {
     };
   }, []);
 
-  // 5) 示例扩展点：阶段切换通知（你也可以做成“插件”）
-  const prevPhaseRef = useRef(state);
+  const [ctx] = useState<PluginContext<PomodoroState>>({
+    runtime: new Map<string, unknown>(),
+    actions: api,
+    getState: () => state,
+  });
+
+  // 初始化插件及插件清理
   useEffect(() => {
-    if (
-      prevPhaseRef.current.phase !== state.phase ||
-      prevPhaseRef.current.run !== state.run
-    ) {
-      // phase 状态切换
-      // idle => focus 中断后开始专注
-      // focus => "long_break" || "short_break" 专注后开始休息
-      // break => focus 休息结束后开始专注
+    const cleanUp = plugins?.map((p) => p.setup?.(ctx)).filter(Boolean);
+    return () => {
+      cleanUp?.map((item) => item?.());
+    };
+  }, [ctx, plugins]);
 
-      // run 状态切换
-      // running => paused pause
-      // paused => running resume
-      // running => stopped stop/skip
-      // stopped => running start/restart
-      // TODO: 在这里发通知/播音效/记录日志等
-      const prev = prevPhaseRef.current;
-      const current = state;
-      const volume = state.settings.volume || 0.5;
-
-      if (current.run === "stopped") {
-        // 停止
-        playEndSound(volume);
-      } else if (current.run === "paused") {
-        // pause
-        playPauseSound(volume);
-      } else if (current.run === "running" && prev.run === "paused") {
-        // resume
-        playResumeSound(volume);
-      } else if (current.run === "running" && prev.run === "stopped") {
-        // start/restart
-        if (current.phase === "focus") {
-          // 专注
-          playStartSound(volume || 0.5);
-        } else if (
-          current.phase === "long_break" ||
-          current.phase === "short_break"
-        ) {
-          // 休息
-          playBreakSound(volume || 0.5);
-        }
-      }
-
-      // 日志记录
-
-      prevPhaseRef.current = state;
+  // state 变动时, 将 state 分发给插件
+  const prevStateRef = useRef(state);
+  useEffect(() => {
+    const prev = prevStateRef.current;
+    const next = state;
+    if (prev === next) {
+      return;
     }
-  }, [state]);
+    plugins?.forEach((p) => p.onStateChange?.(prev, next, ctx));
+    prevStateRef.current = state;
+  }, [ctx, plugins, state]);
+
+  // 5) 示例扩展点：阶段切换通知（你也可以做成“插件”）
+  // useEffect(() => {
+  //   if (
+  //     prevStateRef.current.phase !== state.phase ||
+  //     prevStateRef.current.run !== state.run
+  //   ) {
+  //     // phase 状态切换
+  //     // idle => focus 中断后开始专注
+  //     // focus => "long_break" || "short_break" 专注后开始休息
+  //     // break => focus 休息结束后开始专注
+
+  //     // run 状态切换
+  //     // running => paused pause
+  //     // paused => running resume
+  //     // running => stopped stop/skip
+  //     // stopped => running start/restart
+  //     // TODO: 在这里发通知/播音效/记录日志等
+  //     const prev = prevStateRef.current;
+  //     const current = state;
+  //     const volume = state.settings.volume ?? 0.5;
+
+  //     if (current.run === "stopped") {
+  //       // 停止
+  //       playEndSound(volume);
+  //     } else if (current.run === "paused") {
+  //       // pause
+  //       playPauseSound(volume);
+  //     } else if (current.run === "running" && prev.run === "paused") {
+  //       // resume
+  //       playResumeSound(volume);
+  //     } else if (current.run === "running" && prev.run === "stopped") {
+  //       // start/restart
+  //       if (current.phase === "focus") {
+  //         // 专注
+  //         playStartSound(volume);
+  //       } else if (
+  //         current.phase === "long_break" ||
+  //         current.phase === "short_break"
+  //       ) {
+  //         // 休息
+  //         playBreakSound(volume);
+  //       }
+  //     }
+
+  //     // 日志记录
+
+  //     prevStateRef.current = state;
+  //   }
+  // }, [state]);
 
   return { state, ...api };
 }

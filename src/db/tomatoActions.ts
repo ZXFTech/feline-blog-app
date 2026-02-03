@@ -1,59 +1,52 @@
 "use server";
 
-import { TomatoSession } from "@/types/tomato";
 import db from "./client";
 import { requireAuth } from "@/lib/auth/userAuth";
 import { Prisma } from "../../generated/prisma/client";
 import { checkUser } from "./userAction";
 import { buildDateRangeFilter, DateRange } from "@/utils/timeUtils";
+import { PomodoroData } from "@/types/pomodoro";
 
-export async function addTomatoHistory(session: TomatoSession) {
-  if (!session) {
-    throw "课程内容为空!";
+export async function addTomatoHistory(data: PomodoroData) {
+  if (!data) {
+    throw "记录为空";
   }
 
-  const {
-    startTime,
-    endTime,
-    focusMinutes,
-    status,
-    reflection,
-    earlyStopReason,
-  } = session;
+  const { startAt, endAt, duration, type, finished } = data;
 
   const user = await requireAuth();
-  await db.tomatoTaskList.create({
+  await db.pomodoroRecord.create({
     data: {
-      startedAt: new Date(startTime),
-      finishedAt: new Date(endTime),
-      focusTime: focusMinutes,
-      breakTime: focusMinutes,
-      isFinished: status === "completed",
-      summary: reflection || earlyStopReason,
+      startAt: startAt,
+      endAt: endAt,
+      duration,
+      type,
+      summary: "",
+      finished,
       userId: user.id,
     },
   });
 }
 
 export async function updateTomatoHistory(
-  sessionId: string,
-  session: Partial<TomatoSession>,
+  recordId: string,
+  data: Partial<PomodoroData>,
 ) {
-  if (!sessionId) {
-    throw "课程 Id 为空";
+  if (!recordId) {
+    throw "记录 Id 为空";
   }
-  if (!session) {
-    throw "课程内容为空";
+  if (!data) {
+    throw "记录内容为空";
   }
 
   const user = await requireAuth();
-  await db.tomatoTaskList.update({
+  await db.pomodoroRecord.update({
     where: {
-      id: sessionId,
+      id: recordId,
       userId: user.id,
     },
     data: {
-      ...session,
+      ...data,
     },
   });
 }
@@ -68,11 +61,11 @@ export async function getTomatoHistory(range: DateRange, userId?: string) {
 
   const createAt = buildDateRangeFilter(range);
 
-  const where: Prisma.tomatoTaskListWhereInput = {
+  const where: Prisma.PomodoroRecordWhereInput = {
     ...(createAt ? { createAt } : {}),
     userId,
   };
-  const tasklist = await db.tomatoTaskList.findMany({
+  const tasklist = await db.pomodoroRecord.findMany({
     where,
     orderBy: {
       createAt: "desc",

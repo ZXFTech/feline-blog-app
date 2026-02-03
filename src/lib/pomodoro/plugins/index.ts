@@ -6,12 +6,17 @@ import {
   playStartSound,
 } from "@/lib/audio/tomato";
 import {
-  PluginContext,
+  PomodoroData,
   PomodoroPlugin,
   PomodoroSound,
   PomodoroSoundRule,
   PomodoroState,
 } from "@/types/pomodoro";
+import { PomodoroType } from "../../../../generated/prisma/enums";
+import { durationMsFor } from "../reducer";
+import { addTomatoHistory } from "@/db/tomatoActions";
+import logger from "@/lib/logger/Logger";
+import { phaseType } from "@/utils/timeUtils";
 
 const SOUND: Record<PomodoroSound, (v: number) => void> = {
   end: playEndSound,
@@ -22,7 +27,11 @@ const SOUND: Record<PomodoroSound, (v: number) => void> = {
 };
 
 const rules: PomodoroSoundRule[] = [
-  { when: (_, curr) => curr.run === "stopped", sound: "end" },
+  {
+    when: (prev, curr) => curr.run === "stopped" && prev.phase !== curr.phase,
+    sound: "end",
+  },
+
   { when: (_, curr) => curr.run === "paused", sound: "pause" },
   {
     when: (prev, curr) => curr.run === "running" && prev.run === "paused",
@@ -75,4 +84,47 @@ function AudioPlugin(): PomodoroPlugin<PomodoroState> {
   };
 }
 
-export { AudioPlugin };
+function transformStateToData(state: PomodoroState): PomodoroData {
+  const { phase, startAt, settings, remainingMs } = state;
+  if (phase === "idle") {
+    throw "invalid phase";
+  }
+
+  const startDate = new Date(startAt!);
+  const duration = durationMsFor(phase, settings);
+  const endDate = new Date(startAt! + duration - remainingMs);
+
+  return {
+    startAt: startDate,
+    endAt: endDate,
+    type: phaseType(phase) as PomodoroType,
+    duration,
+    finished: remainingMs === 0,
+  };
+}
+
+function RecordPlugin(): PomodoroPlugin<PomodoroState> {
+  return {
+    name: "record",
+    async onStateChange(prev, next) {
+      if (prev.phase === "idle") {
+        // IDLE
+        return;
+      }
+      if (prev.phase === next.phase) {
+        // 非切换状态不记录
+        return;
+      }
+      const recordData: PomodoroData = transformStateToData(prev);
+
+      try {
+        await addTomatoHistory(recordData);
+      } catch (error) {
+        logger.error("记录失败.", error);
+        return { error: true, message: error };
+      }
+    },
+  };
+}
+
+export { AudioPlugin, RecordPlugin };

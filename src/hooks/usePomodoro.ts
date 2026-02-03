@@ -10,7 +10,7 @@ import type {
   PomodoroState,
 } from "@/types/pomodoro";
 
-import { AudioPlugin } from "@/lib/pomodoro/plugins";
+import { AudioPlugin, RecordPlugin } from "@/lib/pomodoro/plugins";
 
 const STORAGE_KEY = "pomodoro:v1";
 
@@ -27,7 +27,7 @@ interface Props {
   plugins?: PomodoroPlugin<PomodoroState>[];
 }
 
-const defaultPlugins = [AudioPlugin()];
+const defaultPlugins = [AudioPlugin(), RecordPlugin()];
 
 export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
   const [state, dispatch] = useReducer(pomodoroReducer, initialState);
@@ -101,6 +101,7 @@ export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
 
   // state 变动时, 将 state 分发给插件
   const prevStateRef = useRef(state);
+
   useEffect(() => {
     const prev = prevStateRef.current;
     const next = state;

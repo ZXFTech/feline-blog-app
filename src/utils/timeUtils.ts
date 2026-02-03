@@ -1,4 +1,5 @@
-import type { PomodoroState } from "@/types/pomodoro";
+import type { Phase, PomodoroState } from "@/types/pomodoro";
+import { PomodoroType } from "../../generated/prisma/enums";
 export interface DateRange {
   startTime?: Date;
   endTime?: Date;
@@ -32,5 +33,18 @@ export function phaseLabel(state: PomodoroState) {
       return "短休息";
     case "long_break":
       return "长休息";
+  }
+}
+
+export function phaseType(phase: Phase): PomodoroType | "" {
+  switch (phase) {
+    case "idle":
+      return "";
+    case "focus":
+      return "FOCUS";
+    case "short_break":
+      return "SHORT";
+    case "long_break":
+      return "LONG";
   }
 }

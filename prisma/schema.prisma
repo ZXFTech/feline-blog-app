@@ -17,22 +17,23 @@ datasource db {
 }
 
 model User {
-  id            String         @id @default(cuid())
-  email         String         @unique
-  phone         String?        @unique
-  username      String
-  password      String
-  avatar        String?
-  work          String?
-  role          Role           @default(USER) // USER ADMIN ROOT VISITOR
-  createdAt     DateTime       @default(now())
-  updateAt      DateTime       @updatedAt
-  Blog          Blog[]
-  Tag           Tag[]
-  Todo          Todo[]
-  sessions      Session[]
-  blogLikes     BlogLike[]
-  blogFavorites BlogFavorite[]
+  id              String           @id @default(cuid())
+  email           String           @unique
+  phone           String?          @unique
+  username        String
+  password        String
+  avatar          String?
+  work            String?
+  role            Role             @default(USER) // USER ADMIN ROOT VISITOR
+  createdAt       DateTime         @default(now())
+  updateAt        DateTime         @updatedAt
+  Blog            Blog[]
+  Tag             Tag[]
+  Todo            Todo[]
+  sessions        Session[]
+  blogLikes       BlogLike[]
+  blogFavorites   BlogFavorite[]
+  pomodoroRecords PomodoroRecord[]
 
   @@map("users")
 }
@@ -219,4 +220,34 @@ model Prompt {
   originId String
   imageUrl String?
   marks    String
+}
+
+enum PomodoroType {
+  FOCUS
+  SHORT
+  LONG
+}
+
+enum PomodoroStatus {
+  SKIPPED
+  FINISHED
+  STOPPED
+}
+
+model PomodoroRecord {
+  id String @id @default(uuid())
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  type     PomodoroType
+  finished Boolean
+  summary  String?      @db.Text
+
+  startAt  DateTime // 开始时间
+  endAt    DateTime // 实际结束时间
+  duration Float // 目标时长
+
+  createAt DateTime @default(now())
+  updateAt DateTime @updatedAt
 }

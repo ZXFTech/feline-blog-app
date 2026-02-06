@@ -2,7 +2,6 @@ import React from "react";
 import { PomodoroRecord, PomodoroType } from "../../../generated/prisma/client";
 import dayjs from "dayjs";
 import NeuDiv from "../NeuDiv";
-import classNames from "classnames";
 import {
   Apple,
   BookCheck,
@@ -10,11 +9,11 @@ import {
   Coffee,
   Hourglass,
   Timer,
-  TimerReset,
   User,
 } from "lucide-react";
 import { assertNever } from "@/utils/assertNever";
 import { formatMs } from "@/utils/timeUtils";
+import { cn } from "@/lib/utils";
 
 interface Props {
   dataSource: (PomodoroRecord & { user: { username: string } })[];
@@ -39,7 +38,7 @@ function History({ dataSource }: Props) {
         return (
           <NeuDiv
             key={item.id}
-            className={classNames("flex flex-col gap-4 p-4", {
+            className={cn("flex flex-col gap-4 p-4", {
               // "border-l-2 border-l-red-600!": item.type === "FOCUS",
               // "border-l-2 border-l-blue-500!": item.type === "LONG",
               // "border-l-2 border-l-green-500!": item.type === "SHORT",

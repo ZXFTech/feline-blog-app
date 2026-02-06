@@ -7,8 +7,8 @@ import Tag from "../Tag";
 import NeuInput from "../NeuInput";
 import ColorPanel from "../ColorPanel";
 import { Tag as ITag } from "../../../generated/prisma/client";
-import classNames from "classnames";
 import Icon from "../Icon";
+import { cn } from "@/lib/utils";
 
 export type TagData = MakeOptional<
   ITag,
@@ -165,7 +165,7 @@ const TagEditor = ({
         >
           <Icon
             icon="add"
-            className={classNames("transition-transform duration-500", {
+            className={cn("transition-transform duration-500", {
               "rotate-45": visible,
             })}
           />
@@ -173,14 +173,10 @@ const TagEditor = ({
       </div>
       <div
         ref={ref}
-        className={classNames(
-          "overflow-hidden transition-[height] duration-500 h-0",
-        )}
+        className={cn("overflow-hidden transition-[height] duration-500 h-0")}
       >
         {allowCreate ? (
-          <div
-            className={classNames("flex flex-wrap items-center justify-end")}
-          >
+          <div className={cn("flex flex-wrap items-center justify-end")}>
             <NeuInput
               style={{ color: tagColor }}
               className={`bg-red-500! mr-1 my-2 font-medium! ${

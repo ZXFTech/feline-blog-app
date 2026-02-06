@@ -1,5 +1,5 @@
+import { cn } from "@/lib/utils";
 import { NeuIntensity, NeuType } from "@/types";
-import classNames from "classnames";
 import React, { forwardRef, HTMLAttributes } from "react";
 
 interface NeuContainerProps extends HTMLAttributes<HTMLDivElement> {
@@ -16,7 +16,7 @@ const NeuDiv = forwardRef<HTMLDivElement, NeuContainerProps>((props, ref) => {
     ...restProps
   } = props;
 
-  const configClassNames = classNames(
+  const configClassNames = cn(
     "neu-div",
     "bg-bg text-font",
     "p-2 transition duration-100 border border-border rounded-lg ",

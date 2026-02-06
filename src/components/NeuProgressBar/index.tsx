@@ -1,7 +1,7 @@
-import classNames from "classnames";
 import React from "react";
 import NeuDiv from "../NeuDiv";
 import Tag from "../Tag";
+import { cn } from "@/lib/utils";
 
 type ComponentType = "default" | "success" | "warning" | "danger" | "primary";
 
@@ -41,7 +41,7 @@ function NeuProgressBar({
 }: ProgressProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
 
-  const classnames = classNames("neu-progress-bar", className);
+  const classnames = cn("neu-progress-bar", className);
 
   const sizeMap = {
     sm: "h-1.5",
@@ -90,10 +90,10 @@ function NeuProgressBar({
         className="w-full rounded-full p-0! bg-gray-200 overflow-hidden"
       >
         <div
-          className={classNames(
+          className={cn(
             "transition-all duration-300 ease-out rounded-full",
             sizeMap[size],
-            progressBarColor ? "" : `neu-progress-bar-${type}`
+            progressBarColor ? "" : `neu-progress-bar-${type}`,
           )}
           style={{
             width: `${percentage}%`,

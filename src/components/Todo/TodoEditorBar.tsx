@@ -10,7 +10,7 @@ import { addTodo, updateTodo } from "@/db/todoAction";
 import { Tag } from "../../../generated/prisma/client";
 import { useRouter } from "next/navigation";
 import { getOptionTagsById } from "@/db/tagAction";
-import classNames from "classnames";
+import { cn } from "@/lib/utils";
 
 const Modal = dynamic(() => import("@/components/Modal"), { ssr: false });
 
@@ -72,7 +72,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
         [key]: value,
       }));
     },
-    []
+    [],
   );
 
   const handleClose = useCallback(() => {
@@ -134,7 +134,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       <div className=" mb-4">
         <NeuInput
           disabled={loading}
-          className={classNames("w-full mb-1", {
+          className={cn("w-full mb-1", {
             "input-shake": shake,
             "border-red-700!": validateMessage,
           })}

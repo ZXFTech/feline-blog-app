@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "material-symbols/outlined.css";
 import "../styles/index.scss";
 import Navbar from "@/components/Navbar";
@@ -8,7 +8,9 @@ import Head from "next/head";
 import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
 import { Ma_Shan_Zheng } from "next/font/google";
-import classNames from "classnames";
+import { cn } from "@/lib/utils";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -27,7 +29,7 @@ const maShanZheng = Ma_Shan_Zheng({
 });
 
 export const metadata: Metadata = {
-  title: "行者",
+  title: "neon cat",
   description: "道阻且长,行则将至。",
 };
 
@@ -39,7 +41,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="zh-cn" className={classNames(maShanZheng.variable)}>
+    <html lang="zh-cn" className={cn(maShanZheng.variable, inter.variable)}>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>

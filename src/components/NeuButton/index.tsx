@@ -2,9 +2,9 @@
 
 import React, { forwardRef } from "react";
 import Button, { ButtonProps } from "../Button";
-import classNames from "classnames";
 import { NeuIntensity, NeuButtonType } from "@/types";
 import Link from "next/link";
+import { cn } from "@/lib/utils";
 // import { getElementColor, getStyleProperty } from "../../utils/theme";
 
 export interface NeuButtonProps extends ButtonProps {
@@ -26,7 +26,7 @@ const NeuButton = forwardRef<HTMLButtonElement, NeuButtonProps>(
       ...restProps
     } = props;
 
-    const classnames = classNames(
+    const classnames = cn(
       "neu-btn",
       "bg-bg text-font",
       "m-1",

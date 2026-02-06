@@ -2,10 +2,10 @@
 
 import { useRouter } from "next/navigation";
 import NeuButton from "../NeuButton";
-import classNames from "classnames";
 import { favoriteBlog, likeBlog } from "@/db/blogAction";
 import logger from "@/lib/logger/Logger";
 import { toast } from "../ProMessage";
+import { cn } from "@/lib/utils";
 
 export interface Props {
   likes: number;
@@ -43,7 +43,7 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
       <NeuButton
         btnSize="xl"
         icon="favorite"
-        className={classNames({
+        className={cn({
           // "bg-red-500!": isLiked,
           "text-red-500!": isLiked,
         })}
@@ -53,7 +53,7 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
       </NeuButton>
       <NeuButton
         btnSize="xl"
-        className={classNames({
+        className={cn({
           // "bg-red-500!": isLiked,
           "text-blue-500!": isFavorite,
         })}

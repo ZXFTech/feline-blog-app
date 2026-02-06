@@ -1,9 +1,9 @@
 "use client";
 
-import classNames from "classnames";
 import React, { useEffect, useRef, useState } from "react";
 import NeuButton from "../NeuButton";
 import logger from "@/lib/logger/Logger";
+import { cn } from "@/lib/utils";
 
 export interface CopyButtonPros {
   code: string;
@@ -37,7 +37,7 @@ function CopyButton({ code }: CopyButtonPros) {
     };
   }, [copyState, lastClick]);
 
-  const btnClassName = classNames("blog-code-copy", {
+  const btnClassName = cn("blog-code-copy", {
     "!text-green-500": copyState,
   });
 

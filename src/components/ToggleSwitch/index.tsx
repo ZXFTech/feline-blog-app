@@ -1,7 +1,7 @@
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useState } from "react";
-import classNames from "classnames";
 
 interface ToggleSwitchProps {
   checked?: boolean;
@@ -58,14 +58,14 @@ export default function Switch({
             ? "rgba(76, 255, 48, 0.8)"
             : "rgba(255, 52, 52, 0.5)",
         }}
-        className={classNames(
+        className={cn(
           "relative inline-flex items-center rounded-full! transition-colors duration-300",
           config.container,
           disabled && "opacity-50 cursor-not-allowed",
         )}
       >
         <div
-          className={classNames(
+          className={cn(
             "absolute top-0.5 left-0.5 rounded-full bg-white transition-transform duration-300 shadow-md",
             config.dot,
             isChecked && config.translate,
@@ -74,7 +74,7 @@ export default function Switch({
       </button>
       {label && (
         <label
-          className={classNames(
+          className={cn(
             "text-sm font-medium text-foreground cursor-pointer select-none m-0!",
             disabled && "opacity-50 cursor-not-allowed",
           )}

@@ -6,6 +6,7 @@ import {
   playStartSound,
 } from "@/lib/audio/tomato";
 import {
+  PluginContext,
   PomodoroData,
   PomodoroPlugin,
   PomodoroSound,
@@ -17,7 +18,7 @@ import { durationMsFor } from "../reducer";
 import { addTomatoHistory } from "@/db/tomatoActions";
 import logger from "@/lib/logger/Logger";
 import { formatMs, phaseType } from "@/utils/timeUtils";
-import { isBrowser } from "./utils";
+import { isBrowser, nowMs } from "./utils";
 
 const SOUND: Record<PomodoroSound, (v: number) => void> = {
   end: playEndSound,
@@ -141,4 +142,86 @@ function titlePlugin(): PomodoroPlugin<PomodoroState> {
   };
 }
 
-export { AudioPlugin, RecordPlugin, titlePlugin };
+function tickPlugin({
+  intervalMs = 250,
+  hiddenIntervalMs = 1000,
+}: {
+  intervalMs?: number;
+  hiddenIntervalMs?: number;
+}): PomodoroPlugin<PomodoroState> {
+  const clear = (ctx: PluginContext<PomodoroState>) => {
+    const runtime = ctx.runtime;
+    const id = runtime.get("tick:interval") as number;
+    if (id) {
+      clearInterval(id);
+      runtime.delete("tick:interval");
+      runtime.delete("tick:intervalMs");
+    }
+  };
+
+  const start = (ctx: PluginContext<PomodoroState>, ms: number) => {
+    const runtime = ctx.runtime;
+    const intervalId = runtime.get("tick:interval") as number;
+    const intervalMs = runtime.get("tick:intervalMs") as number;
+    if (intervalId && intervalMs) {
+      return;
+    }
+
+    const id = setInterval(() => {
+      ctx.dispatch({ type: "TICK", now: nowMs() });
+    }, ms);
+
+    runtime.set("tick:interval", id);
+    runtime.set("tick:intervalMs", ms);
+  };
+
+  const sync = (ctx: PluginContext<PomodoroState>) => {
+    const state = ctx.getState();
+    if (state.run !== "running") {
+      clear(ctx);
+      return;
+    }
+    const ms =
+      document.visibilityState === "visible" ? intervalMs : hiddenIntervalMs;
+    start(ctx, ms);
+  };
+
+  return {
+    name: "tick",
+    setup(ctx) {
+      if (!isBrowser()) {
+        return;
+      }
+      const onVis = () => {
+        sync(ctx);
+      };
+
+      document.addEventListener("visibilitychange", onVis);
+
+      return () => {
+        clear(ctx);
+        document.removeEventListener("visibilitychange", onVis);
+      };
+    },
+    onStateChange(prev, next, ctx) {
+      if (prev === next) {
+        return;
+      }
+      if (!isBrowser()) {
+        return;
+      }
+
+      if (next.run !== "running") {
+        clear(ctx);
+        return;
+      }
+
+      const ms =
+        document.visibilityState === "visible" ? intervalMs : hiddenIntervalMs;
+
+      start(ctx, ms);
+    },
+  };
+}
+
+export { AudioPlugin, RecordPlugin, titlePlugin, tickPlugin };

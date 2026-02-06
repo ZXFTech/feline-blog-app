@@ -10,7 +10,7 @@ const ms = (min: number) => Math.max(0, Math.round(min * 60_000));
 export const defaultSettings: PomodoroSettings = {
   focusMin: 25,
   shortBreakMin: 5,
-  longBreakMin: 15,
+  longBreakMin: 10,
   longBreakEvery: 4,
   autoStartNext: false,
   mute: false,

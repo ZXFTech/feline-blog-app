@@ -139,7 +139,7 @@ function Calendar({
           const isCurrentMonth =
             typeof dayObj === "number" || dayObj.isCurrentMonth;
           const record = isRecordDay(day);
-          const color = record?.color || "bg-bg";
+          const color = record?.color;
           const isSelected = isSelectedDay(day);
           return (
             <NeuDiv
@@ -156,18 +156,18 @@ function Calendar({
                 }
               }}
               className={`
-                aspect-square rounded-md text-sm font-medium flex flex-col gap-px items-center justify-center transition-all! group duration-618 hover:transition-none! hover:bg-white
-                ${!isCurrentMonth ? "text-muted-foreground bg-muted/50 opacity-50 cursor-not-allowed" : ""}
-                ${isCurrentMonth && isSelected ? "bg-black! text-white" : ""}
-                ${isCurrentMonth && !isSelected && !record ? "hover:bg-muted!" : ""}
-                ${isCurrentMonth ? "cursor-pointer" : ""}
+                p-1.5 aspect-square rounded-md text-sm font-medium flex flex-col gap-1 items-center justify-center transition-all! group duration-618 hover:transition-none! hover:bg-white hover:text-black
+                ${!isCurrentMonth ? "opacity-50 cursor-not-allowed" : ""}
+                ${isCurrentMonth && !isSelected ? "cursor-pointer" : ""}
+                ${isCurrentMonth && isSelected ? "bg-primary text-white  hover:bg-primary hover:text-white" : ""}
               `}
             >
               <span>{day}</span>
               <div
-                className={cn("rounded-full w-1 h-1", {
-                  color: color,
-                })}
+                className={cn(
+                  "rounded-full w-1 h-1",
+                  !!record && (color || "bg-success"),
+                )}
               ></div>
             </NeuDiv>
           );

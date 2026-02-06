@@ -1,4 +1,4 @@
-import classNames from "classnames";
+import { cn } from "@/lib/utils";
 import React, { useRef, useState, useEffect, useCallback } from "react";
 
 interface InfiniteRulerProps {
@@ -215,7 +215,7 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
 
       <div
         ref={scrollRef}
-        className={classNames(
+        className={cn(
           "w-full overflow-x-scroll h-10 border flex hide-scrollbar",
           {
             "cursor-grab": allowGrab,
@@ -224,10 +224,7 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
         style={{ width, height }}
       >
         {values.map((v) => (
-          <div
-            key={v}
-            className="h-4 w-[100px] flex-shrink-0 text-center border-r"
-          >
+          <div key={v} className="h-4 w-[100px] shrink-0 text-center border-r">
             {v}
           </div>
         ))}

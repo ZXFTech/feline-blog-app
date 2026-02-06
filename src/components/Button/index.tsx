@@ -1,8 +1,8 @@
 import React, { ButtonHTMLAttributes, ReactNode, forwardRef } from "react";
 
-import classNames from "classnames";
 import { IconSpinner } from "../Icon/presetIcon";
 import Icon, { IconType } from "../Icon";
+import { cn } from "@/lib/utils";
 
 export type ButtonSize = "sm" | "xs" | "md" | "lg" | "xl" | "2xl" | "3xl";
 
@@ -45,7 +45,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
   } = props;
 
   // 配置 classnames
-  const configClassNames = classNames(
+  const configClassNames = cn(
     "btn",
     "inline-flex items-center justify-center relative",
     "outline-none whitespace-nowrap cursor-pointer",

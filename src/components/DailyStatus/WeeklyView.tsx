@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import NeuButton from "../NeuButton";
-import classNames from "classnames";
 import { usePathname, useRouter } from "next/navigation";
 import NeuDiv from "../NeuDiv";
 import { DailyData, WorkoutData } from "@/app/daily/page";
+import { cn } from "@/lib/utils";
 
 interface WeeklyViewProps {
   weeklyStatus: DailyData[];
@@ -157,7 +157,7 @@ export function WeeklyView({
             <NeuDiv
               key={day.date}
               onClick={() => router.replace(`${pathname}?date=${day.date}`)}
-              className={classNames(
+              className={cn(
                 "border border-border rounded-lg p-3! flex flex-col gap-1 min-h-16 cursor-pointer",
                 {
                   "bg-gray-500/20!": selectedDateStr !== day.date,

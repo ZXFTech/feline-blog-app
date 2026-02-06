@@ -1,5 +1,5 @@
+import { cn } from "@/lib/utils";
 import React, { FC, HTMLAttributes } from "react";
-import classnames from "classnames";
 
 export type ThemeProps =
   | "primary"
@@ -53,11 +53,7 @@ const Icon: FC<IconProps> = (props) => {
   // 如果theme是primary，添加类 icon-primary
   const { className, theme, icon, size = "md", ...restProps } = props;
 
-  const classes = classnames(
-    "neu-icon",
-    "material-symbols-outlined",
-    className
-  );
+  const classes = cn("neu-icon", "material-symbols-outlined", className);
 
   const style = theme ? { color: themeColor[theme] } : {};
 

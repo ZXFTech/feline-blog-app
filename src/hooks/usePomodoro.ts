@@ -10,7 +10,7 @@ import type {
   PomodoroState,
 } from "@/types/pomodoro";
 
-import { AudioPlugin, RecordPlugin } from "@/lib/pomodoro/plugins";
+import { AudioPlugin, RecordPlugin, titlePlugin } from "@/lib/pomodoro/plugins";
 
 const STORAGE_KEY = "pomodoro:v1";
 
@@ -27,7 +27,7 @@ interface Props {
   plugins?: PomodoroPlugin<PomodoroState>[];
 }
 
-const defaultPlugins = [AudioPlugin(), RecordPlugin()];
+const defaultPlugins = [AudioPlugin(), RecordPlugin(), titlePlugin()];
 
 export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
   const [state, dispatch] = useReducer(pomodoroReducer, initialState);

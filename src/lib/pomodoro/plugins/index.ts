@@ -16,7 +16,8 @@ import { PomodoroType } from "../../../../generated/prisma/enums";
 import { durationMsFor } from "../reducer";
 import { addTomatoHistory } from "@/db/tomatoActions";
 import logger from "@/lib/logger/Logger";
-import { phaseType } from "@/utils/timeUtils";
+import { formatMs, phaseType } from "@/utils/timeUtils";
+import { isBrowser } from "./utils";
 
 const SOUND: Record<PomodoroSound, (v: number) => void> = {
   end: playEndSound,
@@ -128,4 +129,16 @@ function RecordPlugin(): PomodoroPlugin<PomodoroState> {
   };
 }
 
-export { AudioPlugin, RecordPlugin };
+function titlePlugin(): PomodoroPlugin<PomodoroState> {
+  return {
+    name: "title",
+    onStateChange(_, next) {
+      if (!isBrowser()) return;
+      const timeRemaining = formatMs(next.remainingMs);
+      const prefix = next.phase === "focus" ? "🍅" : "☕";
+      document.title = `${prefix} ${timeRemaining}`;
+    },
+  };
+}
+
+export { AudioPlugin, RecordPlugin, titlePlugin };

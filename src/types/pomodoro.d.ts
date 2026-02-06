@@ -85,7 +85,7 @@ export type PomodoroActions = {
 export type PluginContext<S> = {
   runtime: Map<string, unknown>;
   getState: () => S;
-  // dispatch: (action: PomodoroAction, meta?: DispatchMeta) => void;
+  dispatch: (action: PomodoroAction, meta?: DispatchMeta) => void;
   // getLastDispatch: () => {
   //   action: PomodoroAction | null;
   //   meta: DispatchMeta | null;

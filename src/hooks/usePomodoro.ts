@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { initialState } from "@/lib/pomodoro/reducer";
 import { pomodoroReducer } from "@/lib/pomodoro/reducer";
 import type {
@@ -10,7 +10,12 @@ import type {
   PomodoroState,
 } from "@/types/pomodoro";
 
-import { AudioPlugin, RecordPlugin, titlePlugin } from "@/lib/pomodoro/plugins";
+import {
+  AudioPlugin,
+  RecordPlugin,
+  tickPlugin,
+  titlePlugin,
+} from "@/lib/pomodoro/plugins";
 
 const STORAGE_KEY = "pomodoro:v1";
 
@@ -27,11 +32,15 @@ interface Props {
   plugins?: PomodoroPlugin<PomodoroState>[];
 }
 
-const defaultPlugins = [AudioPlugin(), RecordPlugin(), titlePlugin()];
+const defaultPlugins = [
+  AudioPlugin(),
+  RecordPlugin(),
+  titlePlugin(),
+  tickPlugin({}),
+];
 
 export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
   const [state, dispatch] = useReducer(pomodoroReducer, initialState);
-  const intervalRef = useRef<number | null>(null);
 
   // 1) 恢复
   useEffect(() => {
@@ -49,28 +58,28 @@ export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
   }, [state]);
 
   // 3) TICK 驱动（StrictMode 下用 ref + cleanup 保证单 interval）
-  useEffect(() => {
-    if (state.run !== "running") {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-      return;
-    }
+  // useEffect(() => {
+  //   if (state.run !== "running") {
+  //     if (intervalRef.current) {
+  //       window.clearInterval(intervalRef.current);
+  //       intervalRef.current = null;
+  //     }
+  //     return;
+  //   }
 
-    if (intervalRef.current) return; // 防止重复启动
+  //   if (intervalRef.current) return; // 防止重复启动
 
-    intervalRef.current = window.setInterval(() => {
-      dispatch({ type: "TICK", now: Date.now() });
-    }, 250);
+  //   intervalRef.current = window.setInterval(() => {
+  //     dispatch({ type: "TICK", now: Date.now() });
+  //   }, 250);
 
-    return () => {
-      if (intervalRef.current) {
-        window.clearInterval(intervalRef.current);
-        intervalRef.current = null;
-      }
-    };
-  }, [state.run]);
+  //   return () => {
+  //     if (intervalRef.current) {
+  //       window.clearInterval(intervalRef.current);
+  //       intervalRef.current = null;
+  //     }
+  //   };
+  // }, [state.run]);
 
   // 4) 对外 API（可扩展：以后加 startFocus/startBreak/setTask...）
   const api = useMemo(() => {
@@ -85,11 +94,19 @@ export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
     };
   }, []);
 
-  const [ctx] = useState<PluginContext<PomodoroState>>({
-    runtime: new Map<string, unknown>(),
-    actions: api,
-    getState: () => state,
-  });
+  const getState = useCallback(() => {
+    return state;
+  }, [state]);
+
+  const ctx = useMemo<PluginContext<PomodoroState>>(
+    () => ({
+      runtime: new Map<string, unknown>(),
+      actions: api,
+      getState,
+      dispatch,
+    }),
+    [api, getState],
+  );
 
   // 初始化插件及插件清理
   useEffect(() => {
@@ -101,7 +118,6 @@ export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
 
   // state 变动时, 将 state 分发给插件
   const prevStateRef = useRef(state);
-
   useEffect(() => {
     const prev = prevStateRef.current;
     const next = state;
@@ -111,56 +127,6 @@ export function usePomodoro({ plugins }: Props = { plugins: defaultPlugins }) {
     plugins?.forEach((p) => p.onStateChange?.(prev, next, ctx));
     prevStateRef.current = state;
   }, [ctx, plugins, state]);
-
-  // 5) 示例扩展点：阶段切换通知（你也可以做成“插件”）
-  // useEffect(() => {
-  //   if (
-  //     prevStateRef.current.phase !== state.phase ||
-  //     prevStateRef.current.run !== state.run
-  //   ) {
-  //     // phase 状态切换
-  //     // idle => focus 中断后开始专注
-  //     // focus => "long_break" || "short_break" 专注后开始休息
-  //     // break => focus 休息结束后开始专注
-
-  //     // run 状态切换
-  //     // running => paused pause
-  //     // paused => running resume
-  //     // running => stopped stop/skip
-  //     // stopped => running start/restart
-  //     // TODO: 在这里发通知/播音效/记录日志等
-  //     const prev = prevStateRef.current;
-  //     const current = state;
-  //     const volume = state.settings.volume ?? 0.5;
-
-  //     if (current.run === "stopped") {
-  //       // 停止
-  //       playEndSound(volume);
-  //     } else if (current.run === "paused") {
-  //       // pause
-  //       playPauseSound(volume);
-  //     } else if (current.run === "running" && prev.run === "paused") {
-  //       // resume
-  //       playResumeSound(volume);
-  //     } else if (current.run === "running" && prev.run === "stopped") {
-  //       // start/restart
-  //       if (current.phase === "focus") {
-  //         // 专注
-  //         playStartSound(volume);
-  //       } else if (
-  //         current.phase === "long_break" ||
-  //         current.phase === "short_break"
-  //       ) {
-  //         // 休息
-  //         playBreakSound(volume);
-  //       }
-  //     }
-
-  //     // 日志记录
-
-  //     prevStateRef.current = state;
-  //   }
-  // }, [state]);
 
   return { state, ...api };
 }

@@ -6,6 +6,9 @@
   --color-shadow-dark: #bababa;
   --color-shadow-light: #fcfcfc;
 
+  --color-tomato-record: oklch(44.4% 0.177 26.899);
+  --color-workout-record: oklch(66.6% 0.179 58.318);
+
   /* === Text === */
   --color-text: 226 232 240;
   --color-text-muted: 148 163 184;

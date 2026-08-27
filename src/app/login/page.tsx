@@ -33,15 +33,11 @@ export default function Login() {
       passwordErrorMessage: "",
     };
 
-    if (!submitted) {
-      return error;
-    }
-
     if (!email) {
       error = {
         ...error,
         emailError: true,
-        emailErrorMessage: "用户名不能为空",
+        emailErrorMessage: "邮箱不能为空",
       };
     }
     if (!password) {
@@ -52,7 +48,7 @@ export default function Login() {
       };
     }
     return error;
-  }, [email, password, submitted]);
+  }, [email, password]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     try {
@@ -92,7 +88,7 @@ export default function Login() {
             prefix={<Icon icon="email" size="lg" />}
             id="email"
             className={`${
-              errorStatus.emailError
+              submitted && errorStatus.emailError
                 ? "border-red-700! border-2! text-red-700!"
                 : ""
             }`}
@@ -101,7 +97,7 @@ export default function Login() {
             value={email}
             onChange={(e) => setEmail(e.target.value || "")}
           />
-          {errorStatus.emailErrorMessage ? (
+          {submitted && errorStatus.emailErrorMessage ? (
             <span className="text-red-600">
               {errorStatus.emailErrorMessage}
             </span>
@@ -111,7 +107,7 @@ export default function Login() {
             prefix={<Icon icon="lock" size="lg" />}
             id="password"
             className={`${
-              errorStatus.passwordError
+              submitted && errorStatus.passwordError
                 ? "border-red-700! border-2! text-red-700!"
                 : ""
             } mt-4`}
@@ -120,7 +116,7 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value || "")}
           />
-          {errorStatus.passwordErrorMessage ? (
+          {submitted && errorStatus.passwordErrorMessage ? (
             <span className="text-red-600">
               {errorStatus.passwordErrorMessage}
             </span>

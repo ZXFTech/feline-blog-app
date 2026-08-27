@@ -20,9 +20,6 @@ const checkUser = async (
       password,
     },
   });
-  if (!user) {
-    throw "用户不存在";
-  }
   return user;
 };
 

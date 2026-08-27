@@ -9,7 +9,7 @@ import { TextGap } from "@/components/TextGap";
 import { useAuth } from "@/hooks/useAuth";
 import { toast as message } from "@/components/ProMessage";
 import Link from "next/link";
-import React, { FormEvent, useEffect, useMemo, useState } from "react";
+import React, { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function Register() {
@@ -24,9 +24,6 @@ export default function Register() {
   const [password, setPassword] = useState<string>("");
   const [username, setUsername] = useState<string>("");
   const [confirmedPassword, setConfirmedPassword] = useState<string>("");
-  const [confirmedPasswordError, setConfirmedPasswordError] =
-    useState<string>("");
-
   const errorStatus = useMemo(() => {
     let error = {
       emailError: false,
@@ -36,10 +33,6 @@ export default function Register() {
       passwordError: false,
       passwordErrorMessage: "",
     };
-
-    if (!submitted) {
-      return error;
-    }
 
     if (!email) {
       error = {
@@ -62,19 +55,14 @@ export default function Register() {
         passwordErrorMessage: "密码不能为空",
       };
     }
-    if (!confirmedPassword) {
-      setConfirmedPasswordError("密码不能为空");
-    }
     return error;
-  }, [email, password, username, submitted, confirmedPassword]);
+  }, [email, password, username]);
 
-  useEffect(() => {
-    if (password !== confirmedPassword) {
-      setConfirmedPasswordError("两次密码不一致");
-    } else {
-      setConfirmedPasswordError("");
-    }
-  }, [confirmedPassword, password]);
+  const confirmedPasswordError = !confirmedPassword
+    ? "请再次输入密码"
+    : password !== confirmedPassword
+      ? "两次密码不一致"
+      : "";
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     try {
@@ -115,7 +103,7 @@ export default function Register() {
             disabled={loading}
             prefix={<Icon icon="email" size="lg" />}
             className={`${
-              errorStatus.emailError
+              submitted && errorStatus.emailError
                 ? "border-red-700! border-2! text-red-700!"
                 : ""
             }`}
@@ -124,7 +112,7 @@ export default function Register() {
             value={email}
             onChange={(e) => setEmail(e.target.value || "")}
           />
-          {errorStatus.emailErrorMessage ? (
+          {submitted && errorStatus.emailErrorMessage ? (
             <span className="text-red-600">
               {errorStatus.emailErrorMessage}
             </span>
@@ -133,16 +121,16 @@ export default function Register() {
             disabled={loading}
             prefix={<Icon icon="account_box" size="lg" />}
             className={`${
-              errorStatus.usernameError
+              submitted && errorStatus.usernameError
                 ? "border-red-700! border-2! text-red-700!"
                 : ""
             } mt-4`}
-            placeholder="请输入邮箱"
-            autoComplete="new-password"
+            placeholder="请输入用户名"
+            autoComplete="username"
             value={username}
             onChange={(e) => setUsername(e.target.value || "")}
           />
-          {errorStatus.usernameErrorMessage ? (
+          {submitted && errorStatus.usernameErrorMessage ? (
             <span className="text-red-600">
               {errorStatus.usernameErrorMessage}
             </span>
@@ -152,7 +140,7 @@ export default function Register() {
             prefix={<Icon icon="lock" size="lg" />}
             id="password"
             className={`${
-              errorStatus.passwordError
+              submitted && errorStatus.passwordError
                 ? "border-red-700! border-2! text-red-700!"
                 : ""
             } mt-4`}
@@ -161,7 +149,7 @@ export default function Register() {
             value={password}
             onChange={(e) => setPassword(e.target.value || "")}
           />
-          {errorStatus.passwordErrorMessage ? (
+          {submitted && errorStatus.passwordErrorMessage ? (
             <span className="text-red-600">
               {errorStatus.passwordErrorMessage}
             </span>
@@ -171,7 +159,7 @@ export default function Register() {
             prefix={<Icon icon="lock" size="lg" />}
             id="confirmedPassword"
             className={`${
-              confirmedPasswordError
+              submitted && confirmedPasswordError
                 ? "border-red-700! border-2! text-red-700!"
                 : ""
             } mt-4`}
@@ -183,7 +171,7 @@ export default function Register() {
             }}
             onBlur={(e) => setConfirmedPassword(e.target.value || "")}
           />
-          {confirmedPasswordError ? (
+          {submitted && confirmedPasswordError ? (
             <span className="text-red-600">{confirmedPasswordError}</span>
           ) : null}
           <span className="mt-4">

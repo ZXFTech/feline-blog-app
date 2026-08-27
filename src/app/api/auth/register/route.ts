@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextRequest } from "next/server";
 import db from "@/db/client";
 import { hashPassword, validateEmail, validatePassword } from "@/utils/auth";
 import { generateToken } from "@/lib/jwt";
@@ -14,16 +14,13 @@ export async function POST(req: NextRequest) {
       return actionResponse.error("请填写所有必填字段", 400);
     }
 
-    if (!validateEmail) {
-      return NextResponse.json({ error: "邮箱格式不正确!" }, { status: 400 });
+    if (!validateEmail(email)) {
+      return actionResponse.error("邮箱格式不正确", 400);
     }
 
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.isValid) {
-      return actionResponse.error(
-        "密码不符合要求" + passwordValidation.errors,
-        400
-      );
+      return actionResponse.error(passwordValidation.errors.join("；"), 400);
     }
 
     const existingUser = await checkUser("email", email);
@@ -59,7 +56,7 @@ export async function POST(req: NextRequest) {
           avatar: user.avatar,
         },
       },
-      "注册成功"
+      "注册成功",
     );
 
     // 设置 cookie

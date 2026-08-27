@@ -3,6 +3,7 @@ import { checkUser } from "@/db/userAction";
 import logger from "../logger/Logger";
 import { getCookieData } from "../cookieStore";
 import { Role } from "../../../generated/prisma/enums";
+import { unstable_rethrow } from "next/navigation";
 
 export async function getCurrentUser() {
   try {
@@ -22,6 +23,7 @@ export async function getCurrentUser() {
 
     return user;
   } catch (error) {
+    unstable_rethrow(error);
     logger.error("获取当前用户错误:", error);
     return null;
   }

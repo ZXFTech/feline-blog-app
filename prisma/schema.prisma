@@ -228,9 +228,9 @@ enum PomodoroType {
   LONG
 }
 
-enum PomodoroStatus {
+enum PomodoroEndReason {
+  COMPLETED
   SKIPPED
-  FINISHED
   STOPPED
 }
 
@@ -240,14 +240,18 @@ model PomodoroRecord {
   userId String
   user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  type     PomodoroType
-  finished Boolean
-  summary  String?      @db.Text
+  type      PomodoroType
+  eventId   String?
+  endReason PomodoroEndReason?
+  finished  Boolean
+  summary   String?            @db.Text
 
-  startAt          DateTime // 开始时间
-  endAt            DateTime // 实际结束时间
+  startAt          DateTime @db.DateTime(3) // 开始时间
+  endAt            DateTime @db.DateTime(3) // 实际结束时间
   durationMs       Float // 目标时长
   actualDurationMs Float // 实际时长
   createAt         DateTime @default(now())
   updateAt         DateTime @updatedAt
+
+  @@unique([userId, eventId])
 }

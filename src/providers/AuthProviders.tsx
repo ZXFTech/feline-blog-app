@@ -3,11 +3,12 @@
 import React, { createContext, ReactNode, useContext, useState } from "react";
 import { Role } from "../../generated/prisma/enums";
 
-interface CtxUser {
+export interface CtxUser {
+  id: string;
   username: string;
   email: string;
   role: Role;
-  avatar?: string;
+  avatar?: string | null;
 }
 
 type AuthContextType = {
@@ -17,8 +18,14 @@ type AuthContextType = {
 
 const authCtx = createContext<AuthContextType | null>(null);
 
-function AuthProviders({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<CtxUser | null>(null);
+function AuthProviders({
+  children,
+  initialUser,
+}: {
+  children: ReactNode;
+  initialUser: CtxUser | null;
+}) {
+  const [user, setUser] = useState<CtxUser | null>(initialUser);
 
   const Provider = authCtx.Provider;
 

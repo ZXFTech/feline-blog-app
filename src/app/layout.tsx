@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "material-symbols/outlined.css";
 import "../styles/index.scss";
 import Navbar from "@/components/Navbar";
@@ -7,26 +6,7 @@ import Footer from "@/components/Footer";
 import Head from "next/head";
 import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
-import { Ma_Shan_Zheng } from "next/font/google";
-import { cn } from "@/lib/utils";
-
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const maShanZheng = Ma_Shan_Zheng({
-  variable: "--font-ma-shan-zheng",
-  subsets: ["latin"],
-  weight: "400",
-});
+import { getCurrentUser } from "@/lib/auth/userAuth";
 
 export const metadata: Metadata = {
   title: "neon cat",
@@ -35,18 +15,29 @@ export const metadata: Metadata = {
 
 const routeList = ["home", "blog", "album", "contact", "todo"];
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const currentUser = await getCurrentUser();
+  const initialUser = currentUser
+    ? {
+        id: currentUser.id,
+        username: currentUser.username,
+        email: currentUser.email,
+        role: currentUser.role,
+        avatar: currentUser.avatar,
+      }
+    : null;
+
   return (
-    <html lang="zh-cn" className={cn(maShanZheng.variable, inter.variable)}>
+    <html lang="zh-cn">
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        <AuthProviders>
+      <body>
+        <AuthProviders initialUser={initialUser}>
           <Navbar routeList={routeList} />
           {children}
           <Footer />

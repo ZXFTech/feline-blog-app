@@ -5,7 +5,7 @@ import {
   playResumeSound,
   playStartSound,
 } from "@/lib/audio/tomato";
-import { PomodoroRecord } from "../../generated/prisma/client";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
 
 export type Phase = "idle" | "focus" | "short_break" | "long_break";
 export type RunState = "stopped" | "running" | "paused";
@@ -29,6 +29,8 @@ export interface PomodoroState {
   remainingMs: number; // 当前阶段剩余
   startAt: number | null; // 开始时间
   endAt: number | null; // running 时：预计结束时间戳（ms）
+  activeEventId: string | null;
+  pendingOutcome: PomodoroOutcome | null;
 
   completedFocus: number; // 已完成专注次数（用来决定长休息）
   settings: PomodoroSettings;
@@ -51,11 +53,12 @@ export type PomodoroSoundRule = {
 export type Action =
   | { type: "HYDRATE"; now: number; state: PomodoroState } // 恢复
   | { type: "SET_SETTINGS"; settings: Partial<PomodoroSettings> }
-  | { type: "START"; now: number } // 开始当前 phase（idle 会转 focus）
+  | { type: "START"; now: number; eventId: string } // 开始当前 phase（idle 会转 focus）
   | { type: "PAUSE"; now: number }
   | { type: "RESUME"; now: number }
-  | { type: "STOP" } // 回 idle
+  | { type: "STOP"; now: number } // 回 idle
   | { type: "SKIP"; now: number } // 跳到下一阶段
+  | { type: "ACK_OUTCOME"; eventId: string }
   | { type: "TICK"; now: number }; // 驱动倒计时（仅 running 有效）
 
 export type DispatchSource =
@@ -104,7 +107,63 @@ export type PomodoroPlugin<S> = {
   ) => PomodoroActions;
 };
 
-export type PomodoroData = Omit<
-  PomodoroRecord,
-  "id" | "createAt" | "updateAt" | "userId" | "summary"
->;
+export interface SavePomodoroInput {
+  eventId: string;
+  type: PomodoroType;
+  endReason: PomodoroEndReason;
+  startAt: string;
+  endAt: string;
+  targetDurationMs: number;
+  remainingMs: number;
+}
+
+export type PomodoroOutcome = SavePomodoroInput;
+
+export type PomodoroSyncStatus =
+  | "pending"
+  | "syncing"
+  | "synced"
+  | "failed"
+  | "conflict";
+
+export interface PomodoroHistoryRecord {
+  id: string;
+  eventId: string | null;
+  type: PomodoroType;
+  endReason: PomodoroEndReason | null;
+  finished: boolean;
+  startAt: string;
+  endAt: string;
+  durationMs: number;
+  actualDurationMs: number;
+  syncStatus: PomodoroSyncStatus;
+}
+
+export type SavePomodoroResult =
+  | { status: "created" | "already_exists"; record: PomodoroHistoryRecord }
+  | { status: "conflict"; record: PomodoroHistoryRecord; message: string }
+  | {
+      status: "unauthenticated" | "invalid_payload" | "temporary_failure";
+      message: string;
+    };
+
+export interface PomodoroOutboxItem {
+  schemaVersion: 2;
+  userId: string;
+  eventId: string;
+  payload: SavePomodoroInput;
+  createdAt: string;
+  retryCount: number;
+  nextAttemptAt: number;
+  lastError: string | null;
+  status: Exclude<PomodoroSyncStatus, "synced">;
+  serverRecord?: PomodoroHistoryRecord;
+}
+
+export interface PomodoroTimerEnvelope {
+  schemaVersion: 2;
+  userId: string;
+  state: PomodoroState;
+}
+
+export type PomodoroData = SavePomodoroInput;

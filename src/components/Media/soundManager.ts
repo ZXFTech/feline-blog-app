@@ -254,7 +254,7 @@ export class SoundManager {
 
       // 真正播放（play 返回 Promise，需要 await 捕获策略拦截）
       await audio.play();
-    } catch (e: any) {
+    } catch (e) {
       // 不吞掉：上层可根据 e.name 做 UI 提示
       // 常见：NotAllowedError（非用户手势或策略限制）
       throw e;

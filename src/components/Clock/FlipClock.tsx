@@ -47,14 +47,14 @@ export default function FlipClock() {
         <div>{weekDay}</div>
       </div>
       <div className="flip-clock">
-        <FlipDigit value={h1} />
-        <FlipDigit value={h2} />
+        <FlipDigit value={h1} countdown={false} />
+        <FlipDigit value={h2} countdown={false} />
         <span className="separator">:</span>
-        <FlipDigit value={m1} />
-        <FlipDigit value={m2} />
+        <FlipDigit value={m1} countdown={false} />
+        <FlipDigit value={m2} countdown={false} />
         <span className="separator">:</span>
-        <FlipDigit value={s1} />
-        <FlipDigit value={s2} />
+        <FlipDigit value={s1} countdown={false} />
+        <FlipDigit value={s2} countdown={false} />
       </div>
     </div>
   );

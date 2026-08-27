@@ -1,7 +1,12 @@
 import {
+  PomodoroEndReason,
+  PomodoroType,
+} from "../../../generated/prisma/enums";
+import type {
   Action,
-  PomodoroState,
+  PomodoroOutcome,
   PomodoroSettings,
+  PomodoroState,
   TimerKind,
 } from "@/types/pomodoro";
 
@@ -23,55 +28,97 @@ export const initialState: PomodoroState = {
   remainingMs: ms(defaultSettings.focusMin),
   startAt: null,
   endAt: null,
+  activeEventId: null,
+  pendingOutcome: null,
   completedFocus: 0,
   settings: defaultSettings,
 };
 
-export function durationMsFor(phase: TimerKind, s: PomodoroSettings) {
-  switch (phase) {
-    case "focus":
-      return ms(s.focusMin);
-    case "short_break":
-      return ms(s.shortBreakMin);
-    case "long_break":
-      return ms(s.longBreakMin);
-  }
+export function durationMsFor(phase: TimerKind, settings: PomodoroSettings) {
+  if (phase === "focus") return ms(settings.focusMin);
+  if (phase === "short_break") return ms(settings.shortBreakMin);
+  return ms(settings.longBreakMin);
 }
 
-function nextPhaseAfterFocus(
-  completedFocus: number,
-  s: PomodoroSettings,
-): TimerKind {
-  const shouldLong =
-    s.longBreakEvery > 0 && completedFocus % s.longBreakEvery === 0;
-  return shouldLong ? "long_break" : "short_break";
+function prismaType(phase: TimerKind) {
+  if (phase === "focus") return PomodoroType.FOCUS;
+  if (phase === "short_break") return PomodoroType.SHORT;
+  return PomodoroType.LONG;
 }
 
-function nextPhaseFrom(state: PomodoroState): TimerKind {
-  // idle => focus
-  // focus => "long_break" || "short_break"
-  // break => focus
+function nextPhase(state: PomodoroState): TimerKind {
   if (state.phase === "idle") return "focus";
-  if (state.phase === "focus")
-    return nextPhaseAfterFocus(state.completedFocus + 1, state.settings);
-  // break -> focus
-  return "focus";
+  if (state.phase !== "focus") return "focus";
+  const completed = state.completedFocus + 1;
+  return state.settings.longBreakEvery > 0 &&
+    completed % state.settings.longBreakEvery === 0
+    ? "long_break"
+    : "short_break";
 }
 
-function stopRunning(state: PomodoroState): PomodoroState {
-  return { ...state, run: "stopped", endAt: null };
+function remainingAt(state: PomodoroState, now: number) {
+  if (state.run === "running" && state.endAt)
+    return Math.max(0, state.endAt - now);
+  return state.remainingMs;
 }
 
-function startRunning(state: PomodoroState, now: number): PomodoroState {
+function makeOutcome(
+  state: PomodoroState,
+  reason: PomodoroEndReason,
+  now: number,
+): PomodoroOutcome | null {
+  if (state.phase === "idle" || !state.activeEventId || !state.startAt)
+    return null;
+  const targetDurationMs = durationMsFor(state.phase, state.settings);
+  const completed =
+    reason === PomodoroEndReason.COMPLETED ||
+    (state.endAt !== null && now >= state.endAt);
+  const endReason = completed ? PomodoroEndReason.COMPLETED : reason;
+  const remainingMs = completed ? 0 : remainingAt(state, now);
+  const endAt = completed && state.endAt ? state.endAt : now;
   return {
-    ...state,
-    run: "running",
-    endAt: now + state.remainingMs,
+    eventId: state.activeEventId,
+    type: prismaType(state.phase),
+    endReason,
+    startAt: new Date(state.startAt).toISOString(),
+    endAt: new Date(endAt).toISOString(),
+    targetDurationMs,
+    remainingMs,
   };
 }
 
-function computeRemaining(endAt: number, now: number) {
-  return Math.max(0, endAt - now);
+function settle(
+  state: PomodoroState,
+  reason: PomodoroEndReason,
+  now: number,
+): PomodoroState {
+  const outcome = makeOutcome(state, reason, now);
+  if (!outcome) return state;
+  if (outcome.endReason === PomodoroEndReason.STOPPED) {
+    return {
+      ...state,
+      phase: "idle",
+      run: "stopped",
+      remainingMs: durationMsFor("focus", state.settings),
+      startAt: null,
+      endAt: null,
+      activeEventId: null,
+      pendingOutcome: outcome,
+    };
+  }
+  const next = nextPhase(state);
+  return {
+    ...state,
+    phase: next,
+    run: "stopped",
+    remainingMs: durationMsFor(next, state.settings),
+    startAt: null,
+    endAt: null,
+    activeEventId: null,
+    pendingOutcome: outcome,
+    completedFocus:
+      state.phase === "focus" ? state.completedFocus + 1 : state.completedFocus,
+  };
 }
 
 export function pomodoroReducer(
@@ -80,113 +127,85 @@ export function pomodoroReducer(
 ): PomodoroState {
   switch (action.type) {
     case "HYDRATE": {
-      // 恢复时如果还在 running：用 endAt 纠正 remaining
       const hydrated = action.state;
-      if (hydrated.run === "running" && hydrated.endAt) {
-        const remainingMs = computeRemaining(hydrated.endAt, action.now);
-        // 如果已经过期，直接按 TICK 的逻辑推进一次
-        return pomodoroReducer(
-          { ...hydrated, remainingMs },
-          { type: "TICK", now: action.now },
+      if (
+        hydrated.run === "running" &&
+        hydrated.endAt &&
+        action.now >= hydrated.endAt
+      ) {
+        return settle(
+          { ...hydrated, remainingMs: 0 },
+          PomodoroEndReason.COMPLETED,
+          hydrated.endAt,
         );
+      }
+      if (hydrated.run === "running" && hydrated.endAt) {
+        return { ...hydrated, remainingMs: remainingAt(hydrated, action.now) };
       }
       return hydrated;
     }
-
     case "SET_SETTINGS": {
       const settings = { ...state.settings, ...action.settings };
-      // 如果当前处于 stopped/idle，可选择同步更新 remaining（更符合用户预期）
-      if (state.run !== "running") {
-        const phase: TimerKind =
-          state.phase === "idle" ? "focus" : (state.phase as TimerKind);
+      if (state.run === "stopped") {
+        const phase = state.phase === "idle" ? "focus" : state.phase;
         return {
           ...state,
           settings,
           remainingMs: durationMsFor(phase, settings),
-          endAt: null,
         };
       }
       return { ...state, settings };
     }
-
     case "START": {
-      const phase: TimerKind =
-        state.phase === "idle" ? "focus" : (state.phase as TimerKind);
+      if (state.pendingOutcome || state.run === "running") return state;
+      const phase = state.phase === "idle" ? "focus" : state.phase;
       const remainingMs =
         state.run === "paused"
           ? state.remainingMs
           : durationMsFor(phase, state.settings);
-      return startRunning(
-        { ...state, phase, remainingMs, startAt: action.now },
-        action.now,
-      );
+      return {
+        ...state,
+        phase,
+        run: "running",
+        remainingMs,
+        startAt: state.run === "paused" ? state.startAt : action.now,
+        endAt: action.now + remainingMs,
+        activeEventId:
+          state.run === "paused" ? state.activeEventId : action.eventId,
+      };
     }
-
-    case "PAUSE": {
+    case "PAUSE":
       if (state.run !== "running" || !state.endAt) return state;
       return {
         ...state,
         run: "paused",
-        remainingMs: computeRemaining(state.endAt, action.now),
+        remainingMs: remainingAt(state, action.now),
         endAt: null,
       };
-    }
-
-    case "RESUME": {
+    case "RESUME":
       if (state.run !== "paused") return state;
-      return startRunning(state, action.now);
-    }
-
-    case "STOP": {
-      // 回到 idle，并重置 focus 时长
       return {
         ...state,
-        phase: "idle",
-        run: "stopped",
-        remainingMs: durationMsFor("focus", state.settings),
-        endAt: null,
-        startAt: null,
+        run: "running",
+        endAt: action.now + state.remainingMs,
       };
-    }
-
-    case "SKIP": {
-      const next = nextPhaseFrom(state);
-      const nextRemaining = durationMsFor(next, state.settings);
-
-      // focus -> break 时才累计 completedFocus
-      const completedFocus =
-        state.phase === "focus"
-          ? state.completedFocus + 1
-          : state.completedFocus;
-
-      const nextState: PomodoroState = {
-        ...state,
-        phase: next,
-        run: "stopped",
-        remainingMs: nextRemaining,
-        endAt: null,
-        startAt: null,
-        completedFocus,
-      };
-
-      return state.settings.autoStartNext
-        ? startRunning({ ...nextState, startAt: action.now }, action.now)
-        : nextState;
-    }
-
-    case "TICK": {
+    case "STOP":
+      return settle(state, PomodoroEndReason.STOPPED, action.now);
+    case "SKIP":
+      return settle(state, PomodoroEndReason.SKIPPED, action.now);
+    case "TICK":
       if (state.run !== "running" || !state.endAt) return state;
-      const remainingMs = computeRemaining(state.endAt, action.now);
-
-      if (remainingMs > 0) return { ...state, remainingMs };
-
-      // 到点：推进到下一阶段（相当于 SKIP）
-      return pomodoroReducer(
+      if (action.now < state.endAt)
+        return { ...state, remainingMs: remainingAt(state, action.now) };
+      return settle(
         { ...state, remainingMs: 0 },
-        { type: "SKIP", now: action.now },
+        PomodoroEndReason.COMPLETED,
+        state.endAt,
       );
-    }
-
+    case "ACK_OUTCOME":
+      return state.pendingOutcome?.eventId === action.eventId
+        ? { ...state, pendingOutcome: null }
+        : state;
     default:
       return state;
   }

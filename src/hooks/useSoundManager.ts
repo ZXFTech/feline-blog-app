@@ -39,8 +39,8 @@ export function useSoundManager(defs: SoundDefinition[]) {
         try {
           setLastError("");
           await m.unlock();
-        } catch (e: any) {
-          setLastError(e?.name || "unlock error");
+        } catch (e) {
+          setLastError(e instanceof Error ? e.name : "unlock error");
         }
       },
 
@@ -48,8 +48,8 @@ export function useSoundManager(defs: SoundDefinition[]) {
         try {
           setLastError("");
           await m.play(id);
-        } catch (e: any) {
-          const name = e?.name || "Error";
+        } catch (e) {
+          const name = e instanceof Error ? e.name : "Error";
           if (name === "NotAllowedError") {
             setLastError(
               "Browser blocked audio. Ensure play() is called in a click/tap handler.",

@@ -8,14 +8,12 @@ import NeuInput from "@/components/NeuInput";
 import { useAuth } from "@/hooks/useAuth";
 import { toast as message } from "@/components/ProMessage";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import React, { FormEvent, useMemo, useState } from "react";
 import { TextGap } from "@/components/TextGap";
 
 export default function Login() {
   const { login } = useAuth();
-  const router = useRouter();
-
   const searchParams = useSearchParams();
 
   const [loading, setLoading] = useState(false);
@@ -65,11 +63,7 @@ export default function Login() {
       } else {
         message.success("登录成功!");
         const from = searchParams.get("from");
-        if (from) {
-          router.push(from);
-        } else {
-          router.push("/");
-        }
+        window.location.assign(from || "/");
       }
     } catch (error) {
       message.error("出错了," + error);
@@ -95,7 +89,7 @@ export default function Login() {
             placeholder="请输入邮箱"
             autoComplete="new-password"
             value={email}
-            onChange={(e) => setEmail(e.target.value || "")}
+            onInput={(e) => setEmail(e.currentTarget.value || "")}
           />
           {submitted && errorStatus.emailErrorMessage ? (
             <span className="text-red-600">
@@ -114,7 +108,7 @@ export default function Login() {
             placeholder="请输入密码"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value || "")}
+            onInput={(e) => setPassword(e.currentTarget.value || "")}
           />
           {submitted && errorStatus.passwordErrorMessage ? (
             <span className="text-red-600">

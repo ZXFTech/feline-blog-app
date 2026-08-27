@@ -7,17 +7,12 @@ import {
 } from "@/lib/audio/tomato";
 import {
   PluginContext,
-  PomodoroData,
   PomodoroPlugin,
   PomodoroSound,
   PomodoroSoundRule,
   PomodoroState,
 } from "@/types/pomodoro";
-import { PomodoroType } from "../../../../generated/prisma/enums";
-import { durationMsFor } from "../reducer";
-import { addTomatoHistory } from "@/db/tomatoActions";
-import logger from "@/lib/logger/Logger";
-import { formatMs, phaseType } from "@/utils/timeUtils";
+import { formatMs } from "@/utils/timeUtils";
 import { isBrowser, nowMs } from "./utils";
 
 const SOUND: Record<PomodoroSound, (v: number) => void> = {
@@ -82,50 +77,6 @@ function AudioPlugin(): PomodoroPlugin<PomodoroState> {
         return;
       }
       SOUND[sound](volume);
-    },
-  };
-}
-
-function transformStateToData(state: PomodoroState): PomodoroData {
-  const { phase, startAt, settings, remainingMs } = state;
-  if (phase === "idle") {
-    throw "invalid phase";
-  }
-
-  const startDate = new Date(startAt!);
-  const duration = durationMsFor(phase, settings);
-  const endDate = new Date(startAt! + duration - remainingMs);
-
-  return {
-    startAt: startDate,
-    endAt: endDate,
-    type: phaseType(phase) as PomodoroType,
-    durationMs: duration,
-    actualDurationMs: duration - remainingMs,
-    finished: remainingMs === 0,
-  };
-}
-
-function RecordPlugin(): PomodoroPlugin<PomodoroState> {
-  return {
-    name: "record",
-    async onStateChange(prev, next) {
-      if (prev.phase === "idle") {
-        // IDLE
-        return;
-      }
-      if (prev.phase === next.phase) {
-        // 非切换状态不记录
-        return;
-      }
-      const recordData: PomodoroData = transformStateToData(prev);
-
-      try {
-        await addTomatoHistory(recordData);
-      } catch (error) {
-        logger.error("记录失败.", error);
-        return { error: true, message: error };
-      }
     },
   };
 }
@@ -224,4 +175,4 @@ function tickPlugin({
   };
 }
 
-export { AudioPlugin, RecordPlugin, titlePlugin, tickPlugin };
+export { AudioPlugin, titlePlugin, tickPlugin };

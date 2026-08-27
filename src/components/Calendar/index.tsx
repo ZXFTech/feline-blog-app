@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import NeuDiv from "../NeuDiv";
 import {
   getDaysInMonth,
   getFirstDayOfMonth,
@@ -20,12 +19,14 @@ export interface RecordDate {
 interface WorkoutCalendarProps {
   selectedDate?: Date;
   onDateSelect?: (date: Date) => void;
+  onMonthChange?: (date: Date) => void;
   recordDate?: RecordDate[];
 }
 
 function Calendar({
   selectedDate = new Date(),
   onDateSelect = () => {},
+  onMonthChange = () => {},
   recordDate = [],
 }: WorkoutCalendarProps) {
   const [currentMonth, setCurrentMonth] = useState(selectedDate);
@@ -62,20 +63,27 @@ function Calendar({
   }
 
   const previousMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
+    const next = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() - 1,
     );
+    setCurrentMonth(next);
+    onMonthChange(next);
   };
 
   const nextMonth = () => {
-    setCurrentMonth(
-      new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1),
+    const next = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() + 1,
     );
+    setCurrentMonth(next);
+    onMonthChange(next);
   };
 
   const returnToToday = () => {
     const today = new Date();
     setCurrentMonth(new Date(today.getFullYear(), today.getMonth()));
+    onMonthChange(today);
     onDateSelect(new Date());
   };
 
@@ -113,12 +121,14 @@ function Calendar({
         <div className="flex gap-2">
           <button
             onClick={previousMonth}
+            aria-label="上个月"
             className="p-1 hover:bg-muted rounded-md transition-colors"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
           <button
             onClick={nextMonth}
+            aria-label="下个月"
             className="p-1 hover:bg-muted rounded-md transition-colors"
           >
             <ChevronRight className="w-5 h-5" />
@@ -142,8 +152,8 @@ function Calendar({
           const color = record?.color;
           const isSelected = isSelectedDay(day);
           return (
-            <NeuDiv
-              neuType={"flat"}
+            <button
+              type="button"
               key={index}
               onClick={() => {
                 if (isCurrentMonth) {
@@ -155,8 +165,10 @@ function Calendar({
                   onDateSelect(newDate);
                 }
               }}
+              disabled={!isCurrentMonth}
+              aria-label={`${formatDate(currentMonth.getFullYear(), currentMonth.getMonth(), day)}${record ? "，已完成专注" : ""}`}
               className={`
-                p-1.5 aspect-square rounded-md text-sm font-medium flex flex-col gap-1 items-center justify-center transition-all! group duration-618 hover:transition-none! hover:bg-white hover:text-black
+                min-h-11 p-1.5 aspect-square rounded-md text-sm font-medium flex flex-col gap-1 items-center justify-center transition-all! group duration-618 hover:transition-none! hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary
                 ${!isCurrentMonth ? "opacity-50 cursor-not-allowed" : ""}
                 ${isCurrentMonth && !isSelected ? "cursor-pointer" : ""}
                 ${isCurrentMonth && isSelected ? "bg-primary text-white  hover:bg-primary hover:text-white" : ""}
@@ -169,7 +181,7 @@ function Calendar({
                   !!record && (color || "bg-success"),
                 )}
               ></div>
-            </NeuDiv>
+            </button>
           );
         })}
       </div>

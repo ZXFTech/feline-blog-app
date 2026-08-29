@@ -1,95 +1,138 @@
 "use client";
 
-import React, { forwardRef } from "react";
-import Button, { ButtonProps } from "../Button";
+import React, {
+  ComponentPropsWithoutRef,
+  ForwardedRef,
+  ReactElement,
+  RefAttributes,
+  forwardRef,
+} from "react";
+import Button, {
+  ButtonContent,
+  ButtonProps,
+  ButtonVisualProps,
+  buttonClassNames,
+} from "../Button";
 import { NeuIntensity, NeuButtonType } from "@/types";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-// import { getElementColor, getStyleProperty } from "../../utils/theme";
 
-export interface NeuButtonProps extends ButtonProps {
+interface NeuButtonOwnProps {
   neuType?: NeuButtonType;
   intensity?: NeuIntensity;
-  themeColorHex?: string;
 }
 
-const NeuButton = forwardRef<HTMLButtonElement, NeuButtonProps>(
-  (props, ref) => {
+type ActionNeuButtonProps = NeuButtonOwnProps &
+  Omit<ButtonProps, "buttonType"> & {
+    buttonType?: Exclude<ButtonProps["buttonType"], "link">;
+    href?: never;
+  };
+
+type LinkVisualProps = Pick<
+  ButtonVisualProps,
+  "btnSize" | "children" | "loading" | "icon" | "suffixIcon"
+>;
+
+type LinkNeuButtonProps = NeuButtonOwnProps &
+  LinkVisualProps &
+  Omit<ComponentPropsWithoutRef<typeof Link>, "className" | "children"> & {
+    buttonType: "link";
+    className?: string;
+  };
+
+export type NeuButtonProps = ActionNeuButtonProps | LinkNeuButtonProps;
+
+interface NeuButtonComponent {
+  (
+    props: ActionNeuButtonProps & RefAttributes<HTMLButtonElement>,
+  ): ReactElement;
+  (props: LinkNeuButtonProps & RefAttributes<HTMLAnchorElement>): ReactElement;
+  displayName?: string;
+}
+
+const NeuButton = forwardRef<
+  HTMLButtonElement | HTMLAnchorElement,
+  NeuButtonProps
+>((props, ref) => {
+  if (props.buttonType === "link") {
     const {
       neuType = "embossed",
       intensity = "normal",
       className,
       buttonType,
+      href,
+      btnSize,
+      loading,
+      icon,
+      suffixIcon,
       children,
-      disabled,
-      href = "",
-      ...restProps
+      ...linkProps
     } = props;
-
-    const classnames = cn(
+    const surfaceClassName = cn(
       "neu-btn",
       "bg-bg text-font",
       "m-1",
-      {
-        [`btn-${neuType}-${intensity}`]: neuType && intensity,
-        [`neu-btn-${buttonType}`]: buttonType,
-        disabled: disabled,
-      },
+      `btn-${neuType}-${intensity}`,
+      `neu-btn-${buttonType}`,
       className,
     );
 
-    // const [combineStyle, setCombineStyle] = useState<React.CSSProperties>({});
-    // useEffect(() => {
-    //   const themeStyle: React.CSSProperties = {};
-    //   if (themeColorHex) {
-    //     const { darkShadow, lightShadow, borderColor, fontColor } =
-    //       getElementColor(themeColorHex);
-
-    //     const shadowSize = getStyleProperty(
-    //       `--shadow-size-${props.size ? props.size : "normal"}`
-    //     );
-    //     console.log(getStyleProperty("--theme-light"));
-    //     console.log(
-    //       'document.documentElement.style.getPropertyValue("--theme-light")',
-    //       document.documentElement.style.getPropertyValue("--theme-light")
-    //     );
-    //     const shadowBlur = getStyleProperty(
-    //       `--shadow-blur-${props.size ? props.size : "normal"}`
-    //     );
-
-    //     themeStyle.boxShadow = `-${shadowSize} -${shadowSize} ${shadowBlur} ${lightShadow}, ${shadowSize} ${shadowSize} ${shadowBlur} ${darkShadow}`;
-    //     themeStyle.color = fontColor;
-    //     themeStyle.borderColor = borderColor;
-    //   }
-
-    //   setCombineStyle(themeStyle);
-    // }, [themeColorHex, props]);
-    // if (buttonType === "link") {
-    //   return (
-    //     <Link className={className} href={href} {...restProps}>
-    //       {children}
-    //     </Link>
-    //   );
-    // }
-
     return (
-      <Button
-        ref={ref}
-        disabled={disabled}
-        className={classnames}
-        {...restProps}
+      <Link
+        ref={ref as ForwardedRef<HTMLAnchorElement>}
+        href={href}
+        className={buttonClassNames({
+          className: surfaceClassName,
+          btnSize,
+          children,
+          loading,
+          icon,
+          suffixIcon,
+        })}
+        {...linkProps}
       >
-        {buttonType === "link" ? (
-          <Link className="neu-btn-inner-link" href={href} {...restProps}>
-            {children}
-          </Link>
-        ) : (
-          children
-        )}
-      </Button>
+        <ButtonContent
+          loading={loading}
+          icon={icon}
+          btnSize={btnSize}
+          suffixIcon={suffixIcon}
+        >
+          {children}
+        </ButtonContent>
+      </Link>
     );
-  },
-);
+  }
+
+  const {
+    neuType = "embossed",
+    intensity = "normal",
+    className,
+    buttonType,
+    children,
+    disabled,
+    ...buttonProps
+  } = props;
+  const surfaceClassName = cn(
+    "neu-btn",
+    "bg-bg text-font",
+    "m-1",
+    `btn-${neuType}-${intensity}`,
+    buttonType && `neu-btn-${buttonType}`,
+    disabled && "disabled",
+    className,
+  );
+
+  return (
+    <Button
+      ref={ref as ForwardedRef<HTMLButtonElement>}
+      disabled={disabled}
+      className={surfaceClassName}
+      {...buttonProps}
+    >
+      {children}
+    </Button>
+  );
+}) as NeuButtonComponent;
 
 NeuButton.displayName = "NeuButton";
 

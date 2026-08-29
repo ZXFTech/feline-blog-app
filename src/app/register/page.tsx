@@ -176,7 +176,7 @@ export default function Register() {
           ) : null}
           <span className="mt-4">
             已有账号,
-            <NeuButton type="button" buttonType="link" href="/login">
+            <NeuButton buttonType="link" href="/login">
               点击跳转登录
             </NeuButton>
           </span>

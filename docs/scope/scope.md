@@ -27,6 +27,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 14  | 使用统计与错误监控     | Slice 9     | planned     |
 | 15  | NeuDiv 组件代码优化    | Maintenance | done        |
 | 16  | Neu 表面与交互契约迁移 | Maintenance | done        |
+| 17  | NeuButton 代码逻辑优化 | Maintenance | planned     |
 
 ## Current product
 
@@ -172,6 +173,16 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
       code in `src/components/NeuDiv/`, `src/components/Tag/`, `src/components/DailyStatus/WeeklyView.tsx`, `src/components/Navbar/index.tsx`, `src/components/BlogList/ListItem.tsx`, `src/components/pomodoro/PomodoroList.tsx`
 - [x] Verify it: `/check verify Neu 表面与交互契约迁移`
 - [x] Test it: `/test Neu 表面与交互契约迁移`
+
+### 17. NeuButton 代码逻辑优化 · done
+
+整理 NeuButton 的实现和类型表达，删除未实现的公开属性，修正链接变体的类型与 HTML 语义，不修改任何样式。
+**Done when:** 未实现且未使用的 `themeColorHex` 已删除；链接变体必须提供 `href` 并直接渲染为链接，按钮变体继续渲染为按钮；现有样式和有效调用行为保持不变，相关引用继续通过类型检查、lint、构建和测试。
+
+- [x] Build it: `/develop NeuButton 代码逻辑优化`
+      code in `src/components/NeuButton/`, `src/types/neu.ts`
+- [x] Verify it: `/check verify NeuButton 代码逻辑优化`
+- [x] Test it: `/test NeuButton 代码逻辑优化`
 
 ## Deferred
 

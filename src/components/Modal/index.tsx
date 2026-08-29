@@ -16,6 +16,7 @@ import { ButtonType } from "../Button";
 import Portal from "../Portal";
 
 type FooterType = "ok" | "cancel" | "default" | "none";
+type ModalButtonType = Exclude<ButtonType, "link">;
 
 interface Props {
   visible: boolean;
@@ -25,10 +26,10 @@ interface Props {
   footer?: FooterType;
   okText?: string;
   cancelText?: string;
-  okType?: ButtonType;
+  okType?: ModalButtonType;
   okIcon?: IconType;
   okLoading?: boolean;
-  cancelType?: ButtonType;
+  cancelType?: ModalButtonType;
   closeIcon?: boolean | IconType | string;
   children?: ReactNode;
 }

@@ -8,7 +8,7 @@
   @include neu.neu-embossed-sm;
 }
 
-.neu-raised-sm {
+.neu-interaction-raise-sm {
   @include neu.neu-flat;
   &:hover {
     @include neu.neu-embossed-sm;
@@ -16,7 +16,7 @@
   }
 }
 
-.neu-raised-normal {
+.neu-interaction-raise-normal {
   // @include neu-embossed-lg;
   @include neu.neu-flat;
   &:hover {
@@ -31,12 +31,4 @@
 
 .neu-debossed-sm {
   @include neu.neu-debossed-sm;
-}
-
-.neu-recessed-normal {
-  @include neu.neu-flat;
-  &:hover {
-    @include neu.neu-debossed-normal;
-    scale: 99%;
-  }
 }

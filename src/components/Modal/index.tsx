@@ -9,7 +9,7 @@ import {
   useRef,
   useState,
 } from "react";
-import NeuDiv from "../NeuDiv";
+import { neuSurfaceClassNames } from "../NeuDiv";
 import Icon, { IconType } from "../Icon";
 import NeuButton from "../NeuButton";
 import { ButtonType } from "../Button";
@@ -117,11 +117,13 @@ const Modal = ({
           show ? "bg-gray-400/40!" : "bg-gray-400/0!"
         }`}
       >
-        <NeuDiv
+        <div
           onClick={(e) => e.stopPropagation()}
-          className={`model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
-            show ? "scale-100 opacity-100" : "scale-95 opacity-0"
-          }`}
+          className={neuSurfaceClassNames({
+            className: `model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
+              show ? "scale-100 opacity-100" : "scale-95 opacity-0"
+            }`,
+          })}
         >
           {/* Header */}
           <div className="modal-title-bar flex items-center justify-between mb-3 px-1">
@@ -143,7 +145,7 @@ const Modal = ({
           <div className="modal-footer flex items-center justify-end gap-2 px-1">
             {renderFooter()}
           </div>
-        </NeuDiv>
+        </div>
       </div>
     </Portal>
   );

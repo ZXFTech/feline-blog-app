@@ -45,7 +45,7 @@ export default function PomodoroList({ dataSource, onAdoptServer }: Props) {
     <ul className="flex flex-col gap-3" aria-label="番茄钟历史">
       {dataSource.map((item) => (
         <li key={item.eventId ?? item.id}>
-          <NeuDiv neuType="raised" className="flex flex-col gap-3 p-4">
+          <NeuDiv surface="flat" className="flex flex-col gap-3 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 {item.type === "FOCUS" ? (

@@ -38,6 +38,11 @@ describe("PomodoroList", () => {
     expect(screen.getByText("目标 25:00")).toBeVisible();
     expect(screen.getByText("实际 25:00")).toBeVisible();
     expect(screen.getByText("完成")).toBeVisible();
+    const historyCard = screen.getByText("已同步").closest(".neu-div");
+    expect(historyCard).toHaveClass("neu-div");
+    expect(historyCard?.className).not.toMatch(
+      /neu-interaction-raise|neu-embossed|neu-debossed/,
+    );
   });
 
   it("AC-5 lets the user adopt the first server record after a conflict", async () => {

@@ -29,16 +29,16 @@ export const BlogListOperationBar = () => {
       }
       router.replace(`${pathname}?${params}`);
     },
-    [searchParams, router, pathname]
+    [searchParams, router, pathname],
   );
 
   const debounceUpdate = useMemo(
     () =>
       debounce(
         (key: string, value: string) => updateSearchParams(key, value),
-        500
+        500,
       ),
-    [updateSearchParams]
+    [updateSearchParams],
   );
 
   const switchOrderBy = () => {
@@ -48,7 +48,7 @@ export const BlogListOperationBar = () => {
   return (
     <div className="flex flex-col gap-4 mb-4 sticky right-0 left-0 top-0 z-100">
       <NeuDiv
-        neuType="flat"
+        surface="flat"
         className="flex flex-row flex-wrap items-center justify-between"
       >
         <div className="flex flex-row gap-2">

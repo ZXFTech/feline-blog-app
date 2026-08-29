@@ -68,7 +68,7 @@ const Blog = async ({ params }: Props) => {
       </Head>
       <div className="flex flex-col" id="blog-container">
         <NeuDiv
-          neuType="flat"
+          surface="flat"
           className="blog-content-container px-4 pt-2 pb-4 overflow-auto"
         >
           <div className="mb-2">

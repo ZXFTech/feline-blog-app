@@ -24,7 +24,7 @@ function DailySummary({ dailyData, loading = false }: Props) {
   }
 
   return (
-    <NeuDiv neuType="flat">
+    <NeuDiv surface="flat">
       <div className="flex justify-between">
         <Tag>
           {dayjs(new Date(dailyData.createdAt!)).format("YYYY-MM-DD HH:mm:ss")}

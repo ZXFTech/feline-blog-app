@@ -15,7 +15,7 @@ function TagShowCase({ tags, max }: Props) {
 
   return (
     <NeuDiv
-      neuType="debossed"
+      surface="debossed"
       className="flex flex-col m-0! p-4 gap-1 flex-wrap items-stretch"
     >
       {/* {(tags || []).map((tag, index) => {

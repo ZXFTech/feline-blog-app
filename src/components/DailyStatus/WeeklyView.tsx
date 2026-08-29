@@ -3,13 +3,12 @@
 import { useEffect, useMemo, useState } from "react";
 import NeuButton from "../NeuButton";
 import { usePathname, useRouter } from "next/navigation";
-import NeuDiv from "../NeuDiv";
+import { neuSurfaceClassNames } from "../NeuDiv";
 import { DailyData, WorkoutData } from "@/app/daily/page";
 import { cn } from "@/lib/utils";
 
 interface WeeklyViewProps {
   weeklyStatus: DailyData[];
-  onDateSelect: (date: Date) => void;
   selectedDate: Date;
   onWeekChanged: (startDate: Date) => void;
 }
@@ -154,15 +153,20 @@ export function WeeklyView({
       <div className="space-y-3">
         <div className="grid grid-cols-7 gap-2">
           {weeklySummary.map((day, index) => (
-            <NeuDiv
+            <button
+              type="button"
               key={day.date}
               onClick={() => router.replace(`${pathname}?date=${day.date}`)}
-              className={cn(
-                "border border-border rounded-lg p-3! flex flex-col gap-1 min-h-16 cursor-pointer",
-                {
-                  "bg-gray-500/20!": selectedDateStr !== day.date,
-                },
-              )}
+              aria-pressed={selectedDateStr === day.date}
+              className={neuSurfaceClassNames({
+                surface: "embossed",
+                className: cn(
+                  "border border-border rounded-lg p-3! flex flex-col gap-1 min-h-16 cursor-pointer text-left",
+                  {
+                    "bg-gray-500/20!": selectedDateStr !== day.date,
+                  },
+                ),
+              })}
             >
               <div className="flex items-center gap-1">
                 <span className="text-xs font-semibold text-muted-foreground">
@@ -193,7 +197,7 @@ export function WeeklyView({
                   );
                 })}
               </div>
-            </NeuDiv>
+            </button>
           ))}
         </div>
       </div>

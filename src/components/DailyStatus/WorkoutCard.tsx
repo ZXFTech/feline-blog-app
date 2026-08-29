@@ -14,7 +14,7 @@ function WorkoutCard({ data }: Props) {
       <div className="flex gap-4 flex-wrap">
         {data.sets.map((s, i) => (
           <NeuDiv
-            neuType="embossed"
+            surface="embossed"
             key={s.calories + "_" + i}
             className="border p-2 rounded-md flex gap-2"
           >

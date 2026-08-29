@@ -95,7 +95,7 @@ export const TodoOperationBar = ({
           </span>
         </NeuButton>
       </div>
-      <NeuDiv neuType="flat" className="flex flex-row-reverse flex-wrap ">
+      <NeuDiv surface="flat" className="flex flex-row-reverse flex-wrap ">
         {TODO_STATUS_BUTTON_LIST.map((item) => (
           <NeuButton
             buttonType={`${
@@ -111,7 +111,7 @@ export const TodoOperationBar = ({
         ))}
       </NeuDiv>
       <PermissionAccess>
-        <NeuDiv neuType="flat">
+        <NeuDiv surface="flat">
           <NeuButton onClick={() => setPanelVisible(true)}>新建</NeuButton>
         </NeuDiv>
       </PermissionAccess>

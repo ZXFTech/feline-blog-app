@@ -44,7 +44,7 @@ function TagOperator() {
         allowClear
         onChange={(e) => debounceUpdate("content", e.target.value)}
       />
-      <NeuDiv neuType="flat" className="flex items-center justify-center">
+      <NeuDiv surface="flat" className="flex items-center justify-center">
         <span>展示：</span>
         <NeuButton
           buttonType={`${pShow === "blogs" ? "primary" : "default"}`}

@@ -32,7 +32,7 @@ export const ProfileCard = () => {
     <div className="profile-container relative mx-2 flex flex-col px-4 h-full gap-4">
       <div className="flex items-center justify-between items-stretch justify-items-stretch">
         <NeuDiv
-          neuType="embossed"
+          surface="embossed"
           intensity="sm"
           className="avatar w-fit p-3 rounded-xl!"
         >

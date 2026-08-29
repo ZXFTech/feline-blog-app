@@ -108,7 +108,7 @@ const NeuInput = forwardRef<
     }
     return (
       <NeuDiv
-        neuType="flat"
+        surface="flat"
         className={`p-0! rounded-lg flex items-stretch bg-black/3 rounded-lg ${className}`}
       >
         {prefix ? (
@@ -120,7 +120,7 @@ const NeuInput = forwardRef<
           </div>
         ) : null}
         <NeuDiv
-          neuType="debossed"
+          surface="debossed"
           intensity="sm"
           className={`input-container relative flex items-center grow-1 p-1! m-0! ${
             prefix ? "rounded-l-none" : "rounded-l-lg"

@@ -136,14 +136,13 @@ const TagEditor = ({
   };
 
   return (
-    <NeuDiv neuType="flat" className="tag-editor-container w-[100%] p-0">
+    <NeuDiv surface="flat" className="tag-editor-container w-[100%] p-0">
       {value.length ? (
         <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
           {value.map((tag, index) => (
             <Tag
               key={tag.id + tag.content + index}
               color={tag.color}
-              closable
               onClose={() => handleRemoveTag(tag)}
             >
               {tag.content}
@@ -203,11 +202,11 @@ const TagEditor = ({
             <NeuButton icon="check" onClick={updateTags}></NeuButton>
           </div>
         ) : null}
-        <NeuDiv neuType="debossed" className="flex gap-1 flex-wrap items-start">
+        <NeuDiv surface="debossed" className="flex gap-1 flex-wrap items-start">
           {(filteredTags || []).map((tag) => {
             return (
               <Tag
-                onClick={() => {
+                onSelect={() => {
                   setValue(value.concat(tag));
                   setOptionTags((prev) =>
                     prev.filter((item) => item.content !== tag.content),

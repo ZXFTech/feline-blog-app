@@ -46,7 +46,7 @@ export const CodeBlock: FC<{
   language: string;
 }> = ({ code, title, language }) => {
   return (
-    <NeuDiv neuType="debossed" className="w-full mx-0">
+    <NeuDiv surface="debossed" className="w-full mx-0">
       <div suppressHydrationWarning className="flex justify-between">
         <div className="flex gap-1">
           {title && (

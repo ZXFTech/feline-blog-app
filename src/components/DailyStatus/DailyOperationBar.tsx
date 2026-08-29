@@ -14,7 +14,7 @@ function DailyOperationBar() {
       </div>
 
       <PermissionAccess>
-        <NeuDiv neuType="flat">
+        <NeuDiv surface="flat">
           <NeuButton>新建</NeuButton>
         </NeuDiv>
       </PermissionAccess>

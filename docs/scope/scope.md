@@ -9,23 +9,24 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 
 ## At a glance
 
-| #   | Feature              | Phase       | Status      |
-| --- | -------------------- | ----------- | ----------- |
-| 1   | 站点外壳与视觉体系   | Current     | existing    |
-| 2   | 基础账号与文章互动   | Current     | existing    |
-| 3   | 公开文章阅读         | Current     | existing    |
-| 4   | 作者发布文章         | Current     | existing    |
-| 5   | 待办管理             | Current     | existing    |
-| 6   | 番茄钟核心闭环       | Slice 1     | done        |
-| 7   | 日常记录核心闭环     | Slice 2     | in-progress |
-| 8   | 待办进入专注         | Slice 3     | planned     |
-| 9   | 专注结果进入日常总结 | Slice 4     | planned     |
-| 10  | 文章发现能力         | Slice 5     | planned     |
-| 11  | 账号恢复             | Slice 6     | planned     |
-| 12  | 数据权利与隐私说明   | Slice 7     | planned     |
-| 13  | 基础 SEO             | Slice 8     | planned     |
-| 14  | 使用统计与错误监控   | Slice 9     | planned     |
-| 15  | NeuDiv 组件代码优化  | Maintenance | done        |
+| #   | Feature                | Phase       | Status      |
+| --- | ---------------------- | ----------- | ----------- |
+| 1   | 站点外壳与视觉体系     | Current     | existing    |
+| 2   | 基础账号与文章互动     | Current     | existing    |
+| 3   | 公开文章阅读           | Current     | existing    |
+| 4   | 作者发布文章           | Current     | existing    |
+| 5   | 待办管理               | Current     | existing    |
+| 6   | 番茄钟核心闭环         | Slice 1     | done        |
+| 7   | 日常记录核心闭环       | Slice 2     | in-progress |
+| 8   | 待办进入专注           | Slice 3     | planned     |
+| 9   | 专注结果进入日常总结   | Slice 4     | planned     |
+| 10  | 文章发现能力           | Slice 5     | planned     |
+| 11  | 账号恢复               | Slice 6     | planned     |
+| 12  | 数据权利与隐私说明     | Slice 7     | planned     |
+| 13  | 基础 SEO               | Slice 8     | planned     |
+| 14  | 使用统计与错误监控     | Slice 9     | planned     |
+| 15  | NeuDiv 组件代码优化    | Maintenance | done        |
+| 16  | Neu 表面与交互契约迁移 | Maintenance | done        |
 
 ## Current product
 
@@ -159,6 +160,18 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 
 - [x] Build it: `/develop NeuDiv 组件代码优化`
       code in `src/components/NeuDiv/index.tsx`
+
+### 16. Neu 表面与交互契约迁移 · done
+
+将新拟态表面样式与 HTML 交互语义分开，收紧 NeuDiv、WeeklyView、Tag 和相关引用的类型与使用方式。
+**Done when:** 所有生产引用遵守 spec 0002，除已批准的 Pomodoro 历史卡片改为平面显示外，现有视觉保持不变，类型检查、lint、构建、组件测试和相关页面验证通过。
+
+- [x] Design it (spec): `/architect NeuDiv 表面语义与交互契约`
+      spec [0002](../specs/0002-neu-surface-interaction-contract/index.md)
+- [x] Build it: `/develop Neu 表面与交互契约迁移`
+      code in `src/components/NeuDiv/`, `src/components/Tag/`, `src/components/DailyStatus/WeeklyView.tsx`, `src/components/Navbar/index.tsx`, `src/components/BlogList/ListItem.tsx`, `src/components/pomodoro/PomodoroList.tsx`
+- [x] Verify it: `/check verify Neu 表面与交互契约迁移`
+- [x] Test it: `/test Neu 表面与交互契约迁移`
 
 ## Deferred
 

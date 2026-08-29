@@ -85,7 +85,7 @@ function NeuProgressBar({
       )}
 
       <NeuDiv
-        neuType="debossed"
+        surface="debossed"
         intensity="sm"
         className="w-full rounded-full p-0! bg-gray-200 overflow-hidden"
       >

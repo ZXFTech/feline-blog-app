@@ -1,15 +1,19 @@
 import React, { FC } from "react";
 
-import NeuDiv from "../NeuDiv";
+import { neuSurfaceClassNames } from "../NeuDiv";
 import Tag from "../Tag";
 import { CombinedBlog } from "@/types/blog";
 
 const ListItem: FC<CombinedBlog> = (blog) => {
   const { author, title, createdAt, tags = [] } = blog;
   return (
-    <NeuDiv
-      neuType="raised"
-      className="blog-list-item mb-2 border-1 border-border text-left transition-all! group duration-618! hover:transition-none! "
+    <div
+      className={neuSurfaceClassNames({
+        surface: "flat",
+        interactionEffect: "raise",
+        className:
+          "blog-list-item mb-2 border-1 border-border text-left transition-all! group duration-618! hover:transition-none!",
+      })}
     >
       <div className="px-1 py-0 text-2xl font-bold">{title}</div>
       <div className="flex flex-wrap items-center justify-between my-1">
@@ -45,7 +49,7 @@ const ListItem: FC<CombinedBlog> = (blog) => {
           {content.slice(0, 100)}
         </p>
       </div> */}
-    </NeuDiv>
+    </div>
   );
 };
 

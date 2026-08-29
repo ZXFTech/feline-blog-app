@@ -168,7 +168,6 @@ function Daily() {
         <WeeklyView
           weeklyStatus={weeklyStatus}
           onWeekChanged={onWeekChanged}
-          onDateSelect={(date) => setSelectedDate(date)}
           selectedDate={selectedDate}
         />
         <DailySummary dailyData={dailyStatus} loading={dailyLoading} />

@@ -12,7 +12,7 @@ import Content from "@/components/Content";
 const Album = () => {
   return (
     <Content className="flex flex-col gap-4 p-4">
-      <NeuDiv neuType="debossed" className="flex flex-col gap-4">
+      <NeuDiv surface="debossed" className="flex flex-col gap-4">
         <span className="text-sm">进度条</span>
         <NeuProgressBar value={55} max={100} />
         <NeuProgressBar value={55} max={100} showLabel />
@@ -41,7 +41,7 @@ const Album = () => {
         />
       </NeuDiv>
       <NeuDiv
-        neuType="debossed"
+        surface="debossed"
         className="flex flex-wrap items-center gap-2 p-4"
       >
         <span className="text-sm">toast</span>
@@ -105,7 +105,7 @@ const Album = () => {
         </NeuButton>
       </NeuDiv>
       <NeuDiv
-        neuType="debossed"
+        surface="debossed"
         className="flex flex-wrap items-center gap-2 p-4"
       >
         <span className="text-sm">button:</span>
@@ -115,13 +115,13 @@ const Album = () => {
         </NeuButton>
       </NeuDiv>
       <NeuDiv
-        neuType="debossed"
+        surface="debossed"
         className="flex flex-wrap items-center gap-2 p-4"
       >
         <span className="text-sm">tag:</span>
         <Tag icon="search">测试</Tag>
         <Tag color="green">测试</Tag>
-        <Tag icon="search" color="red" closable>
+        <Tag icon="search" color="red" onClose={() => undefined}>
           测试
         </Tag>
         <Tag icon="search" color="red">
@@ -131,7 +131,7 @@ const Album = () => {
           测试
         </Tag>
       </NeuDiv>
-      <NeuDiv neuType="debossed" className="flex flex-wrap items-center gap-2">
+      <NeuDiv surface="debossed" className="flex flex-wrap items-center gap-2">
         <span className="text-sm">输入框</span>
         <NeuInput
           prefix={<Icon icon="search" size="sm" />}

@@ -1,16 +1,16 @@
-import { cn } from "@/lib/utils";
-import type { NeuIntensity, NeuType } from "@/types";
+import type { NeuSurface, NeuSurfaceIntensity } from "@/types";
 import { forwardRef, type ComponentPropsWithoutRef } from "react";
+import { neuSurfaceClassNames } from "./surface";
 
 interface NeuDivProps extends ComponentPropsWithoutRef<"div"> {
-  neuType?: NeuType;
-  intensity?: NeuIntensity;
+  surface?: NeuSurface;
+  intensity?: NeuSurfaceIntensity;
 }
 
 const NeuDiv = forwardRef<HTMLDivElement, NeuDivProps>(
   (
     {
-      neuType = "embossed",
+      surface = "embossed",
       intensity = "normal",
       className,
       children,
@@ -18,16 +18,11 @@ const NeuDiv = forwardRef<HTMLDivElement, NeuDivProps>(
     },
     ref,
   ) => {
-    const classNames = cn(
-      "neu-div",
-      "bg-bg text-font",
-      "p-2 transition duration-100 border border-border rounded-lg ",
-      {
-        [`neu-${neuType}-${intensity}`]: neuType && intensity,
-        "p-1": neuType === "embossed",
-      },
+    const classNames = neuSurfaceClassNames({
+      surface,
+      intensity,
       className,
-    );
+    });
 
     return (
       <div ref={ref} className={classNames} {...restProps}>
@@ -40,3 +35,5 @@ const NeuDiv = forwardRef<HTMLDivElement, NeuDivProps>(
 NeuDiv.displayName = "NeuDiv";
 
 export default NeuDiv;
+export { neuSurfaceClassNames } from "./surface";
+export type { NeuSurfaceOptions } from "./surface";

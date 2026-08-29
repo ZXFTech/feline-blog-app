@@ -117,7 +117,7 @@ export default function Login() {
           ) : null}
           <span className="mt-4">
             还没有账号,
-            <NeuButton type="button" buttonType="link" href="/register">
+            <NeuButton buttonType="link" href="/register">
               点击注册
             </NeuButton>
           </span>

@@ -14,12 +14,11 @@ export type ButtonType =
   | "success"
   | "warn";
 
-interface BaseButtonProps {
-  className: string;
+export interface ButtonVisualProps {
+  className?: string;
   disabled?: boolean;
   btnSize?: ButtonSize;
   buttonType?: ButtonType;
-  href?: string;
   children?: ReactNode;
   loading?: boolean;
   icon?: IconType;
@@ -27,25 +26,20 @@ interface BaseButtonProps {
 }
 
 // 配置联合类型
-type NativeButtonProps = BaseButtonProps & ButtonHTMLAttributes<HTMLElement>;
+type NativeButtonProps = ButtonVisualProps &
+  ButtonHTMLAttributes<HTMLButtonElement>;
 
 export type ButtonProps = Partial<NativeButtonProps>;
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
-  const {
-    className,
-    disabled,
-    btnSize = "md",
-    children,
-    loading,
-    icon,
-    suffixIcon,
-    buttonType,
-    ...restProps
-  } = props;
-
-  // 配置 classnames
-  const configClassNames = cn(
+export const buttonClassNames = ({
+  className,
+  disabled,
+  btnSize = "md",
+  children,
+  loading,
+  buttonType,
+}: ButtonVisualProps) =>
+  cn(
     "btn",
     "inline-flex items-center justify-center relative",
     "outline-none whitespace-nowrap cursor-pointer",
@@ -61,17 +55,59 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
     className,
   );
 
+export const ButtonContent = ({
+  loading,
+  icon,
+  btnSize = "md",
+  children,
+  suffixIcon,
+}: Pick<
+  ButtonVisualProps,
+  "loading" | "icon" | "btnSize" | "children" | "suffixIcon"
+>) => (
+  <>
+    {loading && <IconSpinner size={btnSize} className="btn-loading" />}
+    {icon && <Icon icon={icon} size={btnSize} />}
+    <span className="text-center">{children}</span>
+    {suffixIcon && <Icon icon={suffixIcon} size={btnSize} />}
+  </>
+);
+
+const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
+  const {
+    className,
+    disabled,
+    btnSize = "md",
+    children,
+    loading,
+    icon,
+    suffixIcon,
+    buttonType,
+    ...restProps
+  } = props;
+
   return (
     <button
       disabled={disabled}
       ref={ref}
-      className={configClassNames}
+      className={buttonClassNames({
+        className,
+        disabled,
+        btnSize,
+        children,
+        loading,
+        buttonType,
+      })}
       {...restProps}
     >
-      {loading && <IconSpinner size={btnSize} className="btn-loading" />}
-      {icon && <Icon icon={icon} size={btnSize} />}
-      <span className="text-center">{children}</span>
-      {suffixIcon && <Icon icon={suffixIcon} size={btnSize} />}
+      <ButtonContent
+        loading={loading}
+        icon={icon}
+        btnSize={btnSize}
+        suffixIcon={suffixIcon}
+      >
+        {children}
+      </ButtonContent>
     </button>
   );
 });

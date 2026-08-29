@@ -9,22 +9,23 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 
 ## At a glance
 
-| #   | Feature              | Phase   | Status      |
-| --- | -------------------- | ------- | ----------- |
-| 1   | 站点外壳与视觉体系   | Current | existing    |
-| 2   | 基础账号与文章互动   | Current | existing    |
-| 3   | 公开文章阅读         | Current | existing    |
-| 4   | 作者发布文章         | Current | existing    |
-| 5   | 待办管理             | Current | existing    |
-| 6   | 番茄钟核心闭环       | Slice 1 | done        |
-| 7   | 日常记录核心闭环     | Slice 2 | in-progress |
-| 8   | 待办进入专注         | Slice 3 | planned     |
-| 9   | 专注结果进入日常总结 | Slice 4 | planned     |
-| 10  | 文章发现能力         | Slice 5 | planned     |
-| 11  | 账号恢复             | Slice 6 | planned     |
-| 12  | 数据权利与隐私说明   | Slice 7 | planned     |
-| 13  | 基础 SEO             | Slice 8 | planned     |
-| 14  | 使用统计与错误监控   | Slice 9 | planned     |
+| #   | Feature              | Phase       | Status      |
+| --- | -------------------- | ----------- | ----------- |
+| 1   | 站点外壳与视觉体系   | Current     | existing    |
+| 2   | 基础账号与文章互动   | Current     | existing    |
+| 3   | 公开文章阅读         | Current     | existing    |
+| 4   | 作者发布文章         | Current     | existing    |
+| 5   | 待办管理             | Current     | existing    |
+| 6   | 番茄钟核心闭环       | Slice 1     | done        |
+| 7   | 日常记录核心闭环     | Slice 2     | in-progress |
+| 8   | 待办进入专注         | Slice 3     | planned     |
+| 9   | 专注结果进入日常总结 | Slice 4     | planned     |
+| 10  | 文章发现能力         | Slice 5     | planned     |
+| 11  | 账号恢复             | Slice 6     | planned     |
+| 12  | 数据权利与隐私说明   | Slice 7     | planned     |
+| 13  | 基础 SEO             | Slice 8     | planned     |
+| 14  | 使用统计与错误监控   | Slice 9     | planned     |
+| 15  | NeuDiv 组件代码优化  | Maintenance | done        |
 
 ## Current product
 
@@ -148,6 +149,16 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 **Done when:** 你可以看到核心页面访问和四个正式功能的基本使用情况，服务端与客户端错误可追踪，采集内容与隐私说明一致。
 
 - [ ] Design it (spec): `/architect 使用统计与错误监控`
+
+## Maintenance
+
+### 15. NeuDiv 组件代码优化 · done
+
+整理 NeuDiv 的实现和类型表达，只在组件本身及确有必要的引用文件中改善可读性与可维护性，不扩大修改范围。
+**Done when:** NeuDiv 的样式、属性接口和运行行为保持不变，相关引用继续通过类型检查、lint、构建和测试。
+
+- [x] Build it: `/develop NeuDiv 组件代码优化`
+      code in `src/components/NeuDiv/index.tsx`
 
 ## Deferred
 

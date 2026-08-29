@@ -1,37 +1,42 @@
 import { cn } from "@/lib/utils";
-import { NeuIntensity, NeuType } from "@/types";
-import React, { forwardRef, HTMLAttributes } from "react";
+import type { NeuIntensity, NeuType } from "@/types";
+import { forwardRef, type ComponentPropsWithoutRef } from "react";
 
-interface NeuContainerProps extends HTMLAttributes<HTMLDivElement> {
+interface NeuDivProps extends ComponentPropsWithoutRef<"div"> {
   neuType?: NeuType;
   intensity?: NeuIntensity;
 }
 
-const NeuDiv = forwardRef<HTMLDivElement, NeuContainerProps>((props, ref) => {
-  const {
-    neuType = "embossed",
-    intensity = "normal",
-    className,
-    children,
-    ...restProps
-  } = props;
-
-  const configClassNames = cn(
-    "neu-div",
-    "bg-bg text-font",
-    "p-2 transition duration-100 border border-border rounded-lg ",
+const NeuDiv = forwardRef<HTMLDivElement, NeuDivProps>(
+  (
     {
-      [`neu-${neuType}-${intensity}`]: neuType && intensity,
-      "p-1": neuType === "embossed",
+      neuType = "embossed",
+      intensity = "normal",
+      className,
+      children,
+      ...restProps
     },
-    className,
-  );
+    ref,
+  ) => {
+    const classNames = cn(
+      "neu-div",
+      "bg-bg text-font",
+      "p-2 transition duration-100 border border-border rounded-lg ",
+      {
+        [`neu-${neuType}-${intensity}`]: neuType && intensity,
+        "p-1": neuType === "embossed",
+      },
+      className,
+    );
 
-  return (
-    <div ref={ref} className={configClassNames} {...restProps}>
-      {children}
-    </div>
-  );
-});
-NeuDiv.displayName = "NeuDIv";
+    return (
+      <div ref={ref} className={classNames} {...restProps}>
+        {children}
+      </div>
+    );
+  },
+);
+
+NeuDiv.displayName = "NeuDiv";
+
 export default NeuDiv;

@@ -31,7 +31,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 18  | NeuButton 样式代码审查   | Maintenance | planned     |
 | 19  | Commit lint 流程性能优化 | Maintenance | done        |
 | 20  | 番茄钟按日布局与历史浏览 | Maintenance | in-progress |
-| 21  | 本地发布流程             | Maintenance | in-progress |
+| 21  | 本地发布流程             | Maintenance | done        |
 
 ## Current product
 
@@ -220,19 +220,19 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 - [ ] Verify it: `/check verify 番茄钟按日布局与历史浏览`
 - [ ] Test it: `/test 番茄钟按日布局与历史浏览`
 
-### 21. 本地发布流程 · in-progress
+### 21. 本地发布流程 · done
 
 提供版本管理、changelog 生成和发布入口，区分本地开发与生产数据库环境，并兼容后续远程发布场景。
 **Done when:** 发布脚本可以读取当前版本、生成 changelog、构建生产包、切换数据库环境并部署。
 
 - [x] Design it (spec): `/architect 本地发布流程`
-      spec [0004](../specs/0004-local-release-workflow.md)
-- [ ] Build it: `/develop 本地发布流程`
-  - [ ] 实现 bin/release.ts 主脚本（DRY_RUN、版本读取、standard-version patch 递增、conventional-changelog 生成、Prisma generate、dotenv build、Vercel deploy、git commit/tag），满足 AC-1 到 AC-7
-  - [ ] 实现进度条和统计摘要（单行动态刷新、performance.now() 计时、内存与产物大小统计），满足 AC-8
-  - [ ] 安装 standard-version 和 conventional-changelog，配置 package.json release 命令，满足 entry point
+      spec [0004](../specs/0004-local-release-workflow/index.md)
+- [x] Build it: `/develop 本地发布流程`
+  - [x] 实现 bin/release.ts 主脚本（DRY_RUN、版本读取、standard-version patch 递增、conventional-changelog 生成、Prisma generate、dotenv build、Vercel deploy、git commit/tag），满足 AC-1 到 AC-7
+  - [x] 实现进度条和统计摘要（单行动态刷新、performance.now() 计时、内存与产物大小统计），满足 AC-8
+  - [x] 安装 standard-version 和 conventional-changelog，配置 package.json release 命令，满足 entry point
 - [ ] Verify it: `/check verify 本地发布流程`
-- [ ] Test it: `/test 本地发布流程`
+- [x] Test it: `/test 本地发布流程`
 
 ## Deferred
 

@@ -1,15 +1,13 @@
 # 0004. Local release workflow
 
 **Date**: 2026-08-30
-**Status**: Proposed
+**Status**: Accepted
 
 ## Summary
 
-A single `pnpm release` command handles the whole publishing pipeline: it reads the current version from `package.json`, generates a changelog from conventional commit history, bumps the patch number, builds the production bundle, deploys to Vercel, and commits the version bump with a tag. Each step shows a live progress bar with elapsed time; on completion a summary table reports per step duration, total wall time, release start time, memory usage, and output size. CI environments can run the same script in dry-run mode by setting `DRY_RUN=true`, so the same entry point works for local and remote publishing without duplication.
+A single `pnpm release` command handles the whole publishing pipeline: it reads the current version from `package.json`, generates a changelog from conventional commit history, bumps the patch number, builds the production bundle, deploys to Vercel, and commits the version bump with a tag. Each step shows a live progress bar with elapsed time; on completion a summary table reports per step duration, total wall time, release start time, memory usage, and output size. Every successful release also creates `releases/v{version}/CHANGELOG.md` and `releases/v{version}/release.json` with the full release record including per step performance data and build output details. CI environments can run the same script in dry-run mode by setting `DRY_RUN=true`, so the same entry point works for local and remote publishing without duplication.
 
-## Context
-
-The site already has separate development and production `.env` files, and `package.json` holds a version number. Publishing today means running commands by hand in the right order and keeping the version and changelog in sync. That is error prone and slows down the shipping cycle. The goal is one command that takes the current state all the way to a production deployment, with a clear record of what changed.
+See [rationale.md](./rationale.md) for the decision record (Context, Options considered, Rationale, References).
 
 ## Requirements
 
@@ -29,32 +27,8 @@ The site already has separate development and production `.env` files, and `pack
 - **AC-6**: `pnpm release` exits with a non zero code and prints the failing step name when any step fails
 - **AC-7**: When `DRY_RUN=true` is set, the script prints the planned steps and skips all mutating commands (no version change, no commit, no tag, no build, no deploy)
 - **AC-8**: During execution the console shows the current step name and a progress bar that updates live. After the release finishes (success or failure) the script prints a summary table with: release start time, total wall time, per step duration, peak memory usage, and the size of the built output directory.
-
-## Options considered
-
-### Option 1: Shell script per step
-
-A `release.sh` that chains shell commands together. Simplest possible shape, no extra dependencies.
-
-**Pros**: No new package to install, works on any machine with bash, easy to read.
-
-**Cons**: Cross platform on Windows needs Git Bash or WSL. Error handling is crude (set -e, no step names in error output).
-
-### Option 2: Node.js script with dotenv-cli
-
-A TypeScript entry point under `bin/release.ts` that uses the same `dotenv-cli` already in the project to switch environments, `child_process.execSync` to run each step, and `console.log` for the plan. The script is committed to the repo, so it is versioned with the code.
-
-**Pros**: Uses existing tools (`dotenv-cli`, `ts-node`). Step by step error messages are easy to implement. Can read and write `package.json` programmatically. Works on all platforms where Node runs.
-
-**Cons**: Adds a new entry point to maintain. Still needs a thin shell wrapper for the `DRY_RUN` environment variable to reach the script.
-
-### Option 3: npm release-it package
-
-A mature community package that handles versioning, changelog, git operations, and plugin hooks. Version is in `package.json` and `standard-version` is the recommended tool in the stack walk answers.
-
-**Pros**: Battle tested, handles edge cases (pre release tags, scope, rollback). Many plugins available.
-
-**Cons**: Introduces a new dependency that needs configuration. Its defaults (especially around git push) differ from the chosen workflow and need careful override. Overkill for the stated simple workflow.
+- **AC-9**: After a successful release, the script creates `releases/v{version}/CHANGELOG.md` with this release's changelog entries (copied from `CHANGELOG.md`, scoped to this version) and `releases/v{version}/release.json` with the full release record including start time, end time, version, changelog path, total duration, per step durations, build output details (name, size, path), and step performance metrics.
+- **AC-10**: `release.json` is committed as part of the git commit step so the release record is versioned alongside the code.
 
 ## Decision
 
@@ -63,10 +37,6 @@ A mature community package that handles versioning, changelog, git operations, a
 A single TypeScript script at `bin/release.ts` that runs each step in sequence using `child_process.execSync`, prints the step name on failure, and respects the `DRY_RUN` environment variable to skip mutations. It reuses the `dotenv-cli` already in `devDependencies` to load `.env.production` before the build step. The changelog generation uses `conventional-changelog` via a small inline script to avoid adding another CLI dependency.
 
 **Implementation skills**: none
-
-## Rationale
-
-The workflow is intentionally simple. A Node.js script keeps everything in one place, uses existing tooling, and is easy to extend when the CI scenario arrives. `standard-version` is the right tool for the version bump logic (it handles conventional commit parsing and tag formats) but wrapping it in a custom script gives full control over the build and deploy steps without fighting `standard-version`'s plugin system. The `DRY_RUN` environment variable is a natural fit for CI because it requires no changes to the script itself; the CI platform sets an env var and the same command runs in check mode.
 
 ## Feature design
 
@@ -114,10 +84,10 @@ This is a build pipeline, not a data feature, so no data model or API surface ap
    - **Stats tracking**: record `performance.now()` at release start and at the end of each step. After all steps, compute per step duration and total wall time. Read `process.memoryUsage().heapUsed` before and after the build step and report the delta. Use `du -sh .next` (or equivalent cross platform: `execSync` a size check) to report the built output size.
    - **Summary table**: on completion print a formatted table: `| Step | Duration |` rows plus a footer `| Total | Xms |`. Also print start time (ISO string), peak memory delta, and `.next` output size.
 2. Add `standard-version` to `devDependencies` and configure it in `package.json` to target `package.json` as the only file to bump. satisfies **AC-1**
-3. Add `conventional-changelog` to `dependencies` for programmatic changelog generation inside the release script. satisfies **AC-2**
-4. Add `pnpm release` script to `package.json` that runs `node --loader ts-node/esm bin/release.ts`. satisfies the entry point
+3. Add `standard-changelog` via `standard-version` for changelog generation inside the release script (standard-changelog ships with standard-version). satisfies **AC-2**
+4. Add `pnpm release` script to `package.json` that runs `npx tsx bin/release.ts`. satisfies the entry point
 5. Add a note in the script header documenting which variables from `.env.production` the build needs (so the developer knows what to configure on a fresh machine). satisfies the developer setup requirement
-4. Add a `.env.example.production` or document in the script header which variables from `.env.production` the build needs (so the developer knows what to configure on a fresh machine). satisfies the developer setup requirement
+6. After the last step, create `releases/v{version}/` directory, copy the changelog entry for this version into `releases/v{version}/CHANGELOG.md`, and write `releases/v{version}/release.json` with the full release record. satisfies **AC-9**, **AC-10**
 
 ## Consequences
 
@@ -134,22 +104,10 @@ This is a build pipeline, not a data feature, so no data model or API surface ap
 
 **Neutral**:
 
-- The script needs `ts-node` to run locally, which is already in `devDependencies`
+- The script uses `tsx` (already available in the project) to run TypeScript locally
 - `vercel` CLI must be installed on the machine (separate from the npm package)
 
 ## Follow-up
 
 - [ ] Add a GitHub Actions workflow file (`.github/workflows/release.yml`) that listens to git tags matching `v*` and runs the production build and Vercel deploy. This is the natural next step for the "remote publishing" scenario; the local script is already CI compatible.
 - [ ] Add `vercel.json` to configure `projectId` and `productionEnvironment` so that `vercel --prod` deploys to the correct Vercel project in multi project environments.
-
-## References
-
-**Project sources**:
-
-- `AGENTS.md`: current commands and project conventions
-- `package.json`: existing `build-local:prod` script that demonstrates `dotenv-cli` usage with `.env.production`
-
-**Practices & standards**:
-
-- Single responsibility entry point: one command handles the whole workflow
-- CI compatible by default: environment variable gates avoid script duplication

@@ -1,4 +1,4 @@
-@use "variables";
+@use 'variables';
 
 // stylelint-disable at-rule-no-vendor-prefix, declaration-no-important, selector-no-qualifying-type, property-no-vendor-prefix
 
@@ -48,7 +48,7 @@ body {
 // See https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible
 // and https://developer.paciellogroup.com/blog/2018/03/focus-visible-and-backwards-compatibility/
 
-[tabindex="-1"]:focus:not(:focus-visible) {
+[tabindex='-1']:focus:not(:focus-visible) {
   outline: 0 !important;
 }
 
@@ -84,6 +84,15 @@ hr:not([size]) {
   font-weight: variables.$headings-font-weight;
   line-height: variables.$headings-line-height;
   color: variables.$headings-color;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0;
 }
 
 h1 {
@@ -399,10 +408,10 @@ button,
 // See https://bugs.webkit.org/show_bug.cgi?id=139848
 // and https://github.com/twbs/bootstrap/issues/11266
 
-input[type="date"],
-input[type="time"],
-input[type="datetime-local"],
-input[type="month"] {
+input[type='date'],
+input[type='time'],
+input[type='datetime-local'],
+input[type='month'] {
   -webkit-appearance: textfield;
 }
 
@@ -469,7 +478,7 @@ progress {
 //    be added to `.form-control` as it's not specific enough. For details, see
 //    https://github.com/twbs/bootstrap/issues/11586.
 
-[type="search"] {
+[type='search'] {
   outline-offset: -2px; // 1
   -webkit-appearance: textfield; // 2
 }

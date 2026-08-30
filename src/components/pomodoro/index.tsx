@@ -1,256 +1,285 @@
-"use client";
+'use client';
 
-import { useEffect, useMemo, useState } from "react";
-import { AlertTriangle, Cloud, RefreshCw, ShieldCheck } from "lucide-react";
-import Calendar, { type RecordDate } from "@/components/Calendar";
-import FlipTimer from "@/components/Clock/FlipTimer";
-import NeuButton from "@/components/NeuButton";
-import NeuDiv from "@/components/NeuDiv";
-import NeuInput from "@/components/NeuInput";
-import { getTomatoHistory } from "@/db/tomatoActions";
-import { usePomodoro } from "@/hooks/usePomodoro";
-import { localDateKey, monthUtcRange } from "@/lib/pomodoro/month";
-import { toLocalHistory } from "@/lib/pomodoro/storage";
-import { useCtxAuth } from "@/providers/AuthProviders";
-import type { PomodoroHistoryRecord } from "@/types/pomodoro";
-import { formatMs, phaseLabel } from "@/utils/timeUtils";
-import PomodoroList from "./PomodoroList";
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import Content from '@/components/Content';
+import NeuDiv from '@/components/NeuDiv';
+import { getTomatoHistory } from '@/db/tomatoActions';
+import { usePomodoro } from '@/hooks/usePomodoro';
+import {
+  cacheKey,
+  CalendarMonth,
+  dateKeyAt,
+  mergeMonthHistory,
+  monthFromDateKey,
+  monthKey,
+  nextLocalDayDelay,
+  recordsForDate,
+} from '@/lib/pomodoro/calendar';
+import { localDateKey, monthUtcRange } from '@/lib/pomodoro/month';
+import { useCtxAuth } from '@/providers/AuthProviders';
+import type {
+  PomodoroHistoryRecord,
+  PomodoroOutboxItem,
+  PomodoroSettlement,
+} from '@/types/pomodoro';
+import PomodoroHistoryPanel from './PomodoroHistoryPanel';
+import PomodoroOperationPanel from './PomodoroOperationPanel';
+import PomodoroTimer from './PomodoroTimer';
+
+interface MonthEntry {
+  records: PomodoroHistoryRecord[];
+  status: 'idle' | 'loading' | 'loaded' | 'error';
+  error: string | null;
+  requestId: number;
+}
+
+function upsertRecord(records: PomodoroHistoryRecord[], record: PomodoroHistoryRecord) {
+  const key = record.eventId ?? record.id;
+  const next = new Map(records.map((item) => [item.eventId ?? item.id, item] as const));
+  next.set(key, record);
+  return [...next.values()];
+}
+
+function PomodoroWorkspace({ userId }: { userId: string }) {
+  const timeZone = useMemo(() => Intl.DateTimeFormat().resolvedOptions().timeZone, []);
+  const initialTodayKey = useMemo(() => dateKeyAt(new Date(), timeZone), [timeZone]);
+  const [todayKey, setTodayKey] = useState(initialTodayKey);
+  const [selectedDateKey, setSelectedDateKey] = useState(initialTodayKey);
+  const [visibleMonth, setVisibleMonth] = useState<CalendarMonth>(() =>
+    monthFromDateKey(initialTodayKey)
+  );
+  const [monthEntries, setMonthEntries] = useState<Record<string, MonthEntry>>({});
+  const requestIdsRef = useRef(new Map<string, number>());
+  const sessionGenerationRef = useRef(0);
+  const userIdRef = useRef(userId);
+  userIdRef.current = userId;
+
+  const handleRecordSettled = useCallback(
+    ({ item, record }: PomodoroSettlement) => {
+      if (item.userId !== userIdRef.current) return;
+      const recordMonth = monthFromDateKey(localDateKey(record.endAt, timeZone));
+      const key = cacheKey(item.userId, timeZone, recordMonth);
+      setMonthEntries((current) => {
+        const entry = current[key] ?? {
+          records: [],
+          status: 'loaded' as const,
+          error: null,
+          requestId: 0,
+        };
+        return {
+          ...current,
+          [key]: {
+            ...entry,
+            records: upsertRecord(entry.records, record),
+          },
+        };
+      });
+    },
+    [timeZone]
+  );
+
+  const controller = usePomodoro({ onRecordSettled: handleRecordSettled });
+
+  const loadMonth = useCallback(
+    async (month: CalendarMonth) => {
+      const key = cacheKey(userId, timeZone, month);
+      const requestId = (requestIdsRef.current.get(key) ?? 0) + 1;
+      const generation = sessionGenerationRef.current;
+      requestIdsRef.current.set(key, requestId);
+      setMonthEntries((current) => ({
+        ...current,
+        [key]: {
+          records: current[key]?.records ?? [],
+          status: 'loading',
+          error: null,
+          requestId,
+        },
+      }));
+      try {
+        const records = await getTomatoHistory(
+          monthUtcRange(month.year, month.monthIndex, timeZone)
+        );
+        if (
+          userIdRef.current !== userId ||
+          sessionGenerationRef.current !== generation ||
+          requestIdsRef.current.get(key) !== requestId
+        )
+          return;
+        setMonthEntries((current) => ({
+          ...current,
+          [key]: { records, status: 'loaded', error: null, requestId },
+        }));
+      } catch {
+        if (
+          userIdRef.current !== userId ||
+          sessionGenerationRef.current !== generation ||
+          requestIdsRef.current.get(key) !== requestId
+        )
+          return;
+        setMonthEntries((current) => ({
+          ...current,
+          [key]: {
+            records: current[key]?.records ?? [],
+            status: 'error',
+            error: '无法读取这个月的番茄记录，请稍后重试',
+            requestId,
+          },
+        }));
+      }
+    },
+    [timeZone, userId]
+  );
+
+  const selectedMonth = useMemo(() => monthFromDateKey(selectedDateKey), [selectedDateKey]);
+  const visibleCacheKey = cacheKey(userId, timeZone, visibleMonth);
+  const selectedCacheKey = cacheKey(userId, timeZone, selectedMonth);
+
+  useEffect(() => {
+    if (!monthEntries[visibleCacheKey]) void loadMonth(visibleMonth);
+  }, [loadMonth, monthEntries, visibleCacheKey, visibleMonth]);
+
+  useEffect(() => {
+    if (!monthEntries[selectedCacheKey]) void loadMonth(selectedMonth);
+  }, [loadMonth, monthEntries, selectedCacheKey, selectedMonth]);
+
+  const previousOutboxRef = useRef<PomodoroOutboxItem[]>([]);
+  useEffect(() => {
+    const currentIds = new Set(controller.outbox.map((item) => item.eventId));
+    const removed = previousOutboxRef.current.filter((item) => !currentIds.has(item.eventId));
+    previousOutboxRef.current = controller.outbox;
+    const affectedMonths = new Map<string, CalendarMonth>();
+    removed.forEach((item) => {
+      const month = monthFromDateKey(localDateKey(item.payload.endAt, timeZone));
+      affectedMonths.set(monthKey(month), month);
+    });
+    affectedMonths.forEach((month) => void loadMonth(month));
+  }, [controller.outbox, loadMonth, timeZone]);
+
+  useEffect(() => {
+    let timer = 0;
+    const updateToday = () => {
+      setTodayKey(dateKeyAt(new Date(), timeZone));
+      window.clearTimeout(timer);
+      timer = window.setTimeout(updateToday, nextLocalDayDelay(new Date(), timeZone));
+    };
+    const visible = () => {
+      if (document.visibilityState === 'visible') updateToday();
+    };
+    updateToday();
+    window.addEventListener('focus', updateToday);
+    document.addEventListener('visibilitychange', visible);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('focus', updateToday);
+      document.removeEventListener('visibilitychange', visible);
+    };
+  }, [timeZone]);
+
+  const mergedVisibleHistory = useMemo(
+    () =>
+      mergeMonthHistory(
+        monthEntries[visibleCacheKey]?.records ?? [],
+        controller.outbox,
+        visibleMonth,
+        timeZone
+      ),
+    [controller.outbox, monthEntries, timeZone, visibleCacheKey, visibleMonth]
+  );
+  const mergedSelectedHistory = useMemo(
+    () =>
+      mergeMonthHistory(
+        monthEntries[selectedCacheKey]?.records ?? [],
+        controller.outbox,
+        selectedMonth,
+        timeZone
+      ),
+    [controller.outbox, monthEntries, selectedCacheKey, selectedMonth, timeZone]
+  );
+  const selectedHistory = useMemo(
+    () => recordsForDate(mergedSelectedHistory, selectedDateKey, timeZone),
+    [mergedSelectedHistory, selectedDateKey, timeZone]
+  );
+  const recordDates = useMemo(
+    () =>
+      mergedVisibleHistory
+        .filter((record) => record.type === 'FOCUS' && record.endReason === 'COMPLETED')
+        .map((record) => ({
+          color: 'bg-tomato-record',
+          dateKey: localDateKey(record.endAt, timeZone),
+        })),
+    [mergedVisibleHistory, timeZone]
+  );
+
+  const pendingCount = controller.outbox.filter((item) => item.status === 'pending').length;
+  const syncingCount = controller.outbox.filter((item) => item.status === 'syncing').length;
+  const failedItems = controller.outbox.filter((item) => item.status === 'failed');
+  const conflicts = controller.outbox.filter((item) => item.status === 'conflict');
+  const selectedEntry = monthEntries[selectedCacheKey];
+
+  return (
+    <Content
+      className="flex justify-center"
+      leftSideBar={
+        <PomodoroHistoryPanel
+          selectedDateKey={selectedDateKey}
+          todayKey={todayKey}
+          timeZone={timeZone}
+          records={selectedHistory}
+          loading={selectedEntry?.status === 'loading' && selectedHistory.length === 0}
+          error={selectedEntry?.error ?? null}
+          pendingCount={pendingCount + syncingCount}
+          failedCount={failedItems.length}
+          conflictCount={conflicts.length}
+          pausedReason={failedItems.find((item) => item.lastError)?.lastError ?? null}
+        />
+      }
+      rightSideBar={
+        <PomodoroOperationPanel
+          selectedDateKey={selectedDateKey}
+          todayKey={todayKey}
+          visibleMonth={visibleMonth}
+          recordDates={recordDates}
+          conflicts={conflicts}
+          pendingCount={pendingCount}
+          isOnline={controller.isOnline}
+          isSyncing={controller.isSyncing}
+          timeZone={timeZone}
+          onDateSelect={setSelectedDateKey}
+          onVisibleMonthChange={setVisibleMonth}
+          onRetry={() => void controller.retryNow()}
+          onAdoptServer={controller.adoptServerRecord}
+        />
+      }
+    >
+      <PomodoroTimer
+        state={controller.state}
+        storageError={controller.storageError}
+        recoveryNotice={controller.recoveryNotice}
+        onStart={controller.start}
+        onPause={controller.pause}
+        onResume={controller.resume}
+        onSkip={controller.skip}
+        onStop={controller.stop}
+        onSettingsChange={controller.setSettings}
+      />
+    </Content>
+  );
+}
 
 export function Pomodoro() {
   const { user } = useCtxAuth();
-  const controller = usePomodoro();
-  const { state, outbox, storageError, recoveryNotice } = controller;
-  const [month, setMonth] = useState(() => new Date());
-  const [history, setHistory] = useState<PomodoroHistoryRecord[]>([]);
-  const [historyLoading, setHistoryLoading] = useState(false);
-  const [historyError, setHistoryError] = useState<string | null>(null);
-  const timeZone = useMemo(
-    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
-    [],
-  );
-
-  useEffect(() => {
-    if (!user) {
-      setHistory([]);
-      return;
-    }
-    let active = true;
-    const load = async () => {
-      setHistoryLoading(true);
-      setHistoryError(null);
-      try {
-        const range = monthUtcRange(
-          month.getFullYear(),
-          month.getMonth(),
-          timeZone,
-        );
-        const records = await getTomatoHistory(range);
-        if (active) setHistory(records);
-      } catch {
-        if (active) setHistoryError("无法读取这个月的番茄记录，请稍后重试");
-      } finally {
-        if (active) setHistoryLoading(false);
-      }
-    };
-    void load();
-    return () => {
-      active = false;
-    };
-  }, [month, outbox.length, timeZone, user]);
-
-  const mergedHistory = useMemo(() => {
-    const map = new Map<string, PomodoroHistoryRecord>();
-    history.forEach((record) => map.set(record.eventId ?? record.id, record));
-    outbox.forEach((item) => {
-      const local = toLocalHistory(item);
-      const expectedMonth = `${month.getFullYear()}-${String(month.getMonth() + 1).padStart(2, "0")}`;
-      if (localDateKey(local.endAt, timeZone).startsWith(expectedMonth))
-        map.set(item.eventId, local);
-    });
-    return [...map.values()].sort(
-      (a, b) =>
-        b.startAt.localeCompare(a.startAt) ||
-        (b.eventId ?? b.id).localeCompare(a.eventId ?? a.id),
+  if (!user)
+    return (
+      <Content className="flex items-center justify-center">
+        <main className="w-full" aria-labelledby="pomodoro-login-title">
+          <NeuDiv className="p-6 text-center" role="alert">
+            <h1 id="pomodoro-login-title" className="text-xl font-bold">
+              请先登录
+            </h1>
+            <p className="mt-2">番茄钟会按账号隔离计时与历史。</p>
+          </NeuDiv>
+        </main>
+      </Content>
     );
-  }, [history, month, outbox, timeZone]);
-
-  const recordDates: RecordDate[] = useMemo(
-    () =>
-      mergedHistory
-        .filter(
-          (record) =>
-            record.type === "FOCUS" && record.endReason === "COMPLETED",
-        )
-        .map((record) => ({
-          color: "bg-tomato-record",
-          date: new Date(record.endAt),
-          dateStr: localDateKey(record.endAt, timeZone),
-        })),
-    [mergedHistory, timeZone],
-  );
-
-  const blocked = Boolean(storageError || state.pendingOutcome || !user);
-  const pendingCount = outbox.filter(
-    (item) => item.status === "pending" || item.status === "syncing",
-  ).length;
-  const pausedCount = outbox.filter(
-    (item) => item.status === "failed" || item.status === "conflict",
-  ).length;
-
-  return (
-    <main className="space-y-6 pb-8" aria-labelledby="pomodoro-title">
-      <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div
-          className="flex flex-wrap gap-2 text-sm"
-          role="status"
-          aria-live="polite"
-        >
-          <span className="flex items-center gap-1">
-            <Cloud aria-hidden="true" size={17} />
-            {pendingCount} 条待同步
-          </span>
-          <span className="flex items-center gap-1">
-            <ShieldCheck aria-hidden="true" size={17} />
-            {pausedCount} 条需处理
-          </span>
-        </div>
-      </header>
-
-      {!user ? (
-        <NeuDiv className="p-4" role="alert">
-          请先登录，番茄钟会按账号隔离计时与历史。
-        </NeuDiv>
-      ) : null}
-      {storageError ? (
-        <NeuDiv
-          className="flex items-center gap-2 p-4 text-danger"
-          role="alert"
-        >
-          <AlertTriangle aria-hidden="true" />
-          {storageError}
-        </NeuDiv>
-      ) : null}
-      {recoveryNotice ? (
-        <NeuDiv className="p-4" role="status">
-          {recoveryNotice}
-        </NeuDiv>
-      ) : null}
-
-      <section
-        className="grid gap-6 lg:grid-cols-[minmax(20rem,0.9fr)_minmax(24rem,1.1fr)]"
-        aria-label="计时与日历"
-      >
-        <NeuDiv className="space-y-5 p-5 sm:p-6">
-          <div className="text-center">
-            <p className="text-sm opacity-70">{phaseLabel(state)}</p>
-            <div
-              className="my-8"
-              aria-label={`剩余时间 ${formatMs(state.remainingMs)}`}
-            >
-              <FlipTimer time={formatMs(state.remainingMs)} />
-            </div>
-            <p className="text-sm opacity-70">
-              本轮已完成专注 {state.completedFocus} 次
-            </p>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {state.run === "running" ? (
-              <NeuButton onClick={controller.pause}>暂停</NeuButton>
-            ) : state.run === "paused" ? (
-              <NeuButton onClick={controller.resume}>继续</NeuButton>
-            ) : (
-              <NeuButton
-                buttonType="primary"
-                disabled={blocked}
-                onClick={controller.start}
-              >
-                开始专注
-              </NeuButton>
-            )}
-            <NeuButton
-              disabled={!state.activeEventId}
-              onClick={controller.skip}
-            >
-              跳过
-            </NeuButton>
-            <NeuButton
-              buttonType="danger"
-              disabled={!state.activeEventId}
-              onClick={controller.stop}
-            >
-              停止
-            </NeuButton>
-            {pendingCount > 0 ? (
-              <NeuButton onClick={() => void controller.retryNow()}>
-                <RefreshCw aria-hidden="true" size={16} />
-                立即同步
-              </NeuButton>
-            ) : null}
-          </div>
-          <fieldset
-            className="grid grid-cols-2 gap-3 text-sm"
-            disabled={state.run !== "stopped"}
-          >
-            <legend className="col-span-2 font-semibold">计时设置</legend>
-            {(
-              [
-                ["focusMin", "专注分钟"],
-                ["shortBreakMin", "短休分钟"],
-                ["longBreakMin", "长休分钟"],
-                ["longBreakEvery", "每几次长休"],
-              ] as const
-            ).map(([key, label]) => (
-              <label key={key} className="space-y-1">
-                <span>{label}</span>
-                <NeuInput
-                  className="w-full"
-                  min={1}
-                  max={1440}
-                  type="number"
-                  value={state.settings[key]}
-                  onChange={(event) =>
-                    controller.setSettings({
-                      [key]: Number(event.target.value),
-                    })
-                  }
-                />
-              </label>
-            ))}
-          </fieldset>
-        </NeuDiv>
-        <Calendar
-          selectedDate={month}
-          onMonthChange={setMonth}
-          recordDate={recordDates}
-        />
-      </section>
-
-      <section className="space-y-3" aria-labelledby="history-title">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <h2 id="history-title" className="text-xl font-bold">
-              本月历史
-            </h2>
-            <p className="text-sm opacity-70">按 {timeZone} 的结束日期归档</p>
-          </div>
-        </div>
-        {historyLoading ? (
-          <NeuDiv className="p-6" role="status">
-            正在读取历史记录…
-          </NeuDiv>
-        ) : null}
-        {historyError ? (
-          <NeuDiv className="p-6 text-danger" role="alert">
-            {historyError}
-          </NeuDiv>
-        ) : null}
-        {!historyLoading && (!historyError || outbox.length > 0) ? (
-          <PomodoroList
-            dataSource={mergedHistory}
-            onAdoptServer={controller.adoptServerRecord}
-          />
-        ) : null}
-      </section>
-    </main>
-  );
+  return <PomodoroWorkspace key={user.id} userId={user.id} />;
 }

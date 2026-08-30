@@ -30,7 +30,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 17  | NeuButton 代码逻辑优化   | Maintenance | done        |
 | 18  | NeuButton 样式代码审查   | Maintenance | planned     |
 | 19  | Commit lint 流程性能优化 | Maintenance | done        |
-| 20  | 番茄钟按日布局与历史浏览 | Maintenance | in-progress |
+| 20  | 番茄钟按日布局与历史浏览 | Maintenance | done        |
 | 21  | 本地发布流程             | Maintenance | in-progress |
 
 ## Current product
@@ -205,20 +205,21 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 - [x] Build it: `/develop Commit lint 流程性能优化`
       code in `lint-staged.config.mjs`, `prettier.config.mjs`, `.husky/pre-push`
 
-### 20. 番茄钟按日布局与历史浏览 · in-progress
+### 20. 番茄钟按日布局与历史浏览 · done
 
 调整番茄钟页面的信息层级。计时组件居中显示，左侧栏独立滚动并展示所选日期当天的历史记录，右侧栏使用日历控制当前日期。
 **Done when:** 页面默认选择本地时区的今天；日历位于 `rightSideBar`，点击日期可以切换所选日，并提供带 `CalendarDays` 图标和文字的”回到今天”按钮；历史记录位于 `leftSideBar` 并独立滚动，只展示所选日期从 00:00 到 23:59 的记录；番茄钟组件在主内容区域居中显示。
 
 - [x] Design it (spec): `/architect 番茄钟按日布局与历史浏览`
       spec [0003](../specs/0003-pomodoro-daily-layout/index.md)
-- [ ] Build it: `/develop 番茄钟按日布局与历史浏览`
-  - [ ] 打通单一控制器、受控日期、按月读取和按日历史，covers `AC-4`, `AC-6`, `AC-9`, `AC-10`
-  - [ ] 完成 `Content` 全局自适应布局与现有页面回归，covers `AC-1`, `AC-2`, `AC-3`, `AC-13`
-  - [ ] 完成日历、日期状态、动态今天和月份竞态保护，covers `AC-4`, `AC-5`, `AC-7`, `AC-8`, `AC-9`, `AC-12`
-  - [ ] 完成历史状态、同步结算、冲突操作和无障碍反馈，covers `AC-6`, `AC-7`, `AC-9`, `AC-10`, `AC-11`, `AC-12`
-- [ ] Verify it: `/check verify 番茄钟按日布局与历史浏览`
-- [ ] Test it: `/test 番茄钟按日布局与历史浏览`
+- [x] Build it: `/develop 番茄钟按日布局与历史浏览`
+  - [x] 打通单一控制器、受控日期、按月读取和按日历史，covers `AC-4`, `AC-6`, `AC-9`, `AC-10`
+  - [x] 完成 `Content` 全局自适应布局与现有页面回归，covers `AC-1`, `AC-2`, `AC-3`, `AC-13`
+  - [x] 完成日历、日期状态、动态今天和月份竞态保护，covers `AC-4`, `AC-5`, `AC-7`, `AC-8`, `AC-9`, `AC-12`
+  - [x] 完成历史状态、同步结算、冲突操作和无障碍反馈，covers `AC-6`, `AC-7`, `AC-9`, `AC-10`, `AC-11`, `AC-12`
+        code in `src/app/tomato/`, `src/components/Calendar/`, `src/components/Content/`, `src/components/pomodoro/`, `src/hooks/usePomodoro.ts`, `src/lib/pomodoro/`
+- [x] Verify it: `/check verify 番茄钟按日布局与历史浏览`
+- [x] Test it: `/test 番茄钟按日布局与历史浏览`
 
 ### 21. 本地发布流程 · in-progress
 

@@ -27,7 +27,8 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 14  | 使用统计与错误监控     | Slice 9     | planned     |
 | 15  | NeuDiv 组件代码优化    | Maintenance | done        |
 | 16  | Neu 表面与交互契约迁移 | Maintenance | done        |
-| 17  | NeuButton 代码逻辑优化 | Maintenance | planned     |
+| 17  | NeuButton 代码逻辑优化 | Maintenance | done        |
+| 18  | NeuButton 样式代码审查 | Maintenance | planned     |
 
 ## Current product
 
@@ -183,6 +184,15 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
       code in `src/components/NeuButton/`, `src/types/neu.ts`
 - [x] Verify it: `/check verify NeuButton 代码逻辑优化`
 - [x] Test it: `/test NeuButton 代码逻辑优化`
+
+### 18. NeuButton 样式代码审查 · done
+
+整理 NeuButton 样式相关文件，删除重复 Sass 变量、死代码和无效 mixin 抽象层，不修改视觉风格。
+**Done when:** 样式代码结构清晰、无冗余 Sass 规则或死代码、mixin 使用合理、lint 和构建通过。
+
+- [x] Build it: `/develop NeuButton 样式代码审查`
+      code in `src/components/NeuButton/_style.scss`, `src/styles/_mixin.scss`, `src/styles/_variables.scss`
+- [x] Verify it: `/check verify NeuButton 样式代码审查`
 
 ## Deferred
 

@@ -109,12 +109,12 @@ $h5-font-size: $font-size-base * 1.25 !default;
 $h6-font-size: $font-size-base !default;
 
 // 链接
-$link-color: $primary !default;
-$link-decoration: none !default;
-$link-hover-color: color.adjust($link-color, $lightness: 15%) !default;
+$link-color: $primary;
+$link-decoration: none;
+$link-hover-color: color.adjust($link-color, $lightness: 15%);
 // $link-hover-color: darken($link-color, 15%) !default;
 
-$link-hover-decoration: underline !default;
+$link-hover-decoration: underline;
 
 // body
 $body-bg: $white !default;
@@ -133,14 +133,6 @@ $headings-color: null !default;
 
 // Paragraphs
 $paragraph-margin-bottom: 1rem !default;
-
-// 字体其他部分 heading list hr 等等
-$headings-margin-bottom: $spacer / 2 !default;
-$headings-font-family: null !default;
-$headings-font-style: null !default;
-$headings-font-weight: 500 !default;
-$headings-line-height: 1.2 !default;
-$headings-color: null !default;
 
 $display1-size: 6rem !default;
 $display2-size: 5.5rem !default;
@@ -383,8 +375,6 @@ $progress-bar-color: $white !default;
 $progress-bar-transition: width 0.6s ease !default;
 
 // neu button
-$shadow-size-sm: 0.1rem;
-$shadow-blur-sm: 0.2rem;
 $shadow-size-sm: 0.2rem;
 $shadow-blur-sm: 0.3rem;
 $shadow-size-normal: 0.3rem;

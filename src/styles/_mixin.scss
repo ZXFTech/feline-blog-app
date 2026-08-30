@@ -50,19 +50,13 @@
   }
   &:not(:disabled):active,
   &:not([disabled])[active] {
-    // color: $active-color;
     background-color: $active-background;
+    box-shadow: none;
   }
   &.disabled,
   &:disabled {
     color: $color;
     background-color: $background;
-  }
-}
-
-@mixin neu-button-theme($shadow-size, $shadow-blur, $shadow-color) {
-  &:active {
-    box-shadow: none;
   }
 }
 

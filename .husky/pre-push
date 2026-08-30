@@ -1,6 +1,6 @@
 
 BASE_BRANCH="origin/master"
-git fetch origin master --quiet
+git fetch origin master --depth=1 --quiet
 BASE_SHA="$(git merge-base HEAD "$BASE_BRANCH")"
 CHANGED_FILES="$(git diff --name-only "$BASE_SHA"...HEAD)"
 
@@ -14,7 +14,7 @@ if [ "$BEHIND" -gt 0 ]; then
 fi
 
 # build smoke
-# 只有改到 web 应用才 build
-if echo "$CHANGED_FILES" | grep -qE '^apps/web/|^packages/'; then
-  npm run -w apps/web build
+# 只对需要编译的源文件变更触发 build
+if echo "$CHANGED_FILES" | grep -qE '^\.(tsx?|jsx?)|\/[^\/]*\.(tsx?|jsx?)$'; then
+  npm run build
 fi

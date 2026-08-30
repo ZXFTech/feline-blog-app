@@ -100,15 +100,6 @@ export function Pomodoro() {
   return (
     <main className="space-y-6 pb-8" aria-labelledby="pomodoro-title">
       <header className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <p className="text-sm opacity-70">私人效率工作台</p>
-          <h1 id="pomodoro-title" className="text-3xl font-bold">
-            番茄钟
-          </h1>
-          <p className="mt-1 max-w-2xl opacity-75">
-            专注一次，可靠记录一次。刷新、离线和多标签页不会重复写入结果。
-          </p>
-        </div>
         <div
           className="flex flex-wrap gap-2 text-sm"
           role="status"

@@ -28,7 +28,7 @@ const Content: FC<ContentProps> = ({
       <div
         id="content"
         className={cn(
-          "content h-screen pb-14 relative overflow-scroll hide-scrollbar pt-22",
+          "content h-screen pb-14 relative overflow-scroll hide-scrollbar pt-22 px-3",
           className,
         )}
       >

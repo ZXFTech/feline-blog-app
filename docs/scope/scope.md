@@ -31,6 +31,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 18  | NeuButton 样式代码审查   | Maintenance | planned     |
 | 19  | Commit lint 流程性能优化 | Maintenance | done        |
 | 20  | 番茄钟按日布局与历史浏览 | Maintenance | in-progress |
+| 21  | 本地发布流程             | Maintenance | in-progress |
 
 ## Current product
 
@@ -207,7 +208,7 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 ### 20. 番茄钟按日布局与历史浏览 · in-progress
 
 调整番茄钟页面的信息层级。计时组件居中显示，左侧栏独立滚动并展示所选日期当天的历史记录，右侧栏使用日历控制当前日期。
-**Done when:** 页面默认选择本地时区的今天；日历位于 `rightSideBar`，点击日期可以切换所选日，并提供带 `CalendarDays` 图标和文字的“回到今天”按钮；历史记录位于 `leftSideBar` 并独立滚动，只展示所选日期从 00:00 到 23:59 的记录；番茄钟组件在主内容区域居中显示。
+**Done when:** 页面默认选择本地时区的今天；日历位于 `rightSideBar`，点击日期可以切换所选日，并提供带 `CalendarDays` 图标和文字的”回到今天”按钮；历史记录位于 `leftSideBar` 并独立滚动，只展示所选日期从 00:00 到 23:59 的记录；番茄钟组件在主内容区域居中显示。
 
 - [x] Design it (spec): `/architect 番茄钟按日布局与历史浏览`
       spec [0003](../specs/0003-pomodoro-daily-layout/index.md)
@@ -218,6 +219,20 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
   - [ ] 完成历史状态、同步结算、冲突操作和无障碍反馈，covers `AC-6`, `AC-7`, `AC-9`, `AC-10`, `AC-11`, `AC-12`
 - [ ] Verify it: `/check verify 番茄钟按日布局与历史浏览`
 - [ ] Test it: `/test 番茄钟按日布局与历史浏览`
+
+### 21. 本地发布流程 · in-progress
+
+提供版本管理、changelog 生成和发布入口，区分本地开发与生产数据库环境，并兼容后续远程发布场景。
+**Done when:** 发布脚本可以读取当前版本、生成 changelog、构建生产包、切换数据库环境并部署。
+
+- [x] Design it (spec): `/architect 本地发布流程`
+      spec [0004](../specs/0004-local-release-workflow.md)
+- [ ] Build it: `/develop 本地发布流程`
+  - [ ] 实现 bin/release.ts 主脚本（DRY_RUN、版本读取、standard-version patch 递增、conventional-changelog 生成、Prisma generate、dotenv build、Vercel deploy、git commit/tag），满足 AC-1 到 AC-7
+  - [ ] 实现进度条和统计摘要（单行动态刷新、performance.now() 计时、内存与产物大小统计），满足 AC-8
+  - [ ] 安装 standard-version 和 conventional-changelog，配置 package.json release 命令，满足 entry point
+- [ ] Verify it: `/check verify 本地发布流程`
+- [ ] Test it: `/test 本地发布流程`
 
 ## Deferred
 

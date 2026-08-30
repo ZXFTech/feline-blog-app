@@ -9,34 +9,35 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 
 ## At a glance
 
-| #   | Feature                | Phase       | Status      |
-| --- | ---------------------- | ----------- | ----------- |
-| 1   | 站点外壳与视觉体系     | Current     | existing    |
-| 2   | 基础账号与文章互动     | Current     | existing    |
-| 3   | 公开文章阅读           | Current     | existing    |
-| 4   | 作者发布文章           | Current     | existing    |
-| 5   | 待办管理               | Current     | existing    |
-| 6   | 番茄钟核心闭环         | Slice 1     | done        |
-| 7   | 日常记录核心闭环       | Slice 2     | in-progress |
-| 8   | 待办进入专注           | Slice 3     | planned     |
-| 9   | 专注结果进入日常总结   | Slice 4     | planned     |
-| 10  | 文章发现能力           | Slice 5     | planned     |
-| 11  | 账号恢复               | Slice 6     | planned     |
-| 12  | 数据权利与隐私说明     | Slice 7     | planned     |
-| 13  | 基础 SEO               | Slice 8     | planned     |
-| 14  | 使用统计与错误监控     | Slice 9     | planned     |
-| 15  | NeuDiv 组件代码优化    | Maintenance | done        |
-| 16  | Neu 表面与交互契约迁移 | Maintenance | done        |
-| 17  | NeuButton 代码逻辑优化 | Maintenance | done        |
-| 18  | NeuButton 样式代码审查 | Maintenance | planned     |
+| #   | Feature                  | Phase       | Status      |
+| --- | ------------------------ | ----------- | ----------- |
+| 1   | 站点外壳与视觉体系       | Current     | existing    |
+| 2   | 基础账号与文章互动       | Current     | existing    |
+| 3   | 公开文章阅读             | Current     | existing    |
+| 4   | 作者发布文章             | Current     | existing    |
+| 5   | 待办管理                 | Current     | existing    |
+| 6   | 番茄钟核心闭环           | Slice 1     | done        |
+| 7   | 日常记录核心闭环         | Slice 2     | in-progress |
+| 8   | 待办进入专注             | Slice 3     | planned     |
+| 9   | 专注结果进入日常总结     | Slice 4     | planned     |
+| 10  | 文章发现能力             | Slice 5     | planned     |
+| 11  | 账号恢复                 | Slice 6     | planned     |
+| 12  | 数据权利与隐私说明       | Slice 7     | planned     |
+| 13  | 基础 SEO                 | Slice 8     | planned     |
+| 14  | 使用统计与错误监控       | Slice 9     | planned     |
+| 15  | NeuDiv 组件代码优化      | Maintenance | done        |
+| 16  | Neu 表面与交互契约迁移   | Maintenance | done        |
+| 17  | NeuButton 代码逻辑优化   | Maintenance | done        |
+| 18  | NeuButton 样式代码审查   | Maintenance | planned     |
 | 19  | Commit lint 流程性能优化 | Maintenance | done        |
+| 20  | 番茄钟按日布局与历史浏览 | Maintenance | in-progress |
 
 ## Current product
 
 ### 1. 站点外壳与视觉体系 · existing
 
-提供全局布局、导航、主题、提示消息，以及项目自有组件和基础 UI 组件。
-**Done when:** 公开页面共享一致布局和主题，主要控件可复用，页面可以在常见桌面浏览器中正常使用。
+提供全局布局、导航、主题、提示消息，以及项目自有组件和基础 UI 组件。页面没有显式指定其他布局时，以 `Content` 组件作为基础布局。
+**Done when:** 公开页面共享一致布局和主题，默认使用 `Content`；`leftSideBar` 只放展示类组件，`rightSideBar` 只放操作类组件；主要控件可复用，页面可以在常见桌面浏览器中正常使用。
 code in `src/app/layout.tsx`, `src/components/`, `src/styles/`
 
 ### 2. 基础账号与文章互动 · existing
@@ -195,17 +196,30 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
       code in `src/components/NeuButton/_style.scss`, `src/styles/_mixin.scss`, `src/styles/_variables.scss`
 - [x] Verify it: `/check verify NeuButton 样式代码审查`
 
-
 ### 19. Commit lint 流程性能优化 · done
 
 优化 pre-commit 和 pre-push hooks 的性能，包括 ESLint 缓存、Prettier 配置化、fetch 深度限制和 build 触发条件精确化。
 **Done when:** lint-staged 使用缓存加速，Prettier 有明确配置，pre-push 减少不必要的网络和构建操作。
 
-
-
-
 - [x] Build it: `/develop Commit lint 流程性能优化`
       code in `lint-staged.config.mjs`, `prettier.config.mjs`, `.husky/pre-push`
+
+### 20. 番茄钟按日布局与历史浏览 · in-progress
+
+调整番茄钟页面的信息层级。计时组件居中显示，左侧栏独立滚动并展示所选日期当天的历史记录，右侧栏使用日历控制当前日期。
+**Done when:** 页面默认选择本地时区的今天；日历位于 `rightSideBar`，点击日期可以切换所选日，并提供带 `CalendarDays` 图标和文字的“回到今天”按钮；历史记录位于 `leftSideBar` 并独立滚动，只展示所选日期从 00:00 到 23:59 的记录；番茄钟组件在主内容区域居中显示。
+
+- [x] Design it (spec): `/architect 番茄钟按日布局与历史浏览`
+      spec [0003](../specs/0003-pomodoro-daily-layout/index.md)
+- [ ] Build it: `/develop 番茄钟按日布局与历史浏览`
+  - [ ] 打通单一控制器、受控日期、按月读取和按日历史，covers `AC-4`, `AC-6`, `AC-9`, `AC-10`
+  - [ ] 完成 `Content` 全局自适应布局与现有页面回归，covers `AC-1`, `AC-2`, `AC-3`, `AC-13`
+  - [ ] 完成日历、日期状态、动态今天和月份竞态保护，covers `AC-4`, `AC-5`, `AC-7`, `AC-8`, `AC-9`, `AC-12`
+  - [ ] 完成历史状态、同步结算、冲突操作和无障碍反馈，covers `AC-6`, `AC-7`, `AC-9`, `AC-10`, `AC-11`, `AC-12`
+- [ ] Verify it: `/check verify 番茄钟按日布局与历史浏览`
+- [ ] Test it: `/test 番茄钟按日布局与历史浏览`
+
+## Deferred
 
 当前开发轮次不包含这些能力，保留在这里避免它们悄悄扩大主线。
 

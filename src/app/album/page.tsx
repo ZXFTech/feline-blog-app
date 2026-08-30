@@ -11,7 +11,7 @@ import Content from "@/components/Content";
 
 const Album = () => {
   return (
-    <Content className="flex flex-col gap-4 p-4">
+    <Content className="flex flex-col gap-4 px-4">
       <NeuDiv surface="debossed" className="flex flex-col gap-4">
         <span className="text-sm">进度条</span>
         <NeuProgressBar value={55} max={100} />

@@ -1,192 +1,253 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
+import NeuButton from '@/components/NeuButton';
+import NeuDiv from '@/components/NeuDiv';
 import {
-  getDaysInMonth,
-  getFirstDayOfMonth,
-  getLastDayOfMonth,
-} from "@/utils/timeUtils";
-import dayjs from "dayjs";
-import { cn } from "@/lib/utils";
+  CalendarMonth,
+  clampDay,
+  dateKey,
+  daysInMonth,
+  monthFromDateKey,
+  monthKey,
+  parseDateKey,
+  shiftMonth,
+} from '@/lib/pomodoro/calendar';
+import { cn } from '@/lib/utils';
 
 export interface RecordDate {
   color?: string;
-  date: Date;
-  dateStr?: string;
+  dateKey: string;
 }
 
-interface WorkoutCalendarProps {
-  selectedDate?: Date;
-  onDateSelect?: (date: Date) => void;
-  onMonthChange?: (date: Date) => void;
+interface CalendarProps {
+  selectedDateKey: string;
+  todayKey: string;
+  visibleMonth: CalendarMonth;
+  onDateSelect: (dateKey: string) => void;
+  onVisibleMonthChange: (month: CalendarMonth) => void;
   recordDate?: RecordDate[];
 }
 
-function Calendar({
-  selectedDate = new Date(),
-  onDateSelect = () => {},
-  onMonthChange = () => {},
-  recordDate = [],
-}: WorkoutCalendarProps) {
-  const [currentMonth, setCurrentMonth] = useState(selectedDate);
+interface CalendarCell {
+  dateKey: string;
+  day: number;
+  month: CalendarMonth;
+  isCurrentMonth: boolean;
+}
 
-  const days: (number | { day: number; isCurrentMonth: boolean })[] = [];
-  const daysInMonth = getDaysInMonth(currentMonth);
-  const firstDay = getFirstDayOfMonth(currentMonth);
-  const lastDay = getLastDayOfMonth(currentMonth);
-  const daysInPreviousMonth = getDaysInMonth(
-    new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1),
-  );
-
-  // Add days from previous month
-  for (
-    let i = daysInPreviousMonth - firstDay + 1;
-    i <= daysInPreviousMonth;
-    i++
-  ) {
-    days.push({ day: i, isCurrentMonth: false });
-  }
-
-  // Add days from current month
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(i);
-  }
-
-  if (lastDay !== 6) {
-    // Add days from next month
-    const totalCells = days.length;
-    const remainingCells = totalCells >= 35 ? 42 - totalCells : 35 - totalCells; // 5 weeks * 7 days
-    for (let i = 1; i <= remainingCells; i++) {
-      days.push({ day: i, isCurrentMonth: false });
-    }
-  }
-
-  const previousMonth = () => {
-    const next = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() - 1,
-    );
-    setCurrentMonth(next);
-    onMonthChange(next);
-  };
-
-  const nextMonth = () => {
-    const next = new Date(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth() + 1,
-    );
-    setCurrentMonth(next);
-    onMonthChange(next);
-  };
-
-  const returnToToday = () => {
-    const today = new Date();
-    setCurrentMonth(new Date(today.getFullYear(), today.getMonth()));
-    onMonthChange(today);
-    onDateSelect(new Date());
-  };
-
-  const formatDate = (year: number, month: number, day: number) => {
-    return dayjs(new Date(year, month, day)).format("YYYY-MM-DD");
-  };
-
-  const isRecordDay = (day: number) => {
-    const dateStr = formatDate(
-      currentMonth.getFullYear(),
-      currentMonth.getMonth(),
+function createCells(visibleMonth: CalendarMonth): CalendarCell[] {
+  const firstWeekday = new Date(
+    Date.UTC(visibleMonth.year, visibleMonth.monthIndex, 1)
+  ).getUTCDay();
+  const previousMonth = shiftMonth(visibleMonth, -1);
+  const previousDays = daysInMonth(previousMonth);
+  const currentDays = daysInMonth(visibleMonth);
+  return Array.from({ length: 42 }, (_, index) => {
+    const offsetDay = index - firstWeekday + 1;
+    const month =
+      offsetDay < 1
+        ? previousMonth
+        : offsetDay > currentDays
+          ? shiftMonth(visibleMonth, 1)
+          : visibleMonth;
+    const day =
+      offsetDay < 1
+        ? previousDays + offsetDay
+        : offsetDay > currentDays
+          ? offsetDay - currentDays
+          : offsetDay;
+    return {
+      dateKey: dateKey(month.year, month.monthIndex, day),
       day,
-    );
-    const date = recordDate.find((r) => r.dateStr === dateStr);
-    return date;
+      month,
+      isCurrentMonth: monthKey(month) === monthKey(visibleMonth),
+    };
+  });
+}
+
+export default function Calendar({
+  selectedDateKey,
+  todayKey,
+  visibleMonth,
+  onDateSelect,
+  onVisibleMonthChange,
+  recordDate = [],
+}: CalendarProps) {
+  const cells = useMemo(() => createCells(visibleMonth), [visibleMonth]);
+  const recordDates = useMemo(
+    () => new Map(recordDate.map((record) => [record.dateKey, record])),
+    [recordDate]
+  );
+  const selectedMonthKey = monthKey(monthFromDateKey(selectedDateKey));
+  const visibleMonthKey = monthKey(visibleMonth);
+  const defaultGridKey =
+    selectedMonthKey === visibleMonthKey
+      ? selectedDateKey
+      : dateKey(visibleMonth.year, visibleMonth.monthIndex, 1);
+  const [focusedDateKey, setFocusedDateKey] = useState(defaultGridKey);
+  const buttonRefs = useRef(new Map<string, HTMLButtonElement>());
+  const focusRequestedRef = useRef(false);
+  const gridFocusKey = cells.some((cell) => cell.dateKey === focusedDateKey)
+    ? focusedDateKey
+    : defaultGridKey;
+
+  useEffect(() => {
+    if (!focusRequestedRef.current) return;
+    focusRequestedRef.current = false;
+    buttonRefs.current.get(gridFocusKey)?.focus();
+  }, [cells, gridFocusKey]);
+
+  const chooseDate = (cell: CalendarCell) => {
+    if (!cell.isCurrentMonth) onVisibleMonthChange(cell.month);
+    setFocusedDateKey(cell.dateKey);
+    onDateSelect(cell.dateKey);
   };
 
-  const isSelectedDay = (day: number) => {
-    return (
-      day === selectedDate.getDate() &&
-      currentMonth.getMonth() === selectedDate.getMonth() &&
-      currentMonth.getFullYear() === selectedDate.getFullYear()
+  const moveFocus = (targetKey: string) => {
+    const targetMonth = monthFromDateKey(targetKey);
+    if (monthKey(targetMonth) !== visibleMonthKey) onVisibleMonthChange(targetMonth);
+    focusRequestedRef.current = true;
+    setFocusedDateKey(targetKey);
+  };
+
+  const handleGridKeyDown = (event: KeyboardEvent<HTMLButtonElement>, cell: CalendarCell) => {
+    const current = parseDateKey(cell.dateKey);
+    const currentUtc = Date.UTC(current.year, current.monthIndex, current.day);
+    const currentWeekday = new Date(currentUtc).getUTCDay();
+    let targetKey: string | null = null;
+    if (event.key === 'ArrowLeft')
+      targetKey = new Date(currentUtc - 86_400_000).toISOString().slice(0, 10);
+    if (event.key === 'ArrowRight')
+      targetKey = new Date(currentUtc + 86_400_000).toISOString().slice(0, 10);
+    if (event.key === 'ArrowUp')
+      targetKey = new Date(currentUtc - 7 * 86_400_000).toISOString().slice(0, 10);
+    if (event.key === 'ArrowDown')
+      targetKey = new Date(currentUtc + 7 * 86_400_000).toISOString().slice(0, 10);
+    if (event.key === 'Home')
+      targetKey = new Date(currentUtc - currentWeekday * 86_400_000).toISOString().slice(0, 10);
+    if (event.key === 'End')
+      targetKey = new Date(currentUtc + (6 - currentWeekday) * 86_400_000)
+        .toISOString()
+        .slice(0, 10);
+    if (event.key === 'PageUp' || event.key === 'PageDown') {
+      const targetMonth = shiftMonth(cell.month, event.key === 'PageUp' ? -1 : 1);
+      targetKey = dateKey(
+        targetMonth.year,
+        targetMonth.monthIndex,
+        clampDay(targetMonth, current.day)
+      );
+    }
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      chooseDate(cell);
+      return;
+    }
+    if (!targetKey) return;
+    event.preventDefault();
+    moveFocus(targetKey);
+  };
+
+  const changeMonth = (amount: number) => {
+    const nextMonth = shiftMonth(visibleMonth, amount);
+    onVisibleMonthChange(nextMonth);
+    const focused = parseDateKey(gridFocusKey);
+    setFocusedDateKey(
+      dateKey(nextMonth.year, nextMonth.monthIndex, clampDay(nextMonth, focused.day))
     );
   };
+
+  const todayMonth = monthFromDateKey(todayKey);
+  const isAtToday = selectedDateKey === todayKey && monthKey(todayMonth) === visibleMonthKey;
 
   return (
-    <div className="border text-font border-border rounded-lg p-4 space-y-4">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold">
-          {currentMonth.toLocaleDateString("zh-CN", {
-            month: "long",
-            year: "numeric",
-          })}
-        </h3>
-        <div className="flex gap-2">
+    <section
+      className="min-w-[356px] space-y-4 rounded-lg border border-border p-2 text-font"
+      aria-label="番茄钟日期"
+    >
+      <div className="flex items-center justify-between gap-2">
+        <NeuDiv className="px-3 py-1 text-base font-semibold">
+          {visibleMonth.year}年{visibleMonth.monthIndex + 1}月
+        </NeuDiv>
+        <div className="flex gap-1">
           <button
-            onClick={previousMonth}
+            type="button"
+            onClick={() => changeMonth(-1)}
             aria-label="上个月"
-            className="p-1 hover:bg-muted rounded-md transition-colors"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft aria-hidden="true" className="h-5 w-5" />
           </button>
           <button
-            onClick={nextMonth}
+            type="button"
+            onClick={() => changeMonth(1)}
             aria-label="下个月"
-            className="p-1 hover:bg-muted rounded-md transition-colors"
+            className="flex min-h-11 min-w-11 items-center justify-center rounded-md transition-colors hover:bg-muted focus-visible:outline-2 focus-visible:outline-primary"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight aria-hidden="true" className="h-5 w-5" />
           </button>
-          <button onClick={returnToToday}>今天</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-7 gap-2">
-        {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((day) => (
-          <div key={day} className="text-center text-sm font-semibold ">
-            {day}
-          </div>
-        ))}
-
-        {days.map((dayObj, index) => {
-          const day = typeof dayObj === "number" ? dayObj : dayObj.day;
-          const isCurrentMonth =
-            typeof dayObj === "number" || dayObj.isCurrentMonth;
-          const record = isRecordDay(day);
-          const color = record?.color;
-          const isSelected = isSelectedDay(day);
-          return (
-            <button
-              type="button"
-              key={index}
-              onClick={() => {
-                if (isCurrentMonth) {
-                  const newDate = new Date(
-                    currentMonth.getFullYear(),
-                    currentMonth.getMonth(),
-                    day,
-                  );
-                  onDateSelect(newDate);
-                }
-              }}
-              disabled={!isCurrentMonth}
-              aria-label={`${formatDate(currentMonth.getFullYear(), currentMonth.getMonth(), day)}${record ? "，已完成专注" : ""}`}
-              className={`
-                min-h-11 p-1.5 aspect-square rounded-md text-sm font-medium flex flex-col gap-1 items-center justify-center transition-all! group duration-618 hover:transition-none! hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary
-                ${!isCurrentMonth ? "opacity-50 cursor-not-allowed" : ""}
-                ${isCurrentMonth && !isSelected ? "cursor-pointer" : ""}
-                ${isCurrentMonth && isSelected ? "bg-primary text-white  hover:bg-primary hover:text-white" : ""}
-              `}
-            >
-              <span>{day}</span>
-              <div
-                className={cn(
-                  "rounded-full w-1 h-1",
-                  !!record && (color || "bg-success"),
-                )}
-              ></div>
-            </button>
-          );
-        })}
+      <div role="grid" aria-label={`${visibleMonth.year}年${visibleMonth.monthIndex + 1}月`}>
+        <div className="grid grid-cols-7 gap-1" role="row">
+          {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
+            <div key={day} role="columnheader" className="text-center text-sm font-semibold">
+              {day}
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-7 gap-1">
+          {cells.map((cell) => {
+            const record = cell.isCurrentMonth ? recordDates.get(cell.dateKey) : undefined;
+            const isSelected = cell.dateKey === selectedDateKey;
+            const isFocused = cell.dateKey === gridFocusKey;
+            return (
+              <div role="gridcell" key={cell.dateKey} aria-selected={isSelected}>
+                <button
+                  ref={(node) => {
+                    if (node) buttonRefs.current.set(cell.dateKey, node);
+                    else buttonRefs.current.delete(cell.dateKey);
+                  }}
+                  type="button"
+                  tabIndex={isFocused ? 0 : -1}
+                  onFocus={() => setFocusedDateKey(cell.dateKey)}
+                  onClick={() => chooseDate(cell)}
+                  onKeyDown={(event) => handleGridKeyDown(event, cell)}
+                  aria-label={`${cell.dateKey}${record ? '，已完成专注' : ''}`}
+                  className={cn(
+                    'group flex aspect-square min-h-11 min-w-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-md! p-1 text-sm font-medium transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary',
+                    !cell.isCurrentMonth && 'opacity-50',
+                    isSelected && 'bg-primary text-white hover:bg-primary hover:text-white'
+                  )}
+                >
+                  <span>{cell.day}</span>
+                  <span
+                    aria-hidden="true"
+                    className={cn('h-1 w-1 rounded-full', record && (record.color || 'bg-success'))}
+                  />
+                </button>
+              </div>
+            );
+          })}
+        </div>
       </div>
-    </div>
+
+      <div className="flex justify-end">
+        <NeuButton
+          disabled={isAtToday}
+          onClick={() => {
+            onVisibleMonthChange(todayMonth);
+            onDateSelect(todayKey);
+          }}
+        >
+          <span className="inline-flex items-center gap-1 whitespace-nowrap">
+            <CalendarDays aria-hidden="true" className="shrink-0" size={18} />
+            <span>回到今天</span>
+          </span>
+        </NeuButton>
+      </div>
+    </section>
   );
 }
-
-export default Calendar;

@@ -1,4 +1,3 @@
-import dayjs from "dayjs";
 import {
   Apple,
   BookCheck,
@@ -9,67 +8,83 @@ import {
   Coffee,
   Hourglass,
   Timer,
-} from "lucide-react";
-import type { PomodoroHistoryRecord } from "@/types/pomodoro";
-import { formatMs } from "@/utils/timeUtils";
-import NeuButton from "../NeuButton";
-import NeuDiv from "../NeuDiv";
+} from 'lucide-react';
+import type { PomodoroHistoryRecord } from '@/types/pomodoro';
+import { formatMs } from '@/utils/timeUtils';
+import NeuDiv from '../NeuDiv';
 
 interface Props {
   dataSource: PomodoroHistoryRecord[];
-  onAdoptServer: (eventId: string) => void;
+  timeZone: string;
 }
 
 const outcomeLabel = {
-  COMPLETED: "完成",
-  SKIPPED: "跳过",
-  STOPPED: "停止",
+  COMPLETED: '完成',
+  SKIPPED: '跳过',
+  STOPPED: '停止',
 } as const;
 const syncLabel = {
-  pending: "待同步",
-  syncing: "同步中",
-  synced: "已同步",
-  failed: "同步暂停",
-  conflict: "存在冲突",
+  pending: '待同步',
+  syncing: '同步中',
+  synced: '已同步',
+  failed: '同步暂停',
+  conflict: '存在冲突',
 } as const;
 
-export default function PomodoroList({ dataSource, onAdoptServer }: Props) {
+const syncColor = {
+  pending: 'text-warning',
+  syncing: 'text-warning',
+  synced: 'text-success',
+  failed: 'text-warning',
+  conflict: 'text-danger',
+} as const;
+
+export default function PomodoroList({ dataSource, timeZone }: Props) {
+  const dateTimeFormatter = new Intl.DateTimeFormat('zh-CN', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  });
   if (dataSource.length === 0) {
     return (
-      <NeuDiv className="p-6 text-center opacity-75">
-        这个月还没有专注记录，开始一次计时后会显示在这里。
+      <NeuDiv surface="flat" className="p-6 text-center opacity-75">
+        这一天还没有番茄钟记录。
       </NeuDiv>
     );
   }
   return (
-    <ul className="flex flex-col gap-3" aria-label="番茄钟历史">
+    <ul className="m-0 flex list-none flex-col gap-3 pl-0!" aria-label="番茄钟历史">
       {dataSource.map((item) => (
         <li key={item.eventId ?? item.id}>
           <NeuDiv surface="flat" className="flex flex-col gap-3 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
-                {item.type === "FOCUS" ? (
+                {item.type === 'FOCUS' ? (
                   <Apple aria-hidden="true" className="text-danger" size={20} />
                 ) : (
-                  <Coffee
-                    aria-hidden="true"
-                    className="text-success"
-                    size={20}
-                  />
+                  <Coffee aria-hidden="true" className="text-success" size={20} />
                 )}
                 <time className="font-bold" dateTime={item.startAt}>
-                  {dayjs(item.startAt).format("YYYY-MM-DD HH:mm:ss")}
+                  {dateTimeFormatter.format(new Date(item.startAt))}
                 </time>
               </div>
-              <span className="flex items-center gap-1 text-sm">
-                {item.syncStatus === "synced" ? (
+              <span
+                className={`flex items-center ${syncColor[item.syncStatus]}`}
+                aria-label={syncLabel[item.syncStatus]}
+                title={syncLabel[item.syncStatus]}
+              >
+                {item.syncStatus === 'synced' ? (
                   <Cloud aria-hidden="true" size={16} />
-                ) : item.syncStatus === "conflict" ? (
+                ) : item.syncStatus === 'conflict' ? (
                   <CircleAlert aria-hidden="true" size={16} />
                 ) : (
                   <CloudOff aria-hidden="true" size={16} />
                 )}
-                {syncLabel[item.syncStatus]}
               </span>
             </div>
             <div className="grid grid-cols-2 gap-3 text-sm sm:grid-cols-3">
@@ -82,29 +97,15 @@ export default function PomodoroList({ dataSource, onAdoptServer }: Props) {
                 实际 {formatMs(item.actualDurationMs)}
               </span>
               <span className="flex items-center gap-2">
-                {item.endReason === "COMPLETED" ? (
+                {item.endReason === 'COMPLETED' ? (
                   <BookCheck aria-hidden="true" size={18} />
                 ) : (
                   <BookX aria-hidden="true" size={18} />
                 )}
-                {item.endReason
-                  ? outcomeLabel[item.endReason]
-                  : item.finished
-                    ? "完成"
-                    : "旧记录"}
+                {item.endReason ? outcomeLabel[item.endReason] : item.finished ? '完成' : '旧记录'}
               </span>
             </div>
-            {item.syncStatus === "conflict" && item.eventId ? (
-              <div
-                className="flex items-center justify-between gap-3 text-sm"
-                role="alert"
-              >
-                <span>服务端已保存首次记录，你可以采用它并清除本地冲突。</span>
-                <NeuButton onClick={() => onAdoptServer(item.eventId!)}>
-                  采用服务端记录
-                </NeuButton>
-              </div>
-            ) : null}
+            {item.lastError ? <p className="text-sm text-danger">{item.lastError}</p> : null}
           </NeuDiv>
         </li>
       ))}

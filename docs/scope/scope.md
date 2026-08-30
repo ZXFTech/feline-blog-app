@@ -29,6 +29,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 16  | Neu 表面与交互契约迁移 | Maintenance | done        |
 | 17  | NeuButton 代码逻辑优化 | Maintenance | done        |
 | 18  | NeuButton 样式代码审查 | Maintenance | planned     |
+| 19  | Commit lint 流程性能优化 | Maintenance | done        |
 
 ## Current product
 
@@ -194,7 +195,17 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
       code in `src/components/NeuButton/_style.scss`, `src/styles/_mixin.scss`, `src/styles/_variables.scss`
 - [x] Verify it: `/check verify NeuButton 样式代码审查`
 
-## Deferred
+
+### 19. Commit lint 流程性能优化 · done
+
+优化 pre-commit 和 pre-push hooks 的性能，包括 ESLint 缓存、Prettier 配置化、fetch 深度限制和 build 触发条件精确化。
+**Done when:** lint-staged 使用缓存加速，Prettier 有明确配置，pre-push 减少不必要的网络和构建操作。
+
+
+
+
+- [x] Build it: `/develop Commit lint 流程性能优化`
+      code in `lint-staged.config.mjs`, `prettier.config.mjs`, `.husky/pre-push`
 
 当前开发轮次不包含这些能力，保留在这里避免它们悄悄扩大主线。
 

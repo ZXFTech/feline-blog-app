@@ -30,6 +30,7 @@ export default function PomodoroTimer({
   onSettingsChange,
 }: PomodoroTimerProps) {
   const blocked = Boolean(storageError || state.pendingOutcome);
+  const isBreak = state.phase === 'short_break' || state.phase === 'long_break';
   return (
     <main
       className="my-auto flex shrink-0 flex-col items-center space-y-4"
@@ -64,10 +65,10 @@ export default function PomodoroTimer({
             <NeuButton onClick={onResume}>继续</NeuButton>
           ) : (
             <NeuButton buttonType="primary" disabled={blocked} onClick={onStart}>
-              开始专注
+              {isBreak ? '开始休息' : '开始专注'}
             </NeuButton>
           )}
-          <NeuButton disabled={!state.activeEventId} onClick={onSkip}>
+          <NeuButton disabled={!state.activeEventId && !isBreak} onClick={onSkip}>
             跳过
           </NeuButton>
           <NeuButton buttonType="danger" disabled={!state.activeEventId} onClick={onStop}>

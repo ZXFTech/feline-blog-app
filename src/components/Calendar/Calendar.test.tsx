@@ -4,6 +4,21 @@ import { describe, expect, it, vi } from 'vitest';
 import Calendar from './index';
 
 describe('Calendar', () => {
+  it('fits its date cells within the available sidebar width', () => {
+    render(
+      <Calendar
+        selectedDateKey="2026-08-15"
+        todayKey="2026-08-30"
+        visibleMonth={{ year: 2026, monthIndex: 7 }}
+        onDateSelect={vi.fn()}
+        onVisibleMonthChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole('region', { name: '番茄钟日期' })).toHaveClass('w-full', 'min-w-0');
+    expect(screen.getByRole('button', { name: '2026-08-15' })).toHaveClass('w-full', 'min-w-0');
+  });
+
   it('AC-4 selects an adjacent month date and changes the visible month', async () => {
     const user = userEvent.setup();
     const onDateSelect = vi.fn();

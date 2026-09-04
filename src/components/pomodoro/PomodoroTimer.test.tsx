@@ -118,4 +118,22 @@ describe('PomodoroTimer', () => {
     expect(screen.getByRole('status')).toHaveTextContent('已恢复上次计时');
     expect(screen.getByRole('button', { name: '开始专注' })).toBeDisabled();
   });
+
+  it('labels and allows an unstarted break to be skipped', async () => {
+    const user = userEvent.setup();
+    const onSkip = vi.fn();
+    render(
+      <PomodoroTimer
+        {...callbacks}
+        state={{ ...stoppedState, phase: 'short_break', remainingMs: 300_000 }}
+        storageError={null}
+        recoveryNotice={null}
+        onSkip={onSkip}
+      />
+    );
+
+    expect(screen.getByRole('button', { name: '开始休息' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: '跳过' }));
+    expect(onSkip).toHaveBeenCalledOnce();
+  });
 });

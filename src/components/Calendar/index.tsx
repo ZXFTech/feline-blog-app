@@ -163,7 +163,7 @@ export default function Calendar({
 
   return (
     <section
-      className="min-w-[356px] space-y-4 rounded-lg border border-border p-2 text-font"
+      className="w-full min-w-0 space-y-4 rounded-lg border border-border p-2 text-font"
       aria-label="番茄钟日期"
     >
       <div className="flex items-center justify-between gap-2">
@@ -217,7 +217,7 @@ export default function Calendar({
                   onKeyDown={(event) => handleGridKeyDown(event, cell)}
                   aria-label={`${cell.dateKey}${record ? '，已完成专注' : ''}`}
                   className={cn(
-                    'group flex aspect-square min-h-11 min-w-11 cursor-pointer flex-col items-center justify-center gap-1 rounded-md! p-1 text-sm font-medium transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary',
+                    'group flex aspect-square w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-md! p-1 text-sm font-medium transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary',
                     !cell.isCurrentMonth && 'opacity-50',
                     isSelected && 'bg-primary text-white hover:bg-primary hover:text-white'
                   )}

@@ -1,34 +1,36 @@
-import Content from "@/components/Content";
-import { TagTodo } from "@/types/todo";
-import { getTodoList } from "@/db/todoAction";
-import TodoList from "./TodoList";
+import Content from '@/components/Content';
+import { TagTodo } from '@/types/todo';
+import { getTodoList } from '@/db/todoAction';
+import TodoList from './TodoList';
 
 interface Props {
   searchParams: Promise<{
     content: string;
-    orderBy: "desc" | "asc" | undefined;
-    finished: "true";
+    orderBy: 'desc' | 'asc' | undefined;
+    finished: 'true';
   }>;
 }
 
 const Todos = async ({ searchParams }: Props) => {
   const { orderBy, finished, content } = await searchParams;
-  const isFinished = finished ? (finished === "true" ? true : false) : null;
+  const isFinished = finished ? (finished === 'true' ? true : false) : null;
 
-  const { todoList } = await getTodoList({
+  const result = await getTodoList({
     orderBy,
     finished: isFinished,
     content,
   });
+  if (result.status !== 'success') throw new Error(result.message);
+  const { todoList } = result.data;
 
   const sortedList = {} as { [key: string]: TagTodo[] };
   (todoList || []).forEach((todo) => {
     const date = new Date(todo.createAt!);
     const dateKey = [
       date.getUTCFullYear(),
-      (date.getUTCMonth() + 1).toString().padStart(2, "0"),
-      (date.getUTCDate() + 1).toString().padStart(2, "0"),
-    ].join("-");
+      (date.getUTCMonth() + 1).toString().padStart(2, '0'),
+      (date.getUTCDate() + 1).toString().padStart(2, '0'),
+    ].join('-');
     const tagTodo = {
       ...todo,
       tags: todo.tags.map((item) => item.tag),

@@ -1,40 +1,19 @@
-import db from "@/db/client";
-import { verifyToken } from "@/lib/jwt";
-import logger from "@/lib/logger/Logger";
-import { actionResponse } from "@/lib/response/ApiResponse";
-import { NextRequest } from "next/server";
+import { resolveCurrentUser } from '@/lib/auth/userAuth';
+import logger from '@/lib/logger/Logger';
+import { actionResponse } from '@/lib/response/ApiResponse';
+import { safeErrorContext } from '@/lib/server/error';
+import { NextRequest } from 'next/server';
 
 export async function GET(request: NextRequest) {
   try {
-    const token = request.cookies.get("token")?.value;
-
-    if (!token) {
-      return actionResponse.success(null, "");
-    }
-
-    const decode = verifyToken(token);
-
-    if (!decode) {
-      return actionResponse.success(null, "");
-    }
-
-    const user = await db.user.findUnique({
-      where: {
-        id: decode.userId,
-      },
-      select: {
-        id: true,
-        email: true,
-        username: true,
-        role: true,
-        avatar: true,
-        createdAt: true,
-      },
-    });
-
-    return actionResponse.success({ user });
+    void request;
+    const result = await resolveCurrentUser();
+    if (result.status === 'unauthenticated') return actionResponse.success(null, '');
+    if (result.status !== 'success') return actionResponse.fromFailure(result);
+    const { id, email, username, role, avatar, createdAt } = result.data;
+    return actionResponse.success({ user: { id, email, username, role, avatar, createdAt } });
   } catch (error) {
-    logger.error("获取用户信息错误." + error);
+    logger.error(safeErrorContext('authMe', error));
     return actionResponse.error();
   }
 }

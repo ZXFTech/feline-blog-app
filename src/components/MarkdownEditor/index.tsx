@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
-import { ChangeEventHandler, useEffect, useState } from "react";
-import NeuDiv from "../NeuDiv";
-import NeuButton from "../NeuButton";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { CodeBlock } from "../NotionBlock";
-import Link from "next/link";
-import NeuInput from "@/components/NeuInput";
-import { getOptionTagsById } from "@/db/tagAction";
-import TagEditor, { TagData } from "../TagEditor";
+import { ChangeEventHandler, useEffect, useState } from 'react';
+import NeuDiv from '../NeuDiv';
+import NeuButton from '../NeuButton';
+import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import { CodeBlock } from '../NotionBlock';
+import Link from 'next/link';
+import NeuInput from '@/components/NeuInput';
+import { getOptionTagsById } from '@/db/tagAction';
+import TagEditor, { TagData } from '../TagEditor';
 
 interface Props {
   handleSubmit: () => void;
@@ -36,15 +36,15 @@ const MarkdownEditor = ({
   const [optionTags, setOptionTags] = useState<TagData[]>([]);
 
   useEffect(() => {
-    getOptionTagsById("blog", id).then((res) => setOptionTags(res));
+    getOptionTagsById('blog', id).then((res) => {
+      if (res.status === 'success') setOptionTags(res.data);
+    });
   }, [id]);
 
   return (
     <div
       className={`flex flex-col px-3! gap-2.5 transition-all duration-200 ease-in-out ${
-        fullScreen
-          ? "fixed z-99999999 top-0 bottom-0 left-0 right-0 "
-          : "h-[calc(100vh-9rem))]"
+        fullScreen ? 'fixed z-99999999 top-0 bottom-0 left-0 right-0 ' : 'h-[calc(100vh-9rem))]'
       }`}
     >
       <div className="top-panel mx-0! mt-1! flex justify-between items-center">
@@ -55,23 +55,19 @@ const MarkdownEditor = ({
         </div>
         <div className="right flex wrap">
           <NeuButton
-            icon={fullScreen ? "fullScreen_exit" : "fullScreen"}
+            icon={fullScreen ? 'fullScreen_exit' : 'fullScreen'}
             onClick={() => setFullScreen((prev) => !prev)}
           >
-            {`${fullScreen ? "退出全屏" : "全屏"}`}
+            {`${fullScreen ? '退出全屏' : '全屏'}`}
           </NeuButton>
           <NeuButton
-            icon={preview ? "visibility_off" : "visibility"}
+            icon={preview ? 'visibility_off' : 'visibility'}
             onClick={() => setPreview((prev) => !prev)}
           >
-            {preview ? "关闭预览" : "预览"}
+            {preview ? '关闭预览' : '预览'}
           </NeuButton>
           <NeuButton icon="save">保存</NeuButton>
-          <NeuButton
-            loading={loading}
-            icon="drive_folder_upload"
-            onClick={handleSubmit}
-          >
+          <NeuButton loading={loading} icon="drive_folder_upload" onClick={handleSubmit}>
             提交
           </NeuButton>
         </div>
@@ -85,17 +81,13 @@ const MarkdownEditor = ({
         value={blog.title}
         onChange={onTitleChange as ChangeEventHandler}
       />
-      <TagEditor
-        setValue={onTagChange}
-        value={blog.tags || []}
-        options={optionTags}
-      />
+      <TagEditor setValue={onTagChange} value={blog.tags || []} options={optionTags} />
       <div className="full-screen-content flex grow mb-1 relative">
         <NeuInput
           textArea
           disabled={loading}
           className={`p-3 transition-all duration-400 ease-in-out ${
-            preview ? "w-[49%]" : "w-full"
+            preview ? 'w-[49%]' : 'w-full'
           } h-full resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60`}
           placeholder="输入 Markdown 内容..."
           value={blog.content}
@@ -104,18 +96,18 @@ const MarkdownEditor = ({
         <NeuDiv
           className={`preview-part m-0! overflow-scroll hide-scrollbar break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
             preview
-              ? "p-3! ml-3! grow! w-full md:w-[49%]"
-              : "w-0 p-0! overflow-hidden! border-none! "
+              ? 'p-3! ml-3! grow! w-full md:w-[49%]'
+              : 'w-0 p-0! overflow-hidden! border-none! '
           }`}
         >
           <ReactMarkdown
             components={{
               code({ className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || "");
+                const match = /language-(\w+)/.exec(className || '');
                 return match ? (
                   <CodeBlock
                     title="test"
-                    code={children ? children.toString() : ""}
+                    code={children ? children.toString() : ''}
                     language={match[1]}
                   ></CodeBlock>
                 ) : (

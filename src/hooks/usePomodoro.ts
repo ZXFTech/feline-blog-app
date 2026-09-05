@@ -107,7 +107,17 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
               lastError: result.message,
               serverRecord: result.record,
             });
-          } else if (result.status === 'unauthenticated' || result.status === 'invalid_payload') {
+          } else if (result.status === 'unauthenticated') {
+            writeOutbox({
+              ...item,
+              status: 'failed',
+              lastError: result.message,
+            });
+          } else if (
+            result.status === 'invalid_input' ||
+            result.status === 'forbidden' ||
+            result.status === 'not_found'
+          ) {
             writeOutbox({
               ...item,
               status: 'failed',

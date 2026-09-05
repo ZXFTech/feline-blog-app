@@ -1,28 +1,22 @@
-import { getAllTags, getSortedTags } from "@/db/tagAction";
-import logger from "@/lib/logger/Logger";
-import { actionResponse } from "@/lib/response/ApiResponse";
-import { NextRequest } from "next/server";
+import { getAllTags, getSortedTags } from '@/db/tagAction';
+import logger from '@/lib/logger/Logger';
+import { actionResponse } from '@/lib/response/ApiResponse';
+import { safeErrorContext } from '@/lib/server/error';
+import { NextRequest } from 'next/server';
 
 export async function GET(req: NextRequest) {
   try {
     const params = req.nextUrl.searchParams;
-    console.log("params", params);
-    const countBy = params.get("countBy");
-    if (countBy !== "blogs" && countBy !== "todos") {
-      return actionResponse.error("countBy 参数必须为 blogs 或者 todos");
-    }
-    if (!params) {
-      const result = await getAllTags();
-      return actionResponse.success({ ...result });
-    } else {
-      const result = await getSortedTags(
-        params.get("countBy") as "todos" | "blogs",
-        params.get("orderBy") as "desc" | "asc"
-      );
-      return actionResponse.success({ ...result });
-    }
+    const countBy = params.get('countBy');
+    const result =
+      countBy === null
+        ? await getAllTags()
+        : await getSortedTags(countBy, params.get('orderBy') ?? undefined);
+    return result.status === 'success'
+      ? actionResponse.success(result.data)
+      : actionResponse.fromFailure(result);
   } catch (error) {
-    logger.error("出现错误,", error);
-    return actionResponse.error("内部错误");
+    logger.error(safeErrorContext('tagRoute', error));
+    return actionResponse.error('内部错误');
   }
 }

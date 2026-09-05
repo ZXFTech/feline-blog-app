@@ -1,11 +1,11 @@
-import BlogList from "@/components/BlogList/blogList";
-import Content from "@/components/Content";
-import { BlogListOperationBar } from "@/components/BlogList/BlogListOperationBar";
-import { getBlogList } from "@/db/blogAction";
+import BlogList from '@/components/BlogList/blogList';
+import Content from '@/components/Content';
+import { BlogListOperationBar } from '@/components/BlogList/BlogListOperationBar';
+import { getBlogList } from '@/db/blogAction';
 
 interface BlogPageProps {
   searchParams: Promise<{
-    orderBy?: "desc" | "asc";
+    orderBy?: 'desc' | 'asc';
     page?: string;
     tags?: string | string[];
     content?: string;
@@ -13,12 +13,14 @@ interface BlogPageProps {
 }
 
 export default async function Blog({ searchParams }: BlogPageProps) {
-  const { orderBy = "desc", content } = await searchParams;
+  const { orderBy = 'desc', content } = await searchParams;
 
-  const { blogs } = await getBlogList(1, 20, {
+  const result = await getBlogList(1, 20, {
     orderBy,
     content,
   });
+  if (result.status !== 'success') throw new Error(result.message);
+  const { blogs } = result.data;
 
   return (
     <Content>

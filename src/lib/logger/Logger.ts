@@ -6,10 +6,10 @@ enum LogLevel {
 }
 
 const levelColorMap = {
-  [LogLevel.INFO]: "green",
-  [LogLevel.DEBUG]: "blue",
-  [LogLevel.WARN]: "orange",
-  [LogLevel.ERROR]: "red",
+  [LogLevel.INFO]: 'green',
+  [LogLevel.DEBUG]: 'blue',
+  [LogLevel.WARN]: 'orange',
+  [LogLevel.ERROR]: 'red',
 };
 
 class Logger {
@@ -17,31 +17,30 @@ class Logger {
     this.level = level;
   }
   private level: LogLevel;
-  private environment = typeof window !== undefined ? "Browser" : "Node";
-  private timeStamp = new Date().toISOString();
-  private messageStatus = `[${this.environment}] [${this.timeStamp}]`;
+  private environment = typeof window !== 'undefined' ? 'Browser' : 'Node';
+
+  private prefix() {
+    return `[${this.environment}] [${new Date().toISOString()}]`;
+  }
 
   error(...args: unknown[]): void {
-    console.log(
-      `${this.messageStatus} %c${args}`,
-      `color: ${levelColorMap[this.level]},font-weight: bold;`
-    );
+    console.error(this.prefix(), ...args);
   }
   log(...args: unknown[]): void {
     console.log(
-      `${this.messageStatus} %c${args}`,
+      `${this.prefix()} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`
     );
   }
   warning(...args: unknown[]): void {
     console.log(
-      `${this.messageStatus} %c${args}`,
+      `${this.prefix()} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`
     );
   }
   success(...args: unknown[]): void {
     console.log(
-      `${this.messageStatus} %c${args}`,
+      `${this.prefix()} %c${args}`,
       `color: ${levelColorMap[this.level]},font-weight: bold;`
     );
   }
@@ -52,6 +51,6 @@ const logger = globalForLogger.logger || new Logger();
 
 export default logger;
 
-if (process.env.NODE_ENV !== "production") {
+if (process.env.NODE_ENV !== 'production') {
   globalForLogger.logger = logger;
 }

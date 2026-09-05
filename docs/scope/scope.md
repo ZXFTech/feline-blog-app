@@ -32,6 +32,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 19  | Commit lint 流程性能优化 | Maintenance | done        |
 | 20  | 番茄钟按日布局与历史浏览 | Maintenance | done        |
 | 21  | 本地发布流程             | Maintenance | in-progress |
+| 22  | 接口安全与健壮性修复     | Maintenance | done        |
 
 ## Current product
 
@@ -234,6 +235,22 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
   - [ ] 安装 standard-version 和 conventional-changelog，配置 package.json release 命令，满足 entry point
 - [ ] Verify it: `/check verify 本地发布流程`
 - [ ] Test it: `/test 本地发布流程`
+
+### 22. 接口安全与健壮性修复 · done
+
+修复接口审查发现的敏感字段暴露、写操作鉴权缺口、用户数据范围不一致、错误分类不准确，以及事务、幂等、参数校验和稳定查询方面的缺陷，同时保持现有产品行为与界面流程。
+**Done when:** 公开接口只返回允许字段，所有写操作具有正确的认证和资源归属校验，列表与统计遵守一致的数据范围，输入错误与临时故障能够正确区分，相关多步骤写入保持原子性，重复请求不会产生错误计数或重复数据，并由回归测试覆盖关键边界。
+
+- [x] Design it (spec): `/architect 接口安全与健壮性修复`
+      spec [0005](../specs/0005-api-safety-contract/index.md)
+- [x] Build it: `/develop 接口安全与健壮性修复`
+      code in `src/lib/server/`, `src/lib/auth/userAuth.ts`, `src/db/`, `src/app/api/`
+  - [x] 建立统一结果、校验、错误映射、字段白名单、公开投影和脱敏日志，并打通注册、公开文章和 ROOT 私有读取，covers `AC-1`, `AC-2`, `AC-4` 到 `AC-8`, `AC-13` 到 `AC-16`
+  - [x] 将 Blog、Todo、Tag、Daily 和 Prompt 迁移到当前用户范围、资源归属和兼容成功响应，covers `AC-2` 到 `AC-5`, `AC-11`, `AC-12`, `AC-15`
+  - [x] 收口标签事务、互动计数、软删除和番茄同步的幂等与并发行为，covers `AC-9`, `AC-10`, `AC-13`
+  - [x] 补齐接口与数据边界测试，并通过 lint、build、Vitest 和受影响的认证页面流程，covers `AC-1` 到 `AC-16`
+- [x] Verify it: `/check verify 接口安全与健壮性修复`
+- [x] Test it: `/test 接口安全与健壮性修复`
 
 ## Deferred
 

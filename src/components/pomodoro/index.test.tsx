@@ -119,7 +119,7 @@ describe('Pomodoro workspace', () => {
     vi.setSystemTime(new Date('2026-08-30T12:00:00.000Z'));
     mocks.user = { id: 'user-1' };
     mocks.getTomatoHistory.mockReset();
-    mocks.getTomatoHistory.mockResolvedValue([]);
+    mocks.getTomatoHistory.mockResolvedValue({ status: 'success', data: [] });
     mocks.usePomodoro.mockReset();
     mocks.usePomodoro.mockReturnValue(controller);
   });
@@ -153,7 +153,10 @@ describe('Pomodoro workspace', () => {
 
   it('AC-7 keeps the selected month loading separate from the visible month', async () => {
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
-    mocks.getTomatoHistory.mockResolvedValue([augustRecord]);
+    mocks.getTomatoHistory.mockResolvedValue({
+      status: 'success',
+      data: [augustRecord],
+    });
     render(<Pomodoro />);
     expect(await screen.findByText('august-record')).toBeVisible();
 
@@ -164,18 +167,23 @@ describe('Pomodoro workspace', () => {
   });
 
   it('AC-7 ignores a stale response after a newer request for the same month', async () => {
-    let resolveFirst!: (records: PomodoroHistoryRecord[]) => void;
-    const first = new Promise<PomodoroHistoryRecord[]>((resolve) => {
+    let resolveFirst!: (result: { status: 'success'; data: PomodoroHistoryRecord[] }) => void;
+    const first = new Promise<{
+      status: 'success';
+      data: PomodoroHistoryRecord[];
+    }>((resolve) => {
       resolveFirst = resolve;
     });
-    mocks.getTomatoHistory.mockReturnValueOnce(first).mockResolvedValueOnce([]);
+    mocks.getTomatoHistory
+      .mockReturnValueOnce(first)
+      .mockResolvedValueOnce({ status: 'success', data: [] });
     const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
     const { rerender } = render(<Pomodoro />);
 
     await user.click(screen.getByRole('button', { name: '查看七月' }));
     await user.click(screen.getByRole('button', { name: '选择七月日期' }));
     rerender(<Pomodoro />);
-    resolveFirst([augustRecord]);
+    resolveFirst({ status: 'success', data: [augustRecord] });
 
     expect(await screen.findByText('2026-07-15')).toBeVisible();
     expect(screen.queryByText('august-record')).not.toBeInTheDocument();

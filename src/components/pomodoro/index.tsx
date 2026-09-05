@@ -96,9 +96,11 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
         },
       }));
       try {
-        const records = await getTomatoHistory(
+        const result = await getTomatoHistory(
           monthUtcRange(month.year, month.monthIndex, timeZone)
         );
+        if (result.status !== 'success') throw new Error(result.message);
+        const records = result.data;
         if (
           userIdRef.current !== userId ||
           sessionGenerationRef.current !== generation ||

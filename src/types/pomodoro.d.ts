@@ -137,7 +137,7 @@ export type SavePomodoroResult =
   | { status: 'created' | 'already_exists'; record: PomodoroHistoryRecord }
   | { status: 'conflict'; record: PomodoroHistoryRecord; message: string }
   | {
-      status: 'unauthenticated' | 'invalid_payload' | 'temporary_failure';
+      status: 'unauthenticated' | 'forbidden' | 'invalid_input' | 'not_found' | 'temporary_failure';
       message: string;
     };
 

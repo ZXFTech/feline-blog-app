@@ -1,18 +1,18 @@
-"use client";
+'use client';
 
-import { useCallback, useEffect, useMemo, useState } from "react";
-import dynamic from "next/dynamic";
-import { toast as message } from "../ProMessage";
-import NeuInput from "../NeuInput";
-import TagEditor, { TagData } from "../TagEditor";
-import { TagTodo } from "@/types/todo";
-import { addTodo, updateTodo } from "@/db/todoAction";
-import { Tag } from "../../../generated/prisma/client";
-import { useRouter } from "next/navigation";
-import { getOptionTagsById } from "@/db/tagAction";
-import { cn } from "@/lib/utils";
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import dynamic from 'next/dynamic';
+import { toast as message } from '../ProMessage';
+import NeuInput from '../NeuInput';
+import TagEditor, { TagData } from '../TagEditor';
+import { TagTodo } from '@/types/todo';
+import { addTodo, updateTodo } from '@/db/todoAction';
+import { Tag } from '../../../generated/prisma/client';
+import { useRouter } from 'next/navigation';
+import { getOptionTagsById } from '@/db/tagAction';
+import { cn } from '@/lib/utils';
 
-const Modal = dynamic(() => import("@/components/Modal"), { ssr: false });
+const Modal = dynamic(() => import('@/components/Modal'), { ssr: false });
 
 interface EditorProps {
   visible: boolean;
@@ -22,23 +22,25 @@ interface EditorProps {
 }
 
 const INITIAL_TODO_DATA: TagTodo = {
-  content: "",
+  content: '',
   finished: false,
 };
 
 const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [validateMessage, setValidateMessage] = useState("");
+  const [validateMessage, setValidateMessage] = useState('');
   const [optionTags, setOptionTags] = useState<TagData[]>([]);
   const [shake, setShake] = useState(false);
 
   useEffect(() => {
-    getOptionTagsById("todo", todo?.id).then((tags) => setOptionTags(tags));
+    getOptionTagsById('todo', todo?.id).then((result) => {
+      if (result.status === 'success') setOptionTags(result.data);
+    });
   }, [todo]);
 
   const [todoData, setTodoData] = useState<TagTodo>({
-    content: "",
+    content: '',
     finished: false,
   });
   const initialTodoData = useMemo(() => {
@@ -48,7 +50,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
     return {
       ...todo,
       id: todo?.id,
-      content: todo?.content || "",
+      content: todo?.content || '',
       finished: todo?.finished || false,
       tags: todo?.tags,
     };
@@ -56,7 +58,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
 
   const resetStatus = useCallback(() => {
     setShake(false);
-    setValidateMessage("");
+    setValidateMessage('');
     setTodoData(initialTodoData);
     setLoading(false);
   }, [setShake, setValidateMessage, setTodoData, setLoading, initialTodoData]);
@@ -65,15 +67,12 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
     setTodoData(initialTodoData);
   }, [initialTodoData]);
 
-  const onDataChange = useCallback(
-    (key: keyof TagTodo, value: TagTodo[keyof TagTodo]) => {
-      setTodoData((prev) => ({
-        ...prev,
-        [key]: value,
-      }));
-    },
-    [],
-  );
+  const onDataChange = useCallback((key: keyof TagTodo, value: TagTodo[keyof TagTodo]) => {
+    setTodoData((prev) => ({
+      ...prev,
+      [key]: value,
+    }));
+  }, []);
 
   const handleClose = useCallback(() => {
     setTodoData(INITIAL_TODO_DATA);
@@ -86,19 +85,21 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
     try {
       if (todo) {
         if (!todo?.id) {
-          throw new Error("未找到 todo");
+          throw new Error('未找到 todo');
         }
-        await updateTodo({
+        const result = await updateTodo({
           id: todo.id,
           content: todoData.content,
           tags: todoData.tags as Tag[],
         });
+        if (result.status !== 'success') throw new Error(result.message);
       } else {
-        await addTodo({ content: todoData.content, tags: todoData.tags });
+        const result = await addTodo({ content: todoData.content, tags: todoData.tags });
+        if (result.status !== 'success') throw new Error(result.message);
       }
-      message.success("添加成功!");
+      message.success('添加成功!');
     } catch (error) {
-      message.error("添加失败," + error);
+      message.error('添加失败,' + error);
     } finally {
       setShake(false);
       setLoading(false);
@@ -108,12 +109,12 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
 
   const handleOk = async () => {
     if (!todoData.content?.trim()) {
-      setValidateMessage("todo 内容不能为空");
+      setValidateMessage('todo 内容不能为空');
       setShake(false);
       requestAnimationFrame(() => setShake(true));
       return;
     }
-    if (validateMessage) setValidateMessage("");
+    if (validateMessage) setValidateMessage('');
 
     await handleTodo();
 
@@ -134,24 +135,22 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       <div className=" mb-4">
         <NeuInput
           disabled={loading}
-          className={cn("w-full mb-1", {
-            "input-shake": shake,
-            "border-red-700!": validateMessage,
+          className={cn('w-full mb-1', {
+            'input-shake': shake,
+            'border-red-700!': validateMessage,
           })}
-          value={todoData?.content || ""}
+          value={todoData?.content || ''}
           autoComplete="off"
           onChange={(value) => {
-            setValidateMessage("");
-            onDataChange("content", value.target.value);
+            setValidateMessage('');
+            onDataChange('content', value.target.value);
           }}
         />
-        {validateMessage && (
-          <span className="text-red-700 text-sm">{validateMessage}</span>
-        )}
+        {validateMessage && <span className="text-red-700 text-sm">{validateMessage}</span>}
       </div>
       <TagEditor
         value={todoData.tags || []}
-        setValue={(tags) => onDataChange("tags", tags)}
+        setValue={(tags) => onDataChange('tags', tags)}
         options={optionTags}
       />
     </Modal>

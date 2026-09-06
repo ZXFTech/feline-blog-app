@@ -19,6 +19,21 @@ describe("Calendar", () => {
     expect(screen.getByRole("button", { name: "2026-08-15" })).toHaveClass("w-full", "min-w-0");
   });
 
+  it("marks today with the warning background when another date is selected", () => {
+    render(
+      <Calendar
+        selectedDateKey="2026-08-15"
+        todayKey="2026-08-30"
+        visibleMonth={{ year: 2026, monthIndex: 7 }}
+        onDateSelect={vi.fn()}
+        onVisibleMonthChange={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("button", { name: "2026-08-30" })).toHaveClass("bg-warning");
+    expect(screen.getByRole("button", { name: "2026-08-15" })).not.toHaveClass("bg-warning");
+  });
+
   it("AC-4 selects an adjacent month date and changes the visible month", async () => {
     const user = userEvent.setup();
     const onDateSelect = vi.fn();

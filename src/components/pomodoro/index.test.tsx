@@ -24,7 +24,12 @@ vi.mock("@/hooks/usePomodoro", () => ({
 }));
 
 vi.mock("./PomodoroTimer", () => ({
-  default: () => <div>timer surface</div>,
+  default: ({ todayCompletedFocus }: { todayCompletedFocus: number }) => (
+    <div>
+      timer surface
+      <span>today focus {todayCompletedFocus}</span>
+    </div>
+  ),
 }));
 
 vi.mock("./PomodoroHistoryPanel", () => ({
@@ -149,6 +154,17 @@ describe("Pomodoro workspace", () => {
     expect(mocks.usePomodoro).toHaveBeenCalledWith({
       onRecordSettled: expect.any(Function),
     });
+  });
+
+  it("passes today's completed focus history to the timer", async () => {
+    mocks.getTomatoHistory.mockResolvedValue({
+      status: "success",
+      data: [augustRecord],
+    });
+
+    render(<Pomodoro />);
+
+    expect(await screen.findByText("today focus 1")).toBeVisible();
   });
 
   it("AC-7 keeps the selected month loading separate from the visible month", async () => {

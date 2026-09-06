@@ -8,6 +8,7 @@ import { usePomodoro } from "@/hooks/usePomodoro";
 import {
   cacheKey,
   CalendarMonth,
+  completedFocusCountForDate,
   dateKeyAt,
   mergeMonthHistory,
   monthFromDateKey,
@@ -133,8 +134,10 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
   );
 
   const selectedMonth = useMemo(() => monthFromDateKey(selectedDateKey), [selectedDateKey]);
+  const todayMonth = useMemo(() => monthFromDateKey(todayKey), [todayKey]);
   const visibleCacheKey = cacheKey(userId, timeZone, visibleMonth);
   const selectedCacheKey = cacheKey(userId, timeZone, selectedMonth);
+  const todayCacheKey = cacheKey(userId, timeZone, todayMonth);
 
   useEffect(() => {
     if (!monthEntries[visibleCacheKey]) void loadMonth(visibleMonth);
@@ -143,6 +146,15 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
   useEffect(() => {
     if (!monthEntries[selectedCacheKey]) void loadMonth(selectedMonth);
   }, [loadMonth, monthEntries, selectedCacheKey, selectedMonth]);
+
+  useEffect(() => {
+    if (
+      todayCacheKey !== visibleCacheKey &&
+      todayCacheKey !== selectedCacheKey &&
+      !monthEntries[todayCacheKey]
+    )
+      void loadMonth(todayMonth);
+  }, [loadMonth, monthEntries, selectedCacheKey, todayCacheKey, todayMonth, visibleCacheKey]);
 
   const previousOutboxRef = useRef<PomodoroOutboxItem[]>([]);
   useEffect(() => {
@@ -201,6 +213,20 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
     () => recordsForDate(mergedSelectedHistory, selectedDateKey, timeZone),
     [mergedSelectedHistory, selectedDateKey, timeZone]
   );
+  const mergedTodayHistory = useMemo(
+    () =>
+      mergeMonthHistory(
+        monthEntries[todayCacheKey]?.records ?? [],
+        controller.outbox,
+        todayMonth,
+        timeZone
+      ),
+    [controller.outbox, monthEntries, timeZone, todayCacheKey, todayMonth]
+  );
+  const todayCompletedFocus = useMemo(
+    () => completedFocusCountForDate(mergedTodayHistory, todayKey, timeZone),
+    [mergedTodayHistory, timeZone, todayKey]
+  );
   const recordDates = useMemo(
     () =>
       mergedVisibleHistory
@@ -255,6 +281,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
     >
       <PomodoroTimer
         state={controller.state}
+        todayCompletedFocus={todayCompletedFocus}
         storageError={controller.storageError}
         recoveryNotice={controller.recoveryNotice}
         onStart={controller.start}

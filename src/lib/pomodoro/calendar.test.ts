@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  completedFocusCountForDate,
   dateKey,
   formatDateHeading,
   formatDateTitle,
@@ -25,6 +26,46 @@ const serverRecord: PomodoroHistoryRecord = {
 };
 
 describe("pomodoro calendar helpers", () => {
+  it("counts only completed focuses inside the requested local day", () => {
+    const records: PomodoroHistoryRecord[] = [
+      {
+        ...serverRecord,
+        id: "at-start",
+        eventId: "at-start",
+        endAt: "2026-08-01T16:00:00.000Z",
+      },
+      {
+        ...serverRecord,
+        id: "at-end",
+        eventId: "at-end",
+        endAt: "2026-08-02T15:59:59.999Z",
+      },
+      {
+        ...serverRecord,
+        id: "next-day",
+        eventId: "next-day",
+        endAt: "2026-08-02T16:00:00.000Z",
+      },
+      {
+        ...serverRecord,
+        id: "stopped",
+        eventId: "stopped",
+        endAt: "2026-08-02T08:00:00.000Z",
+        endReason: PomodoroEndReason.STOPPED,
+        finished: false,
+      },
+      {
+        ...serverRecord,
+        id: "break",
+        eventId: "break",
+        endAt: "2026-08-02T08:00:00.000Z",
+        type: PomodoroType.SHORT,
+      },
+    ];
+
+    expect(completedFocusCountForDate(records, "2026-08-02", "Asia/Shanghai")).toBe(2);
+  });
+
   it("AC-4 shifts months without carrying a month-end day", () => {
     expect(shiftMonth(monthFromDateKey("2026-01-31"), 1)).toEqual({
       year: 2026,

@@ -25,6 +25,7 @@ const stoppedState: PomodoroState = {
 };
 
 const callbacks = {
+  todayCompletedFocus: 0,
   onStart: vi.fn(),
   onPause: vi.fn(),
   onResume: vi.fn(),
@@ -34,6 +35,34 @@ const callbacks = {
 };
 
 describe("PomodoroTimer", () => {
+  it("shows the empty day prompt before today's first completed focus", () => {
+    render(
+      <PomodoroTimer
+        {...callbacks}
+        state={stoppedState}
+        storageError={null}
+        recoveryNotice={null}
+      />
+    );
+
+    expect(screen.getByText("用一次专注，来启动美好的一天~")).toBeVisible();
+  });
+
+  it("shows today's completed focus count", () => {
+    render(
+      <PomodoroTimer
+        {...callbacks}
+        state={{ ...stoppedState, completedFocus: 13 }}
+        todayCompletedFocus={2}
+        storageError={null}
+        recoveryNotice={null}
+      />
+    );
+
+    expect(screen.getByText("今日已完成 2 次专注")).toBeVisible();
+    expect(screen.queryByText(/本轮已完成专注/)).not.toBeInTheDocument();
+  });
+
   it("AC-10 exposes the timer heading and starts a stopped timer", async () => {
     const user = userEvent.setup();
     const onStart = vi.fn();

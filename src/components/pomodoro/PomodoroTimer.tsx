@@ -8,6 +8,7 @@ import { formatMs, phaseLabel } from "@/utils/timeUtils";
 
 interface PomodoroTimerProps {
   state: PomodoroState;
+  todayCompletedFocus: number;
   storageError: string | null;
   recoveryNotice: string | null;
   onStart: () => void;
@@ -20,6 +21,7 @@ interface PomodoroTimerProps {
 
 export default function PomodoroTimer({
   state,
+  todayCompletedFocus,
   storageError,
   recoveryNotice,
   onStart,
@@ -56,7 +58,11 @@ export default function PomodoroTimer({
           <div className="my-8" aria-label={`剩余时间 ${formatMs(state.remainingMs)}`}>
             <FlipTimer time={formatMs(state.remainingMs)} />
           </div>
-          <p className="text-sm opacity-70">本轮已完成专注 {state.completedFocus} 次</p>
+          <p className="text-sm opacity-70">
+            {todayCompletedFocus > 0
+              ? `今日已完成 ${todayCompletedFocus} 次专注`
+              : "用一次专注，来启动美好的一天~"}
+          </p>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
           {state.run === "running" ? (

@@ -28,4 +28,4 @@ for f in $(git diff --cached --name-only); do
 done
 
 # 只对 staged 的文件跑任务
-npx lint-staged
+npx lint-staged --concurrent false

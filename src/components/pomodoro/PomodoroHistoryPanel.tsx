@@ -1,8 +1,8 @@
-import { CircleAlert, CloudOff, CloudUpload } from 'lucide-react';
-import NeuDiv from '@/components/NeuDiv';
-import { formatDateHeading } from '@/lib/pomodoro/calendar';
-import type { PomodoroHistoryRecord } from '@/types/pomodoro';
-import PomodoroList from './PomodoroList';
+import { CircleAlert, CloudOff, CloudUpload } from "lucide-react";
+import NeuDiv from "@/components/NeuDiv";
+import { formatDateHeading } from "@/lib/pomodoro/calendar";
+import type { PomodoroHistoryRecord } from "@/types/pomodoro";
+import PomodoroList from "./PomodoroList";
 
 interface PomodoroHistoryPanelProps {
   selectedDateKey: string;

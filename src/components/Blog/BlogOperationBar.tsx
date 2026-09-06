@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import NeuButton from '../NeuButton';
-import { favoriteBlog, likeBlog } from '@/db/blogAction';
-import logger from '@/lib/logger/Logger';
-import { toast } from '../ProMessage';
-import { cn } from '@/lib/utils';
+import { useRouter } from "next/navigation";
+import NeuButton from "../NeuButton";
+import { favoriteBlog, likeBlog } from "@/db/blogAction";
+import logger from "@/lib/logger/Logger";
+import { toast } from "../ProMessage";
+import { cn } from "@/lib/utils";
 
 export interface Props {
   likes: number;
@@ -21,28 +21,28 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
   const handleLike = async () => {
     try {
       const result = await likeBlog(id, !isLiked);
-      if (result.status !== 'success') {
+      if (result.status !== "success") {
         toast.error(result.message);
         return;
       }
       router.refresh();
     } catch (error) {
-      logger.error(`${isLiked ? '' : '取消'}点赞失败,`, error);
-      toast.error(`${isLiked ? '' : '取消'}点赞失败,`);
+      logger.error(`${isLiked ? "" : "取消"}点赞失败,`, error);
+      toast.error(`${isLiked ? "" : "取消"}点赞失败,`);
     }
   };
 
   const handleFavorite = async () => {
     try {
       const result = await favoriteBlog(id, !isFavorite);
-      if (result.status !== 'success') {
+      if (result.status !== "success") {
         toast.error(result.message);
         return;
       }
       router.refresh();
     } catch (error) {
-      logger.error(`${isFavorite ? '' : '取消'}收藏失败,`, error);
-      toast.error(`${isFavorite ? '' : '取消'}收藏失败,`);
+      logger.error(`${isFavorite ? "" : "取消"}收藏失败,`, error);
+      toast.error(`${isFavorite ? "" : "取消"}收藏失败,`);
     }
   };
 
@@ -53,7 +53,7 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
         icon="favorite"
         className={cn({
           // "bg-red-500!": isLiked,
-          'text-red-500!': isLiked,
+          "text-red-500!": isLiked,
         })}
         onClick={handleLike}
       >
@@ -63,9 +63,9 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
         btnSize="xl"
         className={cn({
           // "bg-red-500!": isLiked,
-          'text-blue-500!': isFavorite,
+          "text-blue-500!": isFavorite,
         })}
-        icon={`${isFavorite ? 'bookmark_added' : 'bookmark_add'}`}
+        icon={`${isFavorite ? "bookmark_added" : "bookmark_add"}`}
         onClick={handleFavorite}
       >
         <span className="font-medium tracking-wider">{favorite}</span>

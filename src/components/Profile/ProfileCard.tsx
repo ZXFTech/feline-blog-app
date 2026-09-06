@@ -31,18 +31,8 @@ export const ProfileCard = () => {
   return (
     <div className="profile-container relative mx-2 flex flex-col px-4 h-full gap-4">
       <div className="flex items-center justify-between items-stretch justify-items-stretch">
-        <NeuDiv
-          surface="embossed"
-          intensity="sm"
-          className="avatar w-fit p-3 rounded-xl!"
-        >
-          <Image
-            className="rounded-md"
-            src={"/avatar.jpg"}
-            width={100}
-            height={100}
-            alt="avatar"
-          />
+        <NeuDiv surface="embossed" intensity="sm" className="avatar w-fit p-3 rounded-xl!">
+          <Image className="rounded-md" src={"/avatar.jpg"} width={100} height={100} alt="avatar" />
         </NeuDiv>
         <div className="signature h-full mb-2 text-lg font-medium grow p-2 relative">
           <span className="signature-text h-full flex justify-center items-center">
@@ -106,11 +96,7 @@ export const ProfileCard = () => {
           <LogoGmail className="h-6 w-6 cursor-pointer" />
         </NeuButton>
         <NeuButton className="rounded-full! p-1! border-">
-          <a
-            href="https://github.com/ZXFTech"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://github.com/ZXFTech" target="_blank" rel="noopener noreferrer">
             <LogoGithub className="h-6 w-6 cursor-pointer" />
           </a>
         </NeuButton>

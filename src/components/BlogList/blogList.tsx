@@ -1,7 +1,7 @@
-import React, { FC } from 'react';
-import ListItem from './ListItem';
-import Link from 'next/link';
-import type { CombinedBlog } from '@/types/blog';
+import React, { FC } from "react";
+import ListItem from "./ListItem";
+import Link from "next/link";
+import type { CombinedBlog } from "@/types/blog";
 
 export interface pageBean {
   pageNum: number;
@@ -23,8 +23,8 @@ const BlogList: FC<BlogListProps> = ({ dataSource }) => {
             key={item.id}
             href={`/blog/${item.id}`}
             style={{
-              textDecoration: 'none',
-              color: 'var(--neu-font-color)',
+              textDecoration: "none",
+              color: "var(--neu-font-color)",
             }}
           >
             <ListItem {...item} />

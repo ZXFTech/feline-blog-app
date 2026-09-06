@@ -9,11 +9,7 @@ interface Props {
   fallbacks?: ReactNode;
 }
 
-export const PermissionAccess = ({
-  children,
-  allowedRoles,
-  fallbacks = null,
-}: Props) => {
+export const PermissionAccess = ({ children, allowedRoles, fallbacks = null }: Props) => {
   const { user } = useAuth();
 
   if (!user || (allowedRoles?.length && allowedRoles.includes(user!.role))) {

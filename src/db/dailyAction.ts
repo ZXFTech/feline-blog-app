@@ -1,11 +1,11 @@
-'use server';
+"use server";
 
-import { hasRootRole } from '@/lib/auth/userAuth';
-import logger from '@/lib/logger/Logger';
-import { actionResult } from '@/lib/server/actionResult';
-import { safeErrorContext } from '@/lib/server/error';
-import { parseDateOnly, parseString } from '@/lib/server/validation';
-import db from './client';
+import { hasRootRole } from "@/lib/auth/userAuth";
+import logger from "@/lib/logger/Logger";
+import { actionResult } from "@/lib/server/actionResult";
+import { safeErrorContext } from "@/lib/server/error";
+import { parseDateOnly, parseString } from "@/lib/server/validation";
+import db from "./client";
 
 export type DailyStatus = {
   date?: string;
@@ -26,7 +26,7 @@ export type DailyStatus = {
 const todayKey = () => new Date().toISOString().slice(0, 10);
 
 function nonNegativeNumber(value: unknown) {
-  return typeof value === 'number' && Number.isFinite(value) && value >= 0;
+  return typeof value === "number" && Number.isFinite(value) && value >= 0;
 }
 
 function nonNegativeInteger(value: unknown) {
@@ -34,21 +34,21 @@ function nonNegativeInteger(value: unknown) {
 }
 
 function parseDailyInput(input: unknown): DailyStatus | null {
-  if (!input || typeof input !== 'object') return null;
+  if (!input || typeof input !== "object") return null;
   const record = input as Record<string, unknown>;
   if (record.date !== undefined && !parseDateOnly(record.date)) return null;
   if (record.typingCount !== undefined && !nonNegativeInteger(record.typingCount)) return null;
   if (record.stepCount !== undefined && !nonNegativeInteger(record.stepCount)) return null;
   if (record.workouts !== undefined && !Array.isArray(record.workouts)) return null;
-  const workouts: NonNullable<DailyStatus['workouts']> = [];
+  const workouts: NonNullable<DailyStatus["workouts"]> = [];
   for (const value of (record.workouts as unknown[] | undefined) ?? []) {
-    if (!value || typeof value !== 'object') return null;
+    if (!value || typeof value !== "object") return null;
     const workout = value as Record<string, unknown>;
-    const name = parseString(workout.name, { label: '训练名称', max: 191 });
+    const name = parseString(workout.name, { label: "训练名称", max: 191 });
     if (!name || !Array.isArray(workout.sets)) return null;
-    const sets: NonNullable<DailyStatus['workouts']>[number]['sets'] = [];
+    const sets: NonNullable<DailyStatus["workouts"]>[number]["sets"] = [];
     for (const setValue of workout.sets) {
-      if (!setValue || typeof setValue !== 'object') return null;
+      if (!setValue || typeof setValue !== "object") return null;
       const set = setValue as Record<string, unknown>;
       if (!nonNegativeInteger(set.duration)) return null;
       if (set.reps !== undefined && set.reps !== null && !nonNegativeInteger(set.reps)) return null;
@@ -77,9 +77,9 @@ function parseDailyInput(input: unknown): DailyStatus | null {
 
 export async function getDailyStatus(date?: unknown) {
   const auth = await hasRootRole();
-  if (auth.status !== 'success') return auth;
+  if (auth.status !== "success") return auth;
   const parsedDate = parseDateOnly(date ?? todayKey());
-  if (!parsedDate) return actionResult.failure('invalid_input', '日期无效');
+  if (!parsedDate) return actionResult.failure("invalid_input", "日期无效");
   try {
     const result = await db.dailyStat.findUnique({
       where: { date: parsedDate },
@@ -87,17 +87,17 @@ export async function getDailyStatus(date?: unknown) {
     });
     return actionResult.success(result);
   } catch (error) {
-    logger.error(safeErrorContext('getDailyStatus', error, { userId: auth.data.id }));
-    return actionResult.failure('temporary_failure', '暂时无法读取日常记录');
+    logger.error(safeErrorContext("getDailyStatus", error, { userId: auth.data.id }));
+    return actionResult.failure("temporary_failure", "暂时无法读取日常记录");
   }
 }
 
 export async function getDailyRangeStatus(startDate?: unknown, endDate?: unknown) {
   const auth = await hasRootRole();
-  if (auth.status !== 'success') return auth;
+  if (auth.status !== "success") return auth;
   const start = parseDateOnly(startDate ?? todayKey());
   const end = parseDateOnly(endDate ?? todayKey());
-  if (!start || !end || start > end) return actionResult.failure('invalid_input', '日期范围无效');
+  if (!start || !end || start > end) return actionResult.failure("invalid_input", "日期范围无效");
   try {
     const result = await db.dailyStat.findMany({
       where: { date: { gte: start, lte: end } },
@@ -105,16 +105,16 @@ export async function getDailyRangeStatus(startDate?: unknown, endDate?: unknown
     });
     return actionResult.success(result);
   } catch (error) {
-    logger.error(safeErrorContext('getDailyRangeStatus', error, { userId: auth.data.id }));
-    return actionResult.failure('temporary_failure', '暂时无法读取日常记录');
+    logger.error(safeErrorContext("getDailyRangeStatus", error, { userId: auth.data.id }));
+    return actionResult.failure("temporary_failure", "暂时无法读取日常记录");
   }
 }
 
 export async function updateDailyStatus(input: unknown) {
   const auth = await hasRootRole();
-  if (auth.status !== 'success') return auth;
+  if (auth.status !== "success") return auth;
   const parsed = parseDailyInput(input);
-  if (!parsed) return actionResult.failure('invalid_input', '日常记录内容无效');
+  if (!parsed) return actionResult.failure("invalid_input", "日常记录内容无效");
   const formatDate = parseDateOnly(parsed.date ?? todayKey())!;
   const { workouts = [], typingCount, stepCount } = parsed;
   try {
@@ -154,7 +154,7 @@ export async function updateDailyStatus(input: unknown) {
       const sets = workouts.flatMap((workout) => {
         const exerciseId = exerciseByName.get(workout.name);
         const workoutItemId = exerciseId === undefined ? undefined : itemByExercise.get(exerciseId);
-        if (workoutItemId === undefined) throw new Error('WORKOUT_ITEM_MISSING');
+        if (workoutItemId === undefined) throw new Error("WORKOUT_ITEM_MISSING");
         return workout.sets.map((set, index) => ({
           workoutItemId,
           order: set.order ?? index,
@@ -169,7 +169,7 @@ export async function updateDailyStatus(input: unknown) {
     });
     return actionResult.success(result);
   } catch (error) {
-    logger.error(safeErrorContext('updateDailyStatus', error, { userId: auth.data.id }));
-    return actionResult.failure('temporary_failure', '暂时无法保存日常记录');
+    logger.error(safeErrorContext("updateDailyStatus", error, { userId: auth.data.id }));
+    return actionResult.failure("temporary_failure", "暂时无法保存日常记录");
   }
 }

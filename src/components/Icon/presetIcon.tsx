@@ -8,13 +8,7 @@ import Link from "next/link";
 export const IconSpinner: FC<Partial<IconProps>> = (props) => {
   // return <Icon icon={icon || "spinner"} {...restProps} />;
   const { icon, ...restProps } = props;
-  return (
-    <Icon
-      icon={icon || "progress_activity"}
-      className="animate-spin"
-      {...restProps}
-    />
-  );
+  return <Icon icon={icon || "progress_activity"} className="animate-spin" {...restProps} />;
 };
 
 export const IconNeonCat = () => {

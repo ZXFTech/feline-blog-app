@@ -1,4 +1,4 @@
-import React from 'react';
+import React from "react";
 
 export const useIsDocumentHidden = () => {
   const [isDocumentHidden, setIsDocumentHidden] = React.useState(document.hidden);
@@ -7,8 +7,8 @@ export const useIsDocumentHidden = () => {
     const callback = () => {
       setIsDocumentHidden(document.hidden);
     };
-    document.addEventListener('visibilitychange', callback);
-    return () => window.removeEventListener('visibilitychange', callback);
+    document.addEventListener("visibilitychange", callback);
+    return () => window.removeEventListener("visibilitychange", callback);
   }, []);
 
   return isDocumentHidden;

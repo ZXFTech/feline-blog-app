@@ -31,16 +31,8 @@ function edgePath(x1: number, y1: number, x2: number, y2: number) {
   return `M ${x1} ${y1} C ${x1} ${midY} ${x2} ${midY} ${x2} ${y2}`;
 }
 
-export function GitLikeTimeline({
-  commits,
-  rowHeight = 44,
-  laneGap = 14,
-  graphWidth = 88,
-}: Props) {
-  const { nodes, edges, idToRow, idToLane } = useMemo(
-    () => layoutCommits(commits),
-    [commits],
-  );
+export function GitLikeTimeline({ commits, rowHeight = 44, laneGap = 14, graphWidth = 88 }: Props) {
+  const { nodes, edges, idToRow, idToLane } = useMemo(() => layoutCommits(commits), [commits]);
 
   const height = commits.length * rowHeight;
   const paddingX = 18;
@@ -55,24 +47,14 @@ export function GitLikeTimeline({
           className="sticky left-0 z-10 border-r border-neutral-800 bg-neutral-950"
           style={{ width: graphWidth }}
         >
-          <svg
-            width={graphWidth}
-            height={height}
-            className="block"
-            style={{ overflow: "visible" }}
-          >
+          <svg width={graphWidth} height={height} className="block" style={{ overflow: "visible" }}>
             {/* edges */}
             {edges.map((e, idx) => {
               const fromRow = idToRow.get(e.from);
               const toRow = idToRow.get(e.to);
               const fromLane = idToLane.get(e.from);
               const toLane = idToLane.get(e.to);
-              if (
-                fromRow == null ||
-                toRow == null ||
-                fromLane == null ||
-                toLane == null
-              )
+              if (fromRow == null || toRow == null || fromLane == null || toLane == null)
                 return null;
 
               const x1 = xOfLane(fromLane);
@@ -127,17 +109,13 @@ export function GitLikeTimeline({
               style={{ height: rowHeight }}
             >
               <div className="min-w-0 flex-1">
-                <div className="truncate text-sm text-neutral-100">
-                  {c.message}
-                </div>
+                <div className="truncate text-sm text-neutral-100">{c.message}</div>
                 <div className="mt-0.5 text-xs text-neutral-500">
                   {c.author ?? "unknown"} {c.date ? `· ${c.date}` : ""}
                 </div>
               </div>
 
-              <div className="ml-3 text-xs text-neutral-600">
-                {c.id.slice(0, 7)}
-              </div>
+              <div className="ml-3 text-xs text-neutral-600">{c.id.slice(0, 7)}</div>
             </div>
           ))}
         </div>

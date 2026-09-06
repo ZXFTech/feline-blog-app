@@ -28,60 +28,30 @@ $neon-light-shadow-size: 1px;
 
 @keyframes colorFlash {
   0% {
-    filter: drop-shadow(
-        $neon-light-size $neon-light-size $neon-light-blur #ff00ff
-      )
-      drop-shadow(
-        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
-          #00ffff
-      );
+    filter: drop-shadow($neon-light-size $neon-light-size $neon-light-blur #ff00ff)
+      drop-shadow($neon-light-reverse-size $neon-light-reverse-size $neon-light-blur #00ffff);
   }
   20% {
     filter: drop-shadow(2px 2px 2px #00ffff) drop-shadow(-2px -2px 2px #8a2be2);
   }
   30% {
-    filter: drop-shadow(
-        $neon-light-size $neon-light-size $neon-light-blur #5d00ff
-      )
-      drop-shadow(
-        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
-          #ea00ff
-      );
+    filter: drop-shadow($neon-light-size $neon-light-size $neon-light-blur #5d00ff)
+      drop-shadow($neon-light-reverse-size $neon-light-reverse-size $neon-light-blur #ea00ff);
   }
   31% {
-    filter: drop-shadow(
-        $neon-light-size $neon-light-size $neon-light-blur #00ced1
-      )
-      drop-shadow(
-        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
-          #00ffff
-      );
+    filter: drop-shadow($neon-light-size $neon-light-size $neon-light-blur #00ced1)
+      drop-shadow($neon-light-reverse-size $neon-light-reverse-size $neon-light-blur #00ffff);
   }
   32% {
-    filter: drop-shadow(
-        $neon-light-size $neon-light-size $neon-light-blur #5d00ff
-      )
-      drop-shadow(
-        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
-          #ea00ff
-      );
+    filter: drop-shadow($neon-light-size $neon-light-size $neon-light-blur #5d00ff)
+      drop-shadow($neon-light-reverse-size $neon-light-reverse-size $neon-light-blur #ea00ff);
   }
   60% {
-    filter: drop-shadow(
-        $neon-light-size $neon-light-size $neon-light-blur #00ced1
-      )
-      drop-shadow(
-        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
-          #5d00ff
-      );
+    filter: drop-shadow($neon-light-size $neon-light-size $neon-light-blur #00ced1)
+      drop-shadow($neon-light-reverse-size $neon-light-reverse-size $neon-light-blur #5d00ff);
   }
   100% {
-    filter: drop-shadow(
-        $neon-light-size $neon-light-size $neon-light-blur #8a2be2
-      )
-      drop-shadow(
-        $neon-light-reverse-size $neon-light-reverse-size $neon-light-blur
-          #ff00ff
-      );
+    filter: drop-shadow($neon-light-size $neon-light-size $neon-light-blur #8a2be2)
+      drop-shadow($neon-light-reverse-size $neon-light-reverse-size $neon-light-blur #ff00ff);
   }
 }

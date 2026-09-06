@@ -6,10 +6,10 @@ enum LogLevel {
 }
 
 const levelColorMap = {
-  [LogLevel.INFO]: 'green',
-  [LogLevel.DEBUG]: 'blue',
-  [LogLevel.WARN]: 'orange',
-  [LogLevel.ERROR]: 'red',
+  [LogLevel.INFO]: "green",
+  [LogLevel.DEBUG]: "blue",
+  [LogLevel.WARN]: "orange",
+  [LogLevel.ERROR]: "red",
 };
 
 class Logger {
@@ -17,7 +17,7 @@ class Logger {
     this.level = level;
   }
   private level: LogLevel;
-  private environment = typeof window !== 'undefined' ? 'Browser' : 'Node';
+  private environment = typeof window !== "undefined" ? "Browser" : "Node";
 
   private prefix() {
     return `[${this.environment}] [${new Date().toISOString()}]`;
@@ -51,6 +51,6 @@ const logger = globalForLogger.logger || new Logger();
 
 export default logger;
 
-if (process.env.NODE_ENV !== 'production') {
+if (process.env.NODE_ENV !== "production") {
   globalForLogger.logger = logger;
 }

@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Content from '@/components/Content';
-import NeuDiv from '@/components/NeuDiv';
-import { getTomatoHistory } from '@/db/tomatoActions';
-import { usePomodoro } from '@/hooks/usePomodoro';
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Content from "@/components/Content";
+import NeuDiv from "@/components/NeuDiv";
+import { getTomatoHistory } from "@/db/tomatoActions";
+import { usePomodoro } from "@/hooks/usePomodoro";
 import {
   cacheKey,
   CalendarMonth,
@@ -14,21 +14,21 @@ import {
   monthKey,
   nextLocalDayDelay,
   recordsForDate,
-} from '@/lib/pomodoro/calendar';
-import { localDateKey, monthUtcRange } from '@/lib/pomodoro/month';
-import { useCtxAuth } from '@/providers/AuthProviders';
+} from "@/lib/pomodoro/calendar";
+import { localDateKey, monthUtcRange } from "@/lib/pomodoro/month";
+import { useCtxAuth } from "@/providers/AuthProviders";
 import type {
   PomodoroHistoryRecord,
   PomodoroOutboxItem,
   PomodoroSettlement,
-} from '@/types/pomodoro';
-import PomodoroHistoryPanel from './PomodoroHistoryPanel';
-import PomodoroOperationPanel from './PomodoroOperationPanel';
-import PomodoroTimer from './PomodoroTimer';
+} from "@/types/pomodoro";
+import PomodoroHistoryPanel from "./PomodoroHistoryPanel";
+import PomodoroOperationPanel from "./PomodoroOperationPanel";
+import PomodoroTimer from "./PomodoroTimer";
 
 interface MonthEntry {
   records: PomodoroHistoryRecord[];
-  status: 'idle' | 'loading' | 'loaded' | 'error';
+  status: "idle" | "loading" | "loaded" | "error";
   error: string | null;
   requestId: number;
 }
@@ -62,7 +62,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
       setMonthEntries((current) => {
         const entry = current[key] ?? {
           records: [],
-          status: 'loaded' as const,
+          status: "loaded" as const,
           error: null,
           requestId: 0,
         };
@@ -90,7 +90,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
         ...current,
         [key]: {
           records: current[key]?.records ?? [],
-          status: 'loading',
+          status: "loading",
           error: null,
           requestId,
         },
@@ -99,7 +99,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
         const result = await getTomatoHistory(
           monthUtcRange(month.year, month.monthIndex, timeZone)
         );
-        if (result.status !== 'success') throw new Error(result.message);
+        if (result.status !== "success") throw new Error(result.message);
         const records = result.data;
         if (
           userIdRef.current !== userId ||
@@ -109,7 +109,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
           return;
         setMonthEntries((current) => ({
           ...current,
-          [key]: { records, status: 'loaded', error: null, requestId },
+          [key]: { records, status: "loaded", error: null, requestId },
         }));
       } catch {
         if (
@@ -122,8 +122,8 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
           ...current,
           [key]: {
             records: current[key]?.records ?? [],
-            status: 'error',
-            error: '无法读取这个月的番茄记录，请稍后重试',
+            status: "error",
+            error: "无法读取这个月的番茄记录，请稍后重试",
             requestId,
           },
         }));
@@ -165,15 +165,15 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
       timer = window.setTimeout(updateToday, nextLocalDayDelay(new Date(), timeZone));
     };
     const visible = () => {
-      if (document.visibilityState === 'visible') updateToday();
+      if (document.visibilityState === "visible") updateToday();
     };
     updateToday();
-    window.addEventListener('focus', updateToday);
-    document.addEventListener('visibilitychange', visible);
+    window.addEventListener("focus", updateToday);
+    document.addEventListener("visibilitychange", visible);
     return () => {
       window.clearTimeout(timer);
-      window.removeEventListener('focus', updateToday);
-      document.removeEventListener('visibilitychange', visible);
+      window.removeEventListener("focus", updateToday);
+      document.removeEventListener("visibilitychange", visible);
     };
   }, [timeZone]);
 
@@ -204,18 +204,18 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
   const recordDates = useMemo(
     () =>
       mergedVisibleHistory
-        .filter((record) => record.type === 'FOCUS' && record.endReason === 'COMPLETED')
+        .filter((record) => record.type === "FOCUS" && record.endReason === "COMPLETED")
         .map((record) => ({
-          color: 'bg-tomato-record',
+          color: "bg-tomato-record",
           dateKey: localDateKey(record.endAt, timeZone),
         })),
     [mergedVisibleHistory, timeZone]
   );
 
-  const pendingCount = controller.outbox.filter((item) => item.status === 'pending').length;
-  const syncingCount = controller.outbox.filter((item) => item.status === 'syncing').length;
-  const failedItems = controller.outbox.filter((item) => item.status === 'failed');
-  const conflicts = controller.outbox.filter((item) => item.status === 'conflict');
+  const pendingCount = controller.outbox.filter((item) => item.status === "pending").length;
+  const syncingCount = controller.outbox.filter((item) => item.status === "syncing").length;
+  const failedItems = controller.outbox.filter((item) => item.status === "failed");
+  const conflicts = controller.outbox.filter((item) => item.status === "conflict");
   const selectedEntry = monthEntries[selectedCacheKey];
 
   return (
@@ -227,7 +227,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
           todayKey={todayKey}
           timeZone={timeZone}
           records={selectedHistory}
-          loading={selectedEntry?.status === 'loading' && selectedHistory.length === 0}
+          loading={selectedEntry?.status === "loading" && selectedHistory.length === 0}
           error={selectedEntry?.error ?? null}
           pendingCount={pendingCount + syncingCount}
           failedCount={failedItems.length}

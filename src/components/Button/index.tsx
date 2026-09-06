@@ -6,13 +6,7 @@ import { cn } from "@/lib/utils";
 
 export type ButtonSize = "sm" | "xs" | "md" | "lg" | "xl" | "2xl" | "3xl";
 
-export type ButtonType =
-  | "primary"
-  | "default"
-  | "danger"
-  | "link"
-  | "success"
-  | "warn";
+export type ButtonType = "primary" | "default" | "danger" | "link" | "success" | "warn";
 
 export interface ButtonVisualProps {
   className?: string;
@@ -26,8 +20,7 @@ export interface ButtonVisualProps {
 }
 
 // 配置联合类型
-type NativeButtonProps = ButtonVisualProps &
-  ButtonHTMLAttributes<HTMLButtonElement>;
+type NativeButtonProps = ButtonVisualProps & ButtonHTMLAttributes<HTMLButtonElement>;
 
 export type ButtonProps = Partial<NativeButtonProps>;
 
@@ -52,7 +45,7 @@ export const buttonClassNames = ({
       disabled: disabled,
       loading: loading,
     },
-    className,
+    className
   );
 
 export const ButtonContent = ({
@@ -61,10 +54,7 @@ export const ButtonContent = ({
   btnSize = "md",
   children,
   suffixIcon,
-}: Pick<
-  ButtonVisualProps,
-  "loading" | "icon" | "btnSize" | "children" | "suffixIcon"
->) => (
+}: Pick<ButtonVisualProps, "loading" | "icon" | "btnSize" | "children" | "suffixIcon">) => (
   <>
     {loading && <IconSpinner size={btnSize} className="btn-loading" />}
     {icon && <Icon icon={icon} size={btnSize} />}
@@ -100,12 +90,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>((props, ref) => {
       })}
       {...restProps}
     >
-      <ButtonContent
-        loading={loading}
-        icon={icon}
-        btnSize={btnSize}
-        suffixIcon={suffixIcon}
-      >
+      <ButtonContent loading={loading} icon={icon} btnSize={btnSize} suffixIcon={suffixIcon}>
         {children}
       </ButtonContent>
     </button>

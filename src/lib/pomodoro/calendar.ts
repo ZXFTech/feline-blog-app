@@ -1,6 +1,6 @@
-import type { PomodoroHistoryRecord, PomodoroOutboxItem } from '@/types/pomodoro';
-import { localDateKey } from './month';
-import { toLocalHistory } from './storage';
+import type { PomodoroHistoryRecord, PomodoroOutboxItem } from "@/types/pomodoro";
+import { localDateKey } from "./month";
+import { toLocalHistory } from "./storage";
 
 export interface CalendarMonth {
   year: number;
@@ -12,12 +12,12 @@ export function dateKeyAt(date: Date, timeZone: string) {
 }
 
 export function monthFromDateKey(dateKey: string): CalendarMonth {
-  const [year, month] = dateKey.split('-').map(Number);
+  const [year, month] = dateKey.split("-").map(Number);
   return { year, monthIndex: month - 1 };
 }
 
 export function monthKey(month: CalendarMonth) {
-  return `${month.year}-${String(month.monthIndex + 1).padStart(2, '0')}`;
+  return `${month.year}-${String(month.monthIndex + 1).padStart(2, "0")}`;
 }
 
 export function shiftMonth(month: CalendarMonth, amount: number): CalendarMonth {
@@ -29,11 +29,11 @@ export function shiftMonth(month: CalendarMonth, amount: number): CalendarMonth 
 }
 
 export function dateKey(year: number, monthIndex: number, day: number) {
-  return `${year}-${String(monthIndex + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+  return `${year}-${String(monthIndex + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export function parseDateKey(value: string) {
-  const [year, month, day] = value.split('-').map(Number);
+  const [year, month, day] = value.split("-").map(Number);
   return { year, monthIndex: month - 1, day };
 }
 
@@ -52,7 +52,7 @@ export function formatDateHeading(dateKeyValue: string, todayKey: string) {
   const todayUtc = Date.UTC(today.year, today.monthIndex, today.day);
   const difference = Math.round((selectedUtc - todayUtc) / 86_400_000);
   const relative =
-    difference === 0 ? '今天' : difference === -1 ? '昨天' : difference === 1 ? '明天' : null;
+    difference === 0 ? "今天" : difference === -1 ? "昨天" : difference === 1 ? "明天" : null;
   const full = `${selected.year}年${selected.monthIndex + 1}月${selected.day}日`;
   return { full, relative };
 }
@@ -89,8 +89,8 @@ export function mergeMonthHistory(
   serverRecords.forEach((record) => records.set(record.eventId ?? record.id, record));
   outbox.forEach((item) => {
     const record =
-      item.status === 'conflict' && item.serverRecord
-        ? { ...item.serverRecord, syncStatus: 'conflict' as const }
+      item.status === "conflict" && item.serverRecord
+        ? { ...item.serverRecord, syncStatus: "conflict" as const }
         : toLocalHistory(item);
     if (localDateKey(record.endAt, timeZone).startsWith(targetMonthKey))
       records.set(item.eventId, record);

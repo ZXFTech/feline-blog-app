@@ -2,8 +2,7 @@ export const mockTimelineData: timelineData[] = [
   {
     date: new Date("2025-08-12T10:00:00"),
     title: "项目 Kickoff / 需求对齐",
-    detail:
-      "确认里程碑、交付范围与风险点；确定第一版 MVP 的功能集合与验收标准。",
+    detail: "确认里程碑、交付范围与风险点；确定第一版 MVP 的功能集合与验收标准。",
     partner: [
       { name: "Alice (PM)", avatar: "https://i.pravatar.cc/120?img=1" },
       { name: "Bo (Design)", avatar: "https://i.pravatar.cc/120?img=2" },
@@ -13,16 +12,14 @@ export const mockTimelineData: timelineData[] = [
   {
     date: new Date("2025-08-16T15:30:00"),
     title: "信息架构与交互走查",
-    detail:
-      "输出页面 IA、关键流程图与交互稿；确认空状态/异常状态/加载态处理策略。",
+    detail: "输出页面 IA、关键流程图与交互稿；确认空状态/异常状态/加载态处理策略。",
     partner: [{ name: "Chen (FE)", avatar: "https://i.pravatar.cc/120?img=3" }],
     storyline: "Design",
   },
   {
     date: new Date("2025-08-22T09:00:00"),
     title: "技术方案评审：时间线组件架构",
-    detail:
-      "确定内部滚动容器、sticky takeover、lane 固定映射、todo 虚线样式实现路径。",
+    detail: "确定内部滚动容器、sticky takeover、lane 固定映射、todo 虚线样式实现路径。",
     partner: [
       { name: "Dana (FE)", avatar: "https://i.pravatar.cc/120?img=4" },
       { name: "Evan (Tech Lead)", avatar: "https://i.pravatar.cc/120?img=5" },
@@ -32,8 +29,7 @@ export const mockTimelineData: timelineData[] = [
   {
     date: new Date("2025-09-02T14:00:00"),
     title: "组件 V1：基础渲染与样式落地",
-    detail:
-      "完成节点/连线渲染、主题颜色映射、概览模式布局；接入 demo 数据与交互。",
+    detail: "完成节点/连线渲染、主题颜色映射、概览模式布局；接入 demo 数据与交互。",
     partner: [{ name: "Fay (FE)", avatar: "https://i.pravatar.cc/120?img=6" }],
     storyline: "Engineering",
   },
@@ -93,10 +89,6 @@ export interface timelineData {
   storyline: string; // ✅ 必填
 }
 
-interface Props {
-  timelineData: timelineData[];
-}
-
 /**
  * 生成 100 条 timelineData 示例数据（storyline 必填 + 日期随机分布）
  * - date：在一个时间窗口内随机分布（默认 2025-01-01 ~ 2026-01-01）
@@ -107,20 +99,13 @@ interface Props {
 export const getMockTimelineData = (
   startDate: Date,
   endDate: Date,
-  length: number,
+  length: number
 ): timelineData[] => {
   // 随机日期分布窗口（你可按需改）
   const start = startDate.getTime();
   const end = endDate.getTime();
 
-  const storylines = [
-    "Product",
-    "Engineering",
-    "Design",
-    "Growth",
-    "QA",
-    "Ops",
-  ] as const;
+  const storylines = ["Product", "Engineering", "Design", "Growth", "QA", "Ops"] as const;
 
   const titleTemplates = [
     "需求对齐与范围确认",
@@ -163,8 +148,7 @@ export const getMockTimelineData = (
     avatar: `https://i.pravatar.cc/120?img=${(idx % 70) + 1}`,
   });
 
-  const randInt = (min: number, max: number) =>
-    Math.floor(Math.random() * (max - min + 1)) + min;
+  const randInt = (min: number, max: number) => Math.floor(Math.random() * (max - min + 1)) + min;
 
   const randTime = () => {
     // 在 [start, end) 内随机毫秒

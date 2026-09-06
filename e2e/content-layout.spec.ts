@@ -1,11 +1,11 @@
-import { readFile } from 'node:fs/promises';
-import path from 'node:path';
-import { expect, test } from '@playwright/test';
-import * as sass from 'sass';
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { expect, test } from "@playwright/test";
+import * as sass from "sass";
 
-test('AC-3 keeps double-layout history bounded and independently scrollable', async ({ page }) => {
+test("AC-3 keeps double-layout history bounded and independently scrollable", async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 900 });
-  const source = await readFile(path.resolve('src/components/Content/_styles.scss'), 'utf8');
+  const source = await readFile(path.resolve("src/components/Content/_styles.scss"), "utf8");
   const contentCss = sass.compileString(source).css;
   await page.setContent(`
     <style>
@@ -26,7 +26,7 @@ test('AC-3 keeps double-layout history bounded and independently scrollable', as
           <section class="history-panel">
             <div class="history-header"></div>
             <div class="history-scroll">
-              ${Array.from({ length: 12 }, () => '<div class="history-item"></div>').join('')}
+              ${Array.from({ length: 12 }, () => '<div class="history-item"></div>').join("")}
             </div>
           </section>
         </aside>
@@ -34,12 +34,12 @@ test('AC-3 keeps double-layout history bounded and independently scrollable', as
     </div>
   `);
 
-  const dimensions = await page.locator('.history-scroll').evaluate((element) => ({
+  const dimensions = await page.locator(".history-scroll").evaluate((element) => ({
     clientHeight: element.clientHeight,
     scrollHeight: element.scrollHeight,
   }));
   const leftHeight = await page
-    .locator('.left-side-bar')
+    .locator(".left-side-bar")
     .evaluate((element) => element.getBoundingClientRect().height);
 
   expect(leftHeight).toBeLessThanOrEqual(900);

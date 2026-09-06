@@ -17,9 +17,7 @@ describe("pomodoro month boundaries", () => {
   });
 
   it("AC-6 assigns a UTC instant to the local end date", () => {
-    expect(localDateKey("2026-08-31T16:30:00.000Z", "Asia/Shanghai")).toBe(
-      "2026-09-01",
-    );
+    expect(localDateKey("2026-08-31T16:30:00.000Z", "Asia/Shanghai")).toBe("2026-09-01");
     expect(localDateKey("2026-08-31T16:30:00.000Z", "UTC")).toBe("2026-08-31");
   });
 });

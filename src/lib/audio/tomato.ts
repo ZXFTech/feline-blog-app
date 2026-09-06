@@ -15,8 +15,7 @@ export function playBeep(frequency = 800, duration = 200, volume = 0.5): void {
   try {
     const audioContext = new (
       window.AudioContext ||
-      (window as unknown as { webkitAudioContext: NewableFunction })
-        .webkitAudioContext
+      (window as unknown as { webkitAudioContext: NewableFunction }).webkitAudioContext
     )();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
@@ -29,14 +28,8 @@ export function playBeep(frequency = 800, duration = 200, volume = 0.5): void {
 
     // Fade in and out
     gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-    gainNode.gain.linearRampToValueAtTime(
-      volume,
-      audioContext.currentTime + 0.05,
-    );
-    gainNode.gain.linearRampToValueAtTime(
-      0,
-      audioContext.currentTime + duration / 1000,
-    );
+    gainNode.gain.linearRampToValueAtTime(volume, audioContext.currentTime + 0.05);
+    gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration / 1000);
 
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + duration / 1000);
@@ -118,7 +111,6 @@ export function playTickSound(volume = 0.2): void {
 export function isAudioSupported(): boolean {
   return !!(
     window.AudioContext ||
-    (window as unknown as { webkitAudioContext: NewableFunction })
-      .webkitAudioContext
+    (window as unknown as { webkitAudioContext: NewableFunction }).webkitAudioContext
   );
 }

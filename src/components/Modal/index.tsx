@@ -1,14 +1,7 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 "use client";
 
-import {
-  MouseEventHandler,
-  ReactElement,
-  ReactNode,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { MouseEventHandler, ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import { neuSurfaceClassNames } from "../NeuDiv";
 import Icon, { IconType } from "../Icon";
 import NeuButton from "../NeuButton";
@@ -88,12 +81,7 @@ const Modal = ({
     return (
       <>
         {(footer === "ok" || footer === "default") && (
-          <NeuButton
-            icon={okIcon}
-            loading={okLoading}
-            buttonType={okType}
-            onClick={onOk}
-          >
+          <NeuButton icon={okIcon} loading={okLoading} buttonType={okType} onClick={onOk}>
             {okText}
           </NeuButton>
         )}

@@ -63,9 +63,7 @@ function Timeline({ timelineData }: Props) {
   logger.log(timelineData);
   const [date, setDate] = useState<Date[]>([]);
 
-  const [firstItemIndex, setFirstItemIndex] = useState(
-    INITIAL_FIRST_INDEX + 20,
-  );
+  const [firstItemIndex, setFirstItemIndex] = useState(INITIAL_FIRST_INDEX + 20);
 
   const [loadingTop, setLoadingTop] = useState(false);
   const [loadingBottom, setLoadingBottom] = useState(false);
@@ -128,9 +126,7 @@ function Timeline({ timelineData }: Props) {
   return (
     <div className="timeline-container h-[100%]">
       <div className="timeline-operation">
-        <NeuButton onClick={() => setFirstItemIndex(INITIAL_FIRST_INDEX)}>
-          回到今天
-        </NeuButton>
+        <NeuButton onClick={() => setFirstItemIndex(INITIAL_FIRST_INDEX)}>回到今天</NeuButton>
       </div>
       <div className="timeline-scroller overflow-scroll h-[100%] pb-3">
         <Virtuoso

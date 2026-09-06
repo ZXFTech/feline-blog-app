@@ -1,10 +1,10 @@
 export type ActionFailureStatus =
-  | 'unauthenticated'
-  | 'forbidden'
-  | 'invalid_input'
-  | 'not_found'
-  | 'conflict'
-  | 'temporary_failure';
+  | "unauthenticated"
+  | "forbidden"
+  | "invalid_input"
+  | "not_found"
+  | "conflict"
+  | "temporary_failure";
 
 export type ActionFailure = {
   status: ActionFailureStatus;
@@ -12,11 +12,11 @@ export type ActionFailure = {
   fields?: Record<string, string>;
 };
 
-export type ActionSuccess<T> = { status: 'success'; data: T };
+export type ActionSuccess<T> = { status: "success"; data: T };
 export type ActionResult<T> = ActionSuccess<T> | ActionFailure;
 
 export const actionResult = {
-  success: <T>(data: T): ActionSuccess<T> => ({ status: 'success', data }),
+  success: <T>(data: T): ActionSuccess<T> => ({ status: "success", data }),
   failure: (
     status: ActionFailureStatus,
     message: string,
@@ -25,5 +25,5 @@ export const actionResult = {
 };
 
 export function actionMessage(result: ActionFailure) {
-  return result.message || '操作失败，请稍后重试';
+  return result.message || "操作失败，请稍后重试";
 }

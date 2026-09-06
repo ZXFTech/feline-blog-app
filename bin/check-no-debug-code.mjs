@@ -37,7 +37,7 @@ function getAllowedConsoleMethods() {
     env
       .split(",")
       .map((s) => s.trim())
-      .filter(Boolean),
+      .filter(Boolean)
   );
 }
 
@@ -153,7 +153,7 @@ function main() {
     let diff = "";
     try {
       diff = runGitDiffCached(filePath);
-    } catch (e) {
+    } catch {
       // git diff 失败不直接阻断（可改成阻断）
       continue;
     }
@@ -228,11 +228,11 @@ function main() {
     console.error("\n❌ 检测到调试代码（staged 新增行）未清理：\n");
     for (const v of allViolations) {
       console.error(
-        `- ${v.kind}  ${v.filePath}:${v.lineNo}\n  ${v.code.trim()}\n  提示：${v.hint}\n`,
+        `- ${v.kind}  ${v.filePath}:${v.lineNo}\n  ${v.code.trim()}\n  提示：${v.hint}\n`
       );
     }
     console.error(
-      "修复后重新 git add 再提交。需要临时放行请使用：// @allow-console 或 // @allow-debugger（建议只用于极少数场景）。\n",
+      "修复后重新 git add 再提交。需要临时放行请使用：// @allow-console 或 // @allow-debugger（建议只用于极少数场景）。\n"
     );
     process.exit(1);
   }

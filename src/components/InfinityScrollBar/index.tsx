@@ -20,9 +20,7 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
   allowGrab = true,
 }) => {
   const range = 10; // 每次左右扩展的刻度数量
-  const [values, setValues] = useState<number[]>(
-    Array.from({ length: 50 }, (_, i) => i),
-  );
+  const [values, setValues] = useState<number[]>(Array.from({ length: 50 }, (_, i) => i));
 
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -62,10 +60,9 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
 
     // 左边扩展
     if (scrollLeft < 10) {
-      const newArr = Array.from(
-        { length: range },
-        (_, i) => values[0] - range + i,
-      ).concat(values.slice(0, values.length - range));
+      const newArr = Array.from({ length: range }, (_, i) => values[0] - range + i).concat(
+        values.slice(0, values.length - range)
+      );
       setValues(newArr);
       container.scrollLeft = scrollLeft + itemWidth * range;
     }
@@ -74,12 +71,7 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
     if (scrollLeft + clientWidth > scrollWidth - 10) {
       const newArr = values
         .slice(range)
-        .concat(
-          Array.from(
-            { length: range },
-            (_, i) => values[values.length - 1] + 1 + i,
-          ),
-        );
+        .concat(Array.from({ length: range }, (_, i) => values[values.length - 1] + 1 + i));
       setValues(newArr);
       container.scrollLeft = scrollLeft - itemWidth * range;
     }
@@ -104,9 +96,7 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
     });
 
     const targetScrollLeft =
-      closestItem.offsetLeft +
-      closestItem.clientWidth / 2 -
-      container.clientWidth / 2;
+      closestItem.offsetLeft + closestItem.clientWidth / 2 - container.clientWidth / 2;
     console.log("targetScrollLeft", targetScrollLeft);
     container.scrollTo({ left: targetScrollLeft, behavior: "smooth" });
     onChange?.(parseInt(closestItem.textContent || "0"));
@@ -215,12 +205,9 @@ const InfiniteRuler: React.FC<InfiniteRulerProps> = ({
 
       <div
         ref={scrollRef}
-        className={cn(
-          "w-full overflow-x-scroll h-10 border flex hide-scrollbar",
-          {
-            "cursor-grab": allowGrab,
-          },
-        )}
+        className={cn("w-full overflow-x-scroll h-10 border flex hide-scrollbar", {
+          "cursor-grab": allowGrab,
+        })}
         style={{ width, height }}
       >
         {values.map((v) => (

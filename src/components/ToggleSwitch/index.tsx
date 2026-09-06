@@ -54,21 +54,19 @@ export default function Switch({
         disabled={disabled}
         aria-pressed={isChecked}
         style={{
-          backgroundColor: isChecked
-            ? "rgba(76, 255, 48, 0.8)"
-            : "rgba(255, 52, 52, 0.5)",
+          backgroundColor: isChecked ? "rgba(76, 255, 48, 0.8)" : "rgba(255, 52, 52, 0.5)",
         }}
         className={cn(
           "relative inline-flex items-center rounded-full! transition-colors duration-300",
           config.container,
-          disabled && "opacity-50 cursor-not-allowed",
+          disabled && "opacity-50 cursor-not-allowed"
         )}
       >
         <div
           className={cn(
             "absolute top-0.5 left-0.5 rounded-full bg-white transition-transform duration-300 shadow-md",
             config.dot,
-            isChecked && config.translate,
+            isChecked && config.translate
           )}
         />
       </button>
@@ -76,7 +74,7 @@ export default function Switch({
         <label
           className={cn(
             "text-sm font-medium text-foreground cursor-pointer select-none m-0!",
-            disabled && "opacity-50 cursor-not-allowed",
+            disabled && "opacity-50 cursor-not-allowed"
           )}
           onClick={handleToggle}
         >

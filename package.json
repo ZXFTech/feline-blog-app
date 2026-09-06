@@ -9,8 +9,10 @@
   "scripts": {
     "dev": "dotenv -e .env.development -- next dev --turbopack",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings=0",
     "fix": "eslint --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "build": "next build",
     "test": "vitest run",
     "test:e2e": "playwright test",

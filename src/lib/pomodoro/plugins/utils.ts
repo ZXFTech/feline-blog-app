@@ -45,7 +45,7 @@ export function shouldFireDeduplicate(
   runtime: Map<string, unknown>,
   dedupKey: string,
   key: string,
-  windowMs: number,
+  windowMs: number
 ) {
   const prev = runtime.get(dedupKey) as { key: string; at: number } | undefined;
   const t = nowMs();

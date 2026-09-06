@@ -20,7 +20,7 @@ describe("AuthProviders", () => {
     render(
       <AuthProviders initialUser={signedInUser}>
         <CurrentUser />
-      </AuthProviders>,
+      </AuthProviders>
     );
     expect(screen.getByText("user-1:cat@example.com")).toBeInTheDocument();
   });
@@ -29,7 +29,7 @@ describe("AuthProviders", () => {
     render(
       <AuthProviders initialUser={null}>
         <CurrentUser />
-      </AuthProviders>,
+      </AuthProviders>
     );
     expect(screen.getByText("未登录")).toBeInTheDocument();
   });

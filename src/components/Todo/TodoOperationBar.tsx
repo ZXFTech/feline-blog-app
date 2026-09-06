@@ -52,17 +52,13 @@ export const TodoOperationBar = ({
       }
       router.replace(`${pathname}?${params}`);
     },
-    [searchParams, router, pathname],
+    [searchParams, router, pathname]
   );
 
   const debounceUpdate = useMemo(
     () =>
-      debounce(
-        (key: keyof TodoSearchParams, value: string) =>
-          updateSearchParams(key, value),
-        500,
-      ),
-    [updateSearchParams],
+      debounce((key: keyof TodoSearchParams, value: string) => updateSearchParams(key, value), 500),
+    [updateSearchParams]
   );
 
   const switchTodoStatus = (status: string) => {
@@ -85,9 +81,7 @@ export const TodoOperationBar = ({
           className="p-1!"
           onClick={switchOrderBy}
           icon={`${
-            pOrderBy === "desc"
-              ? "keyboard_double_arrow_up"
-              : "keyboard_double_arrow_down"
+            pOrderBy === "desc" ? "keyboard_double_arrow_up" : "keyboard_double_arrow_down"
           }`}
         >
           <span className="font-medium tracking-wider">
@@ -98,9 +92,7 @@ export const TodoOperationBar = ({
       <NeuDiv surface="flat" className="flex flex-row-reverse flex-wrap ">
         {TODO_STATUS_BUTTON_LIST.map((item) => (
           <NeuButton
-            buttonType={`${
-              pTodoStatus === item.status ? "primary" : "default"
-            }`}
+            buttonType={`${pTodoStatus === item.status ? "primary" : "default"}`}
             key={item.id}
             onClick={() => {
               switchTodoStatus(item.status);

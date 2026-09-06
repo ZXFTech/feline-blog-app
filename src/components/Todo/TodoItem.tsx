@@ -15,13 +15,7 @@ interface Props {
   editable?: boolean;
 }
 
-function TodoItem({
-  todo,
-  onTodoClick,
-  onTodoDelete,
-  onTodoUpdate,
-  editable = true,
-}: Props) {
+function TodoItem({ todo, onTodoClick, onTodoDelete, onTodoUpdate, editable = true }: Props) {
   return (
     <div className="flex items-start justify-center gap-2">
       <NeuDiv style={{ fontSize: "20px" }} className="p-1! m-0! leading-0">

@@ -8,9 +8,7 @@ const adminRoutes = ["/admin"];
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
+  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
   const isAdminRoute = adminRoutes.some((route) => pathname.startsWith(route));
 

@@ -36,16 +36,12 @@ const rules: PomodoroSoundRule[] = [
   },
   {
     when: (prev, curr) =>
-      curr.run === "running" &&
-      prev.run === "stopped" &&
-      curr.phase === "focus",
+      curr.run === "running" && prev.run === "stopped" && curr.phase === "focus",
     sound: "start",
   },
   {
     when: (prev, curr) =>
-      curr.run === "running" &&
-      prev.run === "stopped" &&
-      curr.phase !== "focus",
+      curr.run === "running" && prev.run === "stopped" && curr.phase !== "focus",
     sound: "break",
   },
   {
@@ -132,8 +128,7 @@ function tickPlugin({
       clear(ctx);
       return;
     }
-    const ms =
-      document.visibilityState === "visible" ? intervalMs : hiddenIntervalMs;
+    const ms = document.visibilityState === "visible" ? intervalMs : hiddenIntervalMs;
     start(ctx, ms);
   };
 
@@ -167,8 +162,7 @@ function tickPlugin({
         return;
       }
 
-      const ms =
-        document.visibilityState === "visible" ? intervalMs : hiddenIntervalMs;
+      const ms = document.visibilityState === "visible" ? intervalMs : hiddenIntervalMs;
 
       start(ctx, ms);
     },

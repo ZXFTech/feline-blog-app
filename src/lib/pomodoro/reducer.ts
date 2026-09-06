@@ -1,11 +1,11 @@
-import { PomodoroEndReason, PomodoroType } from '../../../generated/prisma/enums';
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
 import type {
   Action,
   PomodoroOutcome,
   PomodoroSettings,
   PomodoroState,
   TimerKind,
-} from '@/types/pomodoro';
+} from "@/types/pomodoro";
 
 const ms = (min: number) => Math.max(0, Math.round(min * 60_000));
 
@@ -20,8 +20,8 @@ export const defaultSettings: PomodoroSettings = {
 };
 
 export const initialState: PomodoroState = {
-  phase: 'idle',
-  run: 'stopped',
+  phase: "idle",
+  run: "stopped",
   remainingMs: ms(defaultSettings.focusMin),
   startAt: null,
   endAt: null,
@@ -32,28 +32,28 @@ export const initialState: PomodoroState = {
 };
 
 export function durationMsFor(phase: TimerKind, settings: PomodoroSettings) {
-  if (phase === 'focus') return ms(settings.focusMin);
-  if (phase === 'short_break') return ms(settings.shortBreakMin);
+  if (phase === "focus") return ms(settings.focusMin);
+  if (phase === "short_break") return ms(settings.shortBreakMin);
   return ms(settings.longBreakMin);
 }
 
 function prismaType(phase: TimerKind) {
-  if (phase === 'focus') return PomodoroType.FOCUS;
-  if (phase === 'short_break') return PomodoroType.SHORT;
+  if (phase === "focus") return PomodoroType.FOCUS;
+  if (phase === "short_break") return PomodoroType.SHORT;
   return PomodoroType.LONG;
 }
 
 function nextPhase(state: PomodoroState): TimerKind {
-  if (state.phase === 'idle') return 'focus';
-  if (state.phase !== 'focus') return 'focus';
+  if (state.phase === "idle") return "focus";
+  if (state.phase !== "focus") return "focus";
   const completed = state.completedFocus + 1;
   return state.settings.longBreakEvery > 0 && completed % state.settings.longBreakEvery === 0
-    ? 'long_break'
-    : 'short_break';
+    ? "long_break"
+    : "short_break";
 }
 
 function remainingAt(state: PomodoroState, now: number) {
-  if (state.run === 'running' && state.endAt) return Math.max(0, state.endAt - now);
+  if (state.run === "running" && state.endAt) return Math.max(0, state.endAt - now);
   return state.remainingMs;
 }
 
@@ -62,7 +62,7 @@ function makeOutcome(
   reason: PomodoroEndReason,
   now: number
 ): PomodoroOutcome | null {
-  if (state.phase === 'idle' || !state.activeEventId || !state.startAt) return null;
+  if (state.phase === "idle" || !state.activeEventId || !state.startAt) return null;
   const targetDurationMs = durationMsFor(state.phase, state.settings);
   const completed =
     reason === PomodoroEndReason.COMPLETED || (state.endAt !== null && now >= state.endAt);
@@ -86,9 +86,9 @@ function settle(state: PomodoroState, reason: PomodoroEndReason, now: number): P
   if (outcome.endReason === PomodoroEndReason.STOPPED) {
     return {
       ...state,
-      phase: 'idle',
-      run: 'stopped',
-      remainingMs: durationMsFor('focus', state.settings),
+      phase: "idle",
+      run: "stopped",
+      remainingMs: durationMsFor("focus", state.settings),
       startAt: null,
       endAt: null,
       activeEventId: null,
@@ -99,32 +99,32 @@ function settle(state: PomodoroState, reason: PomodoroEndReason, now: number): P
   return {
     ...state,
     phase: next,
-    run: 'stopped',
+    run: "stopped",
     remainingMs: durationMsFor(next, state.settings),
     startAt: null,
     endAt: null,
     activeEventId: null,
     pendingOutcome: outcome,
-    completedFocus: state.phase === 'focus' ? state.completedFocus + 1 : state.completedFocus,
+    completedFocus: state.phase === "focus" ? state.completedFocus + 1 : state.completedFocus,
   };
 }
 
 export function pomodoroReducer(state: PomodoroState, action: Action): PomodoroState {
   switch (action.type) {
-    case 'HYDRATE': {
+    case "HYDRATE": {
       const hydrated = action.state;
-      if (hydrated.run === 'running' && hydrated.endAt && action.now >= hydrated.endAt) {
+      if (hydrated.run === "running" && hydrated.endAt && action.now >= hydrated.endAt) {
         return settle({ ...hydrated, remainingMs: 0 }, PomodoroEndReason.COMPLETED, hydrated.endAt);
       }
-      if (hydrated.run === 'running' && hydrated.endAt) {
+      if (hydrated.run === "running" && hydrated.endAt) {
         return { ...hydrated, remainingMs: remainingAt(hydrated, action.now) };
       }
       return hydrated;
     }
-    case 'SET_SETTINGS': {
+    case "SET_SETTINGS": {
       const settings = { ...state.settings, ...action.settings };
-      if (state.run === 'stopped') {
-        const phase = state.phase === 'idle' ? 'focus' : state.phase;
+      if (state.run === "stopped") {
+        const phase = state.phase === "idle" ? "focus" : state.phase;
         return {
           ...state,
           settings,
@@ -133,56 +133,56 @@ export function pomodoroReducer(state: PomodoroState, action: Action): PomodoroS
       }
       return { ...state, settings };
     }
-    case 'START': {
-      if (state.pendingOutcome || state.run === 'running') return state;
-      const phase = state.phase === 'idle' ? 'focus' : state.phase;
+    case "START": {
+      if (state.pendingOutcome || state.run === "running") return state;
+      const phase = state.phase === "idle" ? "focus" : state.phase;
       const remainingMs =
-        state.run === 'paused' ? state.remainingMs : durationMsFor(phase, state.settings);
+        state.run === "paused" ? state.remainingMs : durationMsFor(phase, state.settings);
       return {
         ...state,
         phase,
-        run: 'running',
+        run: "running",
         remainingMs,
-        startAt: state.run === 'paused' ? state.startAt : action.now,
+        startAt: state.run === "paused" ? state.startAt : action.now,
         endAt: action.now + remainingMs,
-        activeEventId: state.run === 'paused' ? state.activeEventId : action.eventId,
+        activeEventId: state.run === "paused" ? state.activeEventId : action.eventId,
       };
     }
-    case 'PAUSE':
-      if (state.run !== 'running' || !state.endAt) return state;
+    case "PAUSE":
+      if (state.run !== "running" || !state.endAt) return state;
       return {
         ...state,
-        run: 'paused',
+        run: "paused",
         remainingMs: remainingAt(state, action.now),
         endAt: null,
       };
-    case 'RESUME':
-      if (state.run !== 'paused') return state;
+    case "RESUME":
+      if (state.run !== "paused") return state;
       return {
         ...state,
-        run: 'running',
+        run: "running",
         endAt: action.now + state.remainingMs,
       };
-    case 'STOP':
+    case "STOP":
       return settle(state, PomodoroEndReason.STOPPED, action.now);
-    case 'SKIP':
+    case "SKIP":
       if (
-        state.run === 'stopped' &&
-        (state.phase === 'short_break' || state.phase === 'long_break')
+        state.run === "stopped" &&
+        (state.phase === "short_break" || state.phase === "long_break")
       ) {
         return {
           ...state,
-          phase: 'focus',
-          remainingMs: durationMsFor('focus', state.settings),
+          phase: "focus",
+          remainingMs: durationMsFor("focus", state.settings),
         };
       }
       return settle(state, PomodoroEndReason.SKIPPED, action.now);
-    case 'TICK':
-      if (state.run !== 'running' || !state.endAt) return state;
+    case "TICK":
+      if (state.run !== "running" || !state.endAt) return state;
       if (action.now < state.endAt)
         return { ...state, remainingMs: remainingAt(state, action.now) };
       return settle({ ...state, remainingMs: 0 }, PomodoroEndReason.COMPLETED, state.endAt);
-    case 'ACK_OUTCOME':
+    case "ACK_OUTCOME":
       return state.pendingOutcome?.eventId === action.eventId
         ? { ...state, pendingOutcome: null }
         : state;

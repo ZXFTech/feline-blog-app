@@ -1,5 +1,5 @@
-import { cn } from '@/lib/utils';
-import { HTMLAttributes, ReactNode } from 'react';
+import { cn } from "@/lib/utils";
+import { HTMLAttributes, ReactNode } from "react";
 
 interface ContentProps extends HTMLAttributes<HTMLDivElement> {
   leftSideBar?: ReactNode;
@@ -25,7 +25,7 @@ export default function Content({
         <div
           id="content"
           className={cn(
-            'content relative overflow-auto hide-scrollbar pt-22 px-3 pb-14',
+            "content relative overflow-auto hide-scrollbar pt-22 px-3 pb-14",
             className
           )}
         >

@@ -33,9 +33,6 @@ describe("UserMenu", () => {
 
     render(<UserMenu />);
 
-    expect(screen.getByRole("link", { name: "登录/注册" })).toHaveAttribute(
-      "href",
-      "/login",
-    );
+    expect(screen.getByRole("link", { name: "登录/注册" })).toHaveAttribute("href", "/login");
   });
 });

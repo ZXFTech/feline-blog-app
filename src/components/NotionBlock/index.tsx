@@ -88,26 +88,13 @@ const NotionBlock = {
     return <p key={block.id}>{combineRichText(block.paragraph.rich_text)}</p>;
   },
   divider: (block: Block) => {
-    return (
-      <hr
-        key={block.id}
-        className="border-t-1 my-0.5 text-gray-500 scale-y-50"
-      />
-    );
+    return <hr key={block.id} className="border-t-1 my-0.5 text-gray-500 scale-y-50" />;
   },
   bulleted_list_item: (block: Block) => {
-    return (
-      <li key={block.id}>
-        {combineRichText(block.bulleted_list_item.rich_text)}
-      </li>
-    );
+    return <li key={block.id}>{combineRichText(block.bulleted_list_item.rich_text)}</li>;
   },
   numbered_list_item: (block: Block) => {
-    return (
-      <li key={block.id}>
-        {combineRichText(block.numbered_list_item.rich_text)}
-      </li>
-    );
+    return <li key={block.id}>{combineRichText(block.numbered_list_item.rich_text)}</li>;
   },
   image: (block: Block) => {
     // todo: 可手动缩放图片大小
@@ -126,10 +113,7 @@ const NotionBlock = {
         );
       case "file":
         return (
-          <NeuDiv
-            key={block.id}
-            className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5  "
-          >
+          <NeuDiv key={block.id} className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5  ">
             <Image
               className="m-0 rounded-md !object-cover"
               width={2000}

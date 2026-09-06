@@ -10,10 +10,7 @@ import { Tag as ITag } from "../../../generated/prisma/client";
 import Icon from "../Icon";
 import { cn } from "@/lib/utils";
 
-export type TagData = MakeOptional<
-  ITag,
-  "id" | "createdAt" | "updatedAt" | "userId"
->;
+export type TagData = MakeOptional<ITag, "id" | "createdAt" | "updatedAt" | "userId">;
 export type TagsOnTodo = {
   todoId: number;
   tagId: number;
@@ -73,9 +70,7 @@ const TagEditor = ({
 
   const filteredTags = useMemo(() => {
     if (allowCreate) {
-      return optionTags
-        .filter((item) => item.content.includes(tagValue))
-        .slice(0, 20);
+      return optionTags.filter((item) => item.content.includes(tagValue)).slice(0, 20);
     }
     // 不允许新增则显示全部
     return optionTags.filter((item) => item.content.includes(tagValue));
@@ -120,9 +115,7 @@ const TagEditor = ({
           ...optionResult,
           color: tagColor,
         });
-        setOptionTags((prev) =>
-          prev.filter((item) => item.content !== tagValue),
-        );
+        setOptionTags((prev) => prev.filter((item) => item.content !== tagValue));
       } else {
         // 新增 tag, 正常处理
         value.push({
@@ -170,10 +163,7 @@ const TagEditor = ({
           />
         </NeuButton>
       </div>
-      <div
-        ref={ref}
-        className={cn("overflow-hidden transition-[height] duration-500 h-0")}
-      >
+      <div ref={ref} className={cn("overflow-hidden transition-[height] duration-500 h-0")}>
         {allowCreate ? (
           <div className={cn("flex flex-wrap items-center justify-end")}>
             <NeuInput
@@ -208,9 +198,7 @@ const TagEditor = ({
               <Tag
                 onSelect={() => {
                   setValue(value.concat(tag));
-                  setOptionTags((prev) =>
-                    prev.filter((item) => item.content !== tag.content),
-                  );
+                  setOptionTags((prev) => prev.filter((item) => item.content !== tag.content));
                   resetState();
                 }}
                 key={tag.id + tag.content}

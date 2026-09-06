@@ -11,12 +11,7 @@ export type ThemeProps =
   | "light"
   | "dark";
 
-export type IconType =
-  | "Refresh"
-  | "Progress Activity"
-  | "check"
-  | "file_copy"
-  | string;
+export type IconType = "Refresh" | "Progress Activity" | "check" | "file_copy" | string;
 
 export type IconSize = "xs" | "sm" | "md" | "lg" | "xl" | "2xl" | "3xl";
 

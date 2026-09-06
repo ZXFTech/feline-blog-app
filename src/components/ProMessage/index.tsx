@@ -113,9 +113,7 @@ const Toast = (props: ToastProps) => {
   const [isSwiped, setIsSwiped] = useState(false);
   const [offsetBeforeRemove, setOffsetBeforeRemove] = useState(0);
   const [initialHeight, setInitialHeight] = useState(0);
-  const remainingTime = useRef(
-    toast.duration || durationFromToaster || TOAST_LIFETIME,
-  );
+  const remainingTime = useRef(toast.duration || durationFromToaster || TOAST_LIFETIME);
   const dragStartTime = useRef<Date | null>(null);
   const toastRef = useRef<HTMLLIElement>(null);
   const isFront = index === 0;
@@ -127,15 +125,15 @@ const Toast = (props: ToastProps) => {
   // Height index is used to calculate the offset as it gets updated before the toast array, which means we can calculate the new layout faster.
   const heightIndex = useMemo(
     () => heights.findIndex((height) => height.toastId === toast.id) || 0,
-    [heights, toast.id],
+    [heights, toast.id]
   );
   const closeButton = useMemo(
     () => toast.closeButton ?? closeButtonFromToaster,
-    [toast.closeButton, closeButtonFromToaster],
+    [toast.closeButton, closeButtonFromToaster]
   );
   const duration = useMemo(
     () => toast.duration || durationFromToaster || TOAST_LIFETIME,
-    [toast.duration, durationFromToaster],
+    [toast.duration, durationFromToaster]
   );
   const closeTimerStartTimeRef = useRef(0);
   const offset = useRef(0);
@@ -159,7 +157,7 @@ const Toast = (props: ToastProps) => {
 
   offset.current = useMemo(
     () => heightIndex * gap! + toastsHeightBefore,
-    [heightIndex, toastsHeightBefore, gap],
+    [heightIndex, toastsHeightBefore, gap]
   );
 
   useEffect(() => {
@@ -177,12 +175,8 @@ const Toast = (props: ToastProps) => {
       const height = toastNode.getBoundingClientRect().height;
       // Add toast height to heights array after the toast is mounted
       setInitialHeight(height);
-      setHeights((h) => [
-        { toastId: toast.id, height, position: toast.position! },
-        ...h,
-      ]);
-      return () =>
-        setHeights((h) => h.filter((height) => height.toastId !== toast.id));
+      setHeights((h) => [{ toastId: toast.id, height, position: toast.position! }, ...h]);
+      return () => setHeights((h) => h.filter((height) => height.toastId !== toast.id));
     }
   }, [setHeights, toast.id, toast.position]);
 
@@ -197,30 +191,16 @@ const Toast = (props: ToastProps) => {
     setInitialHeight(newHeight);
 
     setHeights((heights) => {
-      const alreadyExists = heights.find(
-        (height) => height.toastId === toast.id,
-      );
+      const alreadyExists = heights.find((height) => height.toastId === toast.id);
       if (!alreadyExists) {
-        return [
-          { toastId: toast.id, height: newHeight, position: toast.position! },
-          ...heights,
-        ];
+        return [{ toastId: toast.id, height: newHeight, position: toast.position! }, ...heights];
       } else {
         return heights.map((height) =>
-          height.toastId === toast.id
-            ? { ...height, height: newHeight }
-            : height,
+          height.toastId === toast.id ? { ...height, height: newHeight } : height
         );
       }
     });
-  }, [
-    mounted,
-    toast.title,
-    toast.description,
-    setHeights,
-    toast.id,
-    toast.position,
-  ]);
+  }, [mounted, toast.title, toast.description, setHeights, toast.id, toast.position]);
 
   const deleteToast = useCallback(() => {
     // Save the offset for the exit swipe animation
@@ -246,8 +226,7 @@ const Toast = (props: ToastProps) => {
     const pauseTimer = () => {
       if (lastCloseTimerStartTimeRef.current < closeTimerStartTimeRef.current) {
         // Get the elapsed time since the timer started
-        const elapsedTime =
-          new Date().getTime() - closeTimerStartTimeRef.current;
+        const elapsedTime = new Date().getTime() - closeTimerStartTimeRef.current;
 
         remainingTime.current = remainingTime.current - elapsedTime;
       }
@@ -289,11 +268,7 @@ const Toast = (props: ToastProps) => {
     if (icons?.loading) {
       return (
         <div
-          className={cn(
-            classNames?.loader,
-            toast?.classNames?.loader,
-            "sonner-loader",
-          )}
+          className={cn(classNames?.loader, toast?.classNames?.loader, "sonner-loader")}
           data-visible={toastType === "loading"}
         >
           {icons.loading}
@@ -309,8 +284,7 @@ const Toast = (props: ToastProps) => {
     );
   }
 
-  const icon =
-    toast.icon || icons?.[toastType as keyof ToastIcons] || getAsset(toastType);
+  const icon = toast.icon || icons?.[toastType as keyof ToastIcons] || getAsset(toastType);
 
   return (
     <li
@@ -323,7 +297,7 @@ const Toast = (props: ToastProps) => {
         toast?.classNames?.toast,
         classNames?.default,
         classNames?.[toastType],
-        toast?.classNames?.[toastType],
+        toast?.classNames?.[toastType]
       )}
       data-sonner-toast=""
       data-rich-colors={toast.richColors ?? defaultRichColors}
@@ -375,20 +349,14 @@ const Toast = (props: ToastProps) => {
 
         pointerStartRef.current = null;
         const swipeAmountX = Number(
-          toastRef.current?.style
-            .getPropertyValue("--swipe-amount-x")
-            .replace("px", "") || 0,
+          toastRef.current?.style.getPropertyValue("--swipe-amount-x").replace("px", "") || 0
         );
         const swipeAmountY = Number(
-          toastRef.current?.style
-            .getPropertyValue("--swipe-amount-y")
-            .replace("px", "") || 0,
+          toastRef.current?.style.getPropertyValue("--swipe-amount-y").replace("px", "") || 0
         );
-        const timeTaken =
-          new Date().getTime() - dragStartTime.current!.getTime();
+        const timeTaken = new Date().getTime() - dragStartTime.current!.getTime();
 
-        const swipeAmount =
-          swipeDirection === "x" ? swipeAmountX : swipeAmountY;
+        const swipeAmount = swipeDirection === "x" ? swipeAmountX : swipeAmountY;
         const velocity = Math.abs(swipeAmount) / timeTaken;
 
         if (Math.abs(swipeAmount) >= SWIPE_THRESHOLD || velocity > 0.11) {
@@ -423,8 +391,7 @@ const Toast = (props: ToastProps) => {
         const yDelta = event.clientY - pointerStartRef.current.y;
         const xDelta = event.clientX - pointerStartRef.current.x;
 
-        const swipeDirections =
-          props.swipeDirections ?? getDefaultSwipeDirections(position);
+        const swipeDirections = props.swipeDirections ?? getDefaultSwipeDirections(position);
 
         // Determine swipe direction if not already locked
         if (!swipeDirection && (Math.abs(xDelta) > 1 || Math.abs(yDelta) > 1)) {
@@ -442,10 +409,7 @@ const Toast = (props: ToastProps) => {
         // Only apply swipe in the locked direction
         if (swipeDirection === "y") {
           // Handle vertical swipes
-          if (
-            swipeDirections.includes("top") ||
-            swipeDirections.includes("bottom")
-          ) {
+          if (swipeDirections.includes("top") || swipeDirections.includes("bottom")) {
             if (
               (swipeDirections.includes("top") && yDelta < 0) ||
               (swipeDirections.includes("bottom") && yDelta > 0)
@@ -455,18 +419,12 @@ const Toast = (props: ToastProps) => {
               // Smoothly transition to dampened movement
               const dampenedDelta = yDelta * getDampening(yDelta);
               // Ensure we don't jump when transitioning to dampened movement
-              swipeAmount.y =
-                Math.abs(dampenedDelta) < Math.abs(yDelta)
-                  ? dampenedDelta
-                  : yDelta;
+              swipeAmount.y = Math.abs(dampenedDelta) < Math.abs(yDelta) ? dampenedDelta : yDelta;
             }
           }
         } else if (swipeDirection === "x") {
           // Handle horizontal swipes
-          if (
-            swipeDirections.includes("left") ||
-            swipeDirections.includes("right")
-          ) {
+          if (swipeDirections.includes("left") || swipeDirections.includes("right")) {
             if (
               (swipeDirections.includes("left") && xDelta < 0) ||
               (swipeDirections.includes("right") && xDelta > 0)
@@ -476,10 +434,7 @@ const Toast = (props: ToastProps) => {
               // Smoothly transition to dampened movement
               const dampenedDelta = xDelta * getDampening(xDelta);
               // Ensure we don't jump when transitioning to dampened movement
-              swipeAmount.x =
-                Math.abs(dampenedDelta) < Math.abs(xDelta)
-                  ? dampenedDelta
-                  : xDelta;
+              swipeAmount.x = Math.abs(dampenedDelta) < Math.abs(xDelta) ? dampenedDelta : xDelta;
             }
           }
         }
@@ -489,14 +444,8 @@ const Toast = (props: ToastProps) => {
         }
 
         // Apply transform using both x and y values
-        toastRef.current?.style.setProperty(
-          "--swipe-amount-x",
-          `${swipeAmount.x}px`,
-        );
-        toastRef.current?.style.setProperty(
-          "--swipe-amount-y",
-          `${swipeAmount.y}px`,
-        );
+        toastRef.current?.style.setProperty("--swipe-amount-x", `${swipeAmount.x}px`);
+        toastRef.current?.style.setProperty("--swipe-amount-y", `${swipeAmount.y}px`);
       }}
     >
       {closeButton && !toast.jsx && toastType !== "loading" ? (
@@ -512,10 +461,7 @@ const Toast = (props: ToastProps) => {
                   toast.onDismiss?.(toast);
                 }
           }
-          className={cn(
-            classNames?.closeButton,
-            toast?.classNames?.closeButton,
-          )}
+          className={cn(classNames?.closeButton, toast?.classNames?.closeButton)}
         >
           {icons?.close ?? CloseIcon}
         </button>
@@ -524,10 +470,7 @@ const Toast = (props: ToastProps) => {
       {(toastType || toast.icon || toast.promise) &&
       toast.icon !== null &&
       (icons?.[toastType as keyof ToastIcons] !== null || toast.icon) ? (
-        <div
-          data-icon=""
-          className={cn(classNames?.icon, toast?.classNames?.icon)}
-        >
+        <div data-icon="" className={cn(classNames?.icon, toast?.classNames?.icon)}>
           {toast.promise || (toast.type === "loading" && !toast.icon)
             ? toast.icon || getLoadingIcon()
             : null}
@@ -535,19 +478,9 @@ const Toast = (props: ToastProps) => {
         </div>
       ) : null}
 
-      <div
-        data-content=""
-        className={cn(classNames?.content, toast?.classNames?.content)}
-      >
-        <div
-          data-title=""
-          className={cn(classNames?.title, toast?.classNames?.title)}
-        >
-          {toast.jsx
-            ? toast.jsx
-            : typeof toast.title === "function"
-              ? toast.title()
-              : toast.title}
+      <div data-content="" className={cn(classNames?.content, toast?.classNames?.content)}>
+        <div data-title="" className={cn(classNames?.title, toast?.classNames?.title)}>
+          {toast.jsx ? toast.jsx : typeof toast.title === "function" ? toast.title() : toast.title}
         </div>
         {toast.description ? (
           <div
@@ -556,12 +489,10 @@ const Toast = (props: ToastProps) => {
               descriptionClassName,
               toastDescriptionClassname,
               classNames?.description,
-              toast?.classNames?.description,
+              toast?.classNames?.description
             )}
           >
-            {typeof toast.description === "function"
-              ? toast.description()
-              : toast.description}
+            {typeof toast.description === "function" ? toast.description() : toast.description}
           </div>
         ) : null}
       </div>
@@ -579,10 +510,7 @@ const Toast = (props: ToastProps) => {
             toast.cancel.onClick?.(event);
             deleteToast();
           }}
-          className={cn(
-            classNames?.cancelButton,
-            toast?.classNames?.cancelButton,
-          )}
+          className={cn(classNames?.cancelButton, toast?.classNames?.cancelButton)}
         >
           {toast.cancel.label}
         </button>
@@ -601,10 +529,7 @@ const Toast = (props: ToastProps) => {
             if (event.defaultPrevented) return;
             deleteToast();
           }}
-          className={cn(
-            classNames?.actionButton,
-            toast?.classNames?.actionButton,
-          )}
+          className={cn(classNames?.actionButton, toast?.classNames?.actionButton)}
         >
           {toast.action.label}
         </button>
@@ -620,8 +545,7 @@ function getDocumentDirection(): ToasterProps["dir"] {
   const dirAttribute = document.documentElement.getAttribute("dir");
 
   if (dirAttribute === "auto" || !dirAttribute) {
-    return window.getComputedStyle(document.documentElement)
-      .direction as ToasterProps["dir"];
+    return window.getComputedStyle(document.documentElement).direction as ToasterProps["dir"];
   }
 
   return dirAttribute as ToasterProps["dir"];
@@ -631,7 +555,7 @@ type OffsetKeys = "top" | "right" | "bottom" | "left";
 
 function assignOffset(
   defaultOffset: ToasterProps["offset"],
-  mobileOffset: ToasterProps["mobileOffset"],
+  mobileOffset: ToasterProps["mobileOffset"]
 ) {
   const styles = {} as { [key: string]: unknown };
 
@@ -642,8 +566,7 @@ function assignOffset(
 
     function assignAll(offset: string | number) {
       ["top", "right", "bottom", "left"].forEach((key) => {
-        styles[`${prefix}-${key}`] =
-          typeof offset === "number" ? `${offset}px` : offset;
+        styles[`${prefix}-${key}`] = typeof offset === "number" ? `${offset}px` : offset;
       });
     }
 
@@ -674,9 +597,7 @@ function useSonner() {
       if ((toast as ToastToDismiss).dismiss) {
         setTimeout(() => {
           ReactDOM.flushSync(() => {
-            setActiveToasts((toasts) =>
-              toasts.filter((t) => t.id !== toast.id),
-            );
+            setActiveToasts((toasts) => toasts.filter((t) => t.id !== toast.id));
           });
         });
         return;
@@ -686,9 +607,7 @@ function useSonner() {
       setTimeout(() => {
         ReactDOM.flushSync(() => {
           setActiveToasts((toasts) => {
-            const indexOfExistingToast = toasts.findIndex(
-              (t) => t.id === toast.id,
-            );
+            const indexOfExistingToast = toasts.findIndex((t) => t.id === toast.id);
 
             // Update the toast if it already exists
             if (indexOfExistingToast !== -1) {
@@ -711,344 +630,304 @@ function useSonner() {
   };
 }
 
-const Toaster = forwardRef<HTMLElement, ToasterProps>(
-  function Toaster(props, ref) {
-    const {
-      invert,
-      position = "bottom-right",
-      hotkey = ["altKey", "KeyT"],
-      expand,
-      closeButton,
-      className,
-      offset,
-      mobileOffset,
-      theme = "light",
-      richColors,
-      duration,
-      style,
-      visibleToasts = VISIBLE_TOASTS_AMOUNT,
-      toastOptions,
-      dir = getDocumentDirection(),
-      gap = GAP,
-      icons,
-      containerAriaLabel = "Notifications",
-    } = props;
-    const listRef = useRef<HTMLOListElement>(null);
-    const lastFocusedElementRef = useRef<HTMLElement>(null);
-    const isFocusWithinRef = useRef(false);
+const Toaster = forwardRef<HTMLElement, ToasterProps>(function Toaster(props, ref) {
+  const {
+    invert,
+    position = "bottom-right",
+    hotkey = ["altKey", "KeyT"],
+    expand,
+    closeButton,
+    className,
+    offset,
+    mobileOffset,
+    theme = "light",
+    richColors,
+    duration,
+    style,
+    visibleToasts = VISIBLE_TOASTS_AMOUNT,
+    toastOptions,
+    dir = getDocumentDirection(),
+    gap = GAP,
+    icons,
+    containerAriaLabel = "Notifications",
+  } = props;
+  const listRef = useRef<HTMLOListElement>(null);
+  const lastFocusedElementRef = useRef<HTMLElement>(null);
+  const isFocusWithinRef = useRef(false);
 
-    const [interacting, setInteracting] = useState(false);
-    const [toasts, setToasts] = useState<ToastT[]>([]);
-    const [heights, setHeights] = useState<HeightT[]>([]);
-    const [expanded, setExpanded] = useState(false);
+  const [interacting, setInteracting] = useState(false);
+  const [toasts, setToasts] = useState<ToastT[]>([]);
+  const [heights, setHeights] = useState<HeightT[]>([]);
+  const [expanded, setExpanded] = useState(false);
 
-    const possiblePositions = useMemo(() => {
-      return Array.from(
-        new Set(
-          [position].concat(
-            toasts
-              .filter((toast) => toast.position)
-              .map((toast) => toast.position!),
-          ),
-        ),
-      );
-    }, [toasts, position]);
-
-    const [actualTheme, setActualTheme] = useState(
-      theme !== "system"
-        ? theme
-        : typeof window !== "undefined"
-          ? window.matchMedia &&
-            window.matchMedia("(prefers-color-scheme: dark)").matches
-            ? "dark"
-            : "light"
-          : "light",
+  const possiblePositions = useMemo(() => {
+    return Array.from(
+      new Set(
+        [position].concat(toasts.filter((toast) => toast.position).map((toast) => toast.position!))
+      )
     );
+  }, [toasts, position]);
 
-    const hotkeyLabel = hotkey
-      .join("+")
-      .replace(/Key/g, "")
-      .replace(/Digit/g, "");
+  const [actualTheme, setActualTheme] = useState(
+    theme !== "system"
+      ? theme
+      : typeof window !== "undefined"
+        ? window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches
+          ? "dark"
+          : "light"
+        : "light"
+  );
 
-    const removeToast = useCallback((toastToRemove: ToastT) => {
-      setToasts((toasts) => {
-        if (!toasts.find((toast) => toast.id === toastToRemove.id)?.delete) {
-          ToastState.dismiss(toastToRemove.id);
-        }
+  const hotkeyLabel = hotkey.join("+").replace(/Key/g, "").replace(/Digit/g, "");
 
-        return toasts.filter(({ id }) => id !== toastToRemove.id);
-      });
-    }, []);
+  const removeToast = useCallback((toastToRemove: ToastT) => {
+    setToasts((toasts) => {
+      if (!toasts.find((toast) => toast.id === toastToRemove.id)?.delete) {
+        ToastState.dismiss(toastToRemove.id);
+      }
 
-    useEffect(() => {
-      return ToastState.subscribe((toast) => {
-        if ((toast as ToastToDismiss).dismiss) {
-          // Prevent batching of other state updates
-          requestAnimationFrame(() => {
-            setToasts((toasts) =>
-              toasts.map((t) =>
-                t.id === toast.id ? { ...t, delete: true } : t,
-              ),
-            );
-          });
-          return;
-        }
+      return toasts.filter(({ id }) => id !== toastToRemove.id);
+    });
+  }, []);
 
-        // Prevent batching, temp solution.
-        setTimeout(() => {
-          ReactDOM.flushSync(() => {
-            setToasts((toasts) => {
-              const indexOfExistingToast = toasts.findIndex(
-                (t) => t.id === toast.id,
-              );
-
-              // Update the toast if it already exists
-              if (indexOfExistingToast !== -1) {
-                return [
-                  ...toasts.slice(0, indexOfExistingToast),
-                  { ...toasts[indexOfExistingToast], ...toast },
-                  ...toasts.slice(indexOfExistingToast + 1),
-                ];
-              }
-
-              return [toast as ToastT, ...toasts];
-            });
-          });
+  useEffect(() => {
+    return ToastState.subscribe((toast) => {
+      if ((toast as ToastToDismiss).dismiss) {
+        // Prevent batching of other state updates
+        requestAnimationFrame(() => {
+          setToasts((toasts) =>
+            toasts.map((t) => (t.id === toast.id ? { ...t, delete: true } : t))
+          );
         });
-      });
-    }, [toasts]);
-
-    useEffect(() => {
-      if (theme !== "system") {
-        setActualTheme(theme);
         return;
       }
 
-      if (theme === "system") {
-        // check if current preference is dark
-        if (
-          window.matchMedia &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches
-        ) {
-          // it's currently dark
+      // Prevent batching, temp solution.
+      setTimeout(() => {
+        ReactDOM.flushSync(() => {
+          setToasts((toasts) => {
+            const indexOfExistingToast = toasts.findIndex((t) => t.id === toast.id);
+
+            // Update the toast if it already exists
+            if (indexOfExistingToast !== -1) {
+              return [
+                ...toasts.slice(0, indexOfExistingToast),
+                { ...toasts[indexOfExistingToast], ...toast },
+                ...toasts.slice(indexOfExistingToast + 1),
+              ];
+            }
+
+            return [toast as ToastT, ...toasts];
+          });
+        });
+      });
+    });
+  }, [toasts]);
+
+  useEffect(() => {
+    if (theme !== "system") {
+      setActualTheme(theme);
+      return;
+    }
+
+    if (theme === "system") {
+      // check if current preference is dark
+      if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        // it's currently dark
+        setActualTheme("dark");
+      } else {
+        // it's not dark
+        setActualTheme("light");
+      }
+    }
+
+    if (typeof window === "undefined") return;
+    const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    try {
+      // Chrome & Firefox
+      darkMediaQuery.addEventListener("change", ({ matches }) => {
+        if (matches) {
           setActualTheme("dark");
         } else {
-          // it's not dark
           setActualTheme("light");
         }
-      }
-
-      if (typeof window === "undefined") return;
-      const darkMediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-
-      try {
-        // Chrome & Firefox
-        darkMediaQuery.addEventListener("change", ({ matches }) => {
+      });
+    } catch {
+      // Safari < 14
+      darkMediaQuery.addListener(({ matches }) => {
+        try {
           if (matches) {
             setActualTheme("dark");
           } else {
             setActualTheme("light");
           }
-        });
-      } catch {
-        // Safari < 14
-        darkMediaQuery.addListener(({ matches }) => {
-          try {
-            if (matches) {
-              setActualTheme("dark");
-            } else {
-              setActualTheme("light");
-            }
-          } catch (e) {
-            console.error(e);
-          }
-        });
-      }
-    }, [theme]);
+        } catch (e) {
+          console.error(e);
+        }
+      });
+    }
+  }, [theme]);
 
-    useEffect(() => {
-      // Ensure expanded is always false when no toasts are present / only one left
-      if (toasts.length <= 1) {
+  useEffect(() => {
+    // Ensure expanded is always false when no toasts are present / only one left
+    if (toasts.length <= 1) {
+      setExpanded(false);
+    }
+  }, [toasts]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const isHotkeyPressed = hotkey.every(
+        (key) => event[key as keyof KeyboardEvent] || event.code === key
+      );
+
+      if (isHotkeyPressed) {
+        setExpanded(true);
+        listRef.current?.focus();
+      }
+
+      if (
+        event.code === "Escape" &&
+        (document.activeElement === listRef.current ||
+          listRef.current?.contains(document.activeElement))
+      ) {
         setExpanded(false);
       }
-    }, [toasts]);
+    };
+    document.addEventListener("keydown", handleKeyDown);
 
-    useEffect(() => {
-      const handleKeyDown = (event: KeyboardEvent) => {
-        const isHotkeyPressed = hotkey.every(
-          (key) => event[key as keyof KeyboardEvent] || event.code === key,
-        );
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [hotkey]);
 
-        if (isHotkeyPressed) {
-          setExpanded(true);
-          listRef.current?.focus();
-        }
-
-        if (
-          event.code === "Escape" &&
-          (document.activeElement === listRef.current ||
-            listRef.current?.contains(document.activeElement))
-        ) {
-          setExpanded(false);
+  useEffect(() => {
+    if (listRef.current) {
+      return () => {
+        if (lastFocusedElementRef.current) {
+          lastFocusedElementRef.current.focus({ preventScroll: true });
+          lastFocusedElementRef.current = null;
+          isFocusWithinRef.current = false;
         }
       };
-      document.addEventListener("keydown", handleKeyDown);
+    }
+  }, []);
 
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [hotkey]);
+  return (
+    // Remove item from normal navigation flow, only available via hotkey
+    <section
+      ref={ref}
+      aria-label={`${containerAriaLabel} ${hotkeyLabel}`}
+      tabIndex={-1}
+      aria-live="polite"
+      aria-relevant="additions text"
+      aria-atomic="false"
+      suppressHydrationWarning
+    >
+      {possiblePositions.map((position, index) => {
+        const [y, x] = position.split("-");
 
-    useEffect(() => {
-      if (listRef.current) {
-        return () => {
-          if (lastFocusedElementRef.current) {
-            lastFocusedElementRef.current.focus({ preventScroll: true });
-            lastFocusedElementRef.current = null;
-            isFocusWithinRef.current = false;
-          }
-        };
-      }
-    }, []);
+        if (!toasts.length) return null;
 
-    return (
-      // Remove item from normal navigation flow, only available via hotkey
-      <section
-        ref={ref}
-        aria-label={`${containerAriaLabel} ${hotkeyLabel}`}
-        tabIndex={-1}
-        aria-live="polite"
-        aria-relevant="additions text"
-        aria-atomic="false"
-        suppressHydrationWarning
-      >
-        {possiblePositions.map((position, index) => {
-          const [y, x] = position.split("-");
-
-          if (!toasts.length) return null;
-
-          return (
-            <ol
-              key={position}
-              dir={dir === "auto" ? getDocumentDirection() : dir}
-              tabIndex={-1}
-              ref={listRef}
-              className={className}
-              data-sonner-toaster
-              data-sonner-theme={actualTheme}
-              data-y-position={y}
-              data-lifted={expanded && toasts.length > 1 && !expand}
-              data-x-position={x}
-              style={
-                {
-                  "--front-toast-height": `${heights[0]?.height || 0}px`,
-                  "--width": `${TOAST_WIDTH}px`,
-                  "--gap": `${gap}px`,
-                  ...style,
-                  ...assignOffset(offset, mobileOffset),
-                } as CSSProperties
+        return (
+          <ol
+            key={position}
+            dir={dir === "auto" ? getDocumentDirection() : dir}
+            tabIndex={-1}
+            ref={listRef}
+            className={className}
+            data-sonner-toaster
+            data-sonner-theme={actualTheme}
+            data-y-position={y}
+            data-lifted={expanded && toasts.length > 1 && !expand}
+            data-x-position={x}
+            style={
+              {
+                "--front-toast-height": `${heights[0]?.height || 0}px`,
+                "--width": `${TOAST_WIDTH}px`,
+                "--gap": `${gap}px`,
+                ...style,
+                ...assignOffset(offset, mobileOffset),
+              } as CSSProperties
+            }
+            onBlur={(event) => {
+              if (isFocusWithinRef.current && !event.currentTarget.contains(event.relatedTarget)) {
+                isFocusWithinRef.current = false;
+                if (lastFocusedElementRef.current) {
+                  lastFocusedElementRef.current.focus({
+                    preventScroll: true,
+                  });
+                  lastFocusedElementRef.current = null;
+                }
               }
-              onBlur={(event) => {
-                if (
-                  isFocusWithinRef.current &&
-                  !event.currentTarget.contains(event.relatedTarget)
-                ) {
-                  isFocusWithinRef.current = false;
-                  if (lastFocusedElementRef.current) {
-                    lastFocusedElementRef.current.focus({
-                      preventScroll: true,
-                    });
-                    lastFocusedElementRef.current = null;
-                  }
-                }
-              }}
-              onFocus={(event) => {
-                const isNotDismissible =
-                  event.target instanceof HTMLElement &&
-                  event.target.dataset.dismissible === "false";
+            }}
+            onFocus={(event) => {
+              const isNotDismissible =
+                event.target instanceof HTMLElement && event.target.dataset.dismissible === "false";
 
-                if (isNotDismissible) return;
+              if (isNotDismissible) return;
 
-                if (!isFocusWithinRef.current) {
-                  isFocusWithinRef.current = true;
-                  lastFocusedElementRef.current =
-                    event.relatedTarget as HTMLElement;
-                }
-              }}
-              onMouseEnter={() => setExpanded(true)}
-              onMouseMove={() => setExpanded(true)}
-              onMouseLeave={() => {
-                // Avoid setting expanded to false when interacting with a toast, e.g. swiping
-                if (!interacting) {
-                  setExpanded(false);
-                }
-              }}
-              onDragEnd={() => setExpanded(false)}
-              onPointerDown={(event) => {
-                const isNotDismissible =
-                  event.target instanceof HTMLElement &&
-                  event.target.dataset.dismissible === "false";
+              if (!isFocusWithinRef.current) {
+                isFocusWithinRef.current = true;
+                lastFocusedElementRef.current = event.relatedTarget as HTMLElement;
+              }
+            }}
+            onMouseEnter={() => setExpanded(true)}
+            onMouseMove={() => setExpanded(true)}
+            onMouseLeave={() => {
+              // Avoid setting expanded to false when interacting with a toast, e.g. swiping
+              if (!interacting) {
+                setExpanded(false);
+              }
+            }}
+            onDragEnd={() => setExpanded(false)}
+            onPointerDown={(event) => {
+              const isNotDismissible =
+                event.target instanceof HTMLElement && event.target.dataset.dismissible === "false";
 
-                if (isNotDismissible) return;
-                setInteracting(true);
-              }}
-              onPointerUp={() => setInteracting(false)}
-            >
-              {toasts
-                .filter(
-                  (toast) =>
-                    (!toast.position && index === 0) ||
-                    toast.position === position,
-                )
-                .map((toast, index) => (
-                  <Toast
-                    key={toast.id}
-                    icons={icons}
-                    index={index}
-                    toast={toast}
-                    defaultRichColors={richColors}
-                    duration={toastOptions?.duration ?? duration}
-                    className={toastOptions?.className}
-                    descriptionClassName={toastOptions?.descriptionClassName}
-                    invert={invert!}
-                    visibleToasts={visibleToasts}
-                    closeButton={toastOptions?.closeButton ?? closeButton!}
-                    interacting={interacting}
-                    position={position}
-                    style={toastOptions?.style}
-                    unstyled={toastOptions?.unstyled}
-                    classNames={toastOptions?.classNames}
-                    cancelButtonStyle={toastOptions?.cancelButtonStyle}
-                    actionButtonStyle={toastOptions?.actionButtonStyle}
-                    closeButtonAriaLabel={toastOptions?.closeButtonAriaLabel}
-                    removeToast={removeToast}
-                    toasts={toasts.filter((t) => t.position == toast.position)}
-                    heights={heights.filter(
-                      (h) => h.position == toast.position,
-                    )}
-                    setHeights={setHeights}
-                    expandByDefault={expand!}
-                    gap={gap}
-                    expanded={expanded}
-                    swipeDirections={props.swipeDirections}
-                  />
-                ))}
-            </ol>
-          );
-        })}
-      </section>
-    );
-  },
-);
+              if (isNotDismissible) return;
+              setInteracting(true);
+            }}
+            onPointerUp={() => setInteracting(false)}
+          >
+            {toasts
+              .filter((toast) => (!toast.position && index === 0) || toast.position === position)
+              .map((toast, index) => (
+                <Toast
+                  key={toast.id}
+                  icons={icons}
+                  index={index}
+                  toast={toast}
+                  defaultRichColors={richColors}
+                  duration={toastOptions?.duration ?? duration}
+                  className={toastOptions?.className}
+                  descriptionClassName={toastOptions?.descriptionClassName}
+                  invert={invert!}
+                  visibleToasts={visibleToasts}
+                  closeButton={toastOptions?.closeButton ?? closeButton!}
+                  interacting={interacting}
+                  position={position}
+                  style={toastOptions?.style}
+                  unstyled={toastOptions?.unstyled}
+                  classNames={toastOptions?.classNames}
+                  cancelButtonStyle={toastOptions?.cancelButtonStyle}
+                  actionButtonStyle={toastOptions?.actionButtonStyle}
+                  closeButtonAriaLabel={toastOptions?.closeButtonAriaLabel}
+                  removeToast={removeToast}
+                  toasts={toasts.filter((t) => t.position == toast.position)}
+                  heights={heights.filter((h) => h.position == toast.position)}
+                  setHeights={setHeights}
+                  expandByDefault={expand!}
+                  gap={gap}
+                  expanded={expanded}
+                  swipeDirections={props.swipeDirections}
+                />
+              ))}
+          </ol>
+        );
+      })}
+    </section>
+  );
+});
 
-export {
-  toast,
-  Toaster,
-  type ExternalToast,
-  type ToastT,
-  type ToasterProps,
-  useSonner,
-};
-export {
-  type ToastClassnames,
-  type ToastToDismiss,
-  type Action,
-} from "./types";
+export { toast, Toaster, type ExternalToast, type ToastT, type ToasterProps, useSonner };
+export { type ToastClassnames, type ToastToDismiss, type Action } from "./types";

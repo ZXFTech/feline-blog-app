@@ -2,26 +2,24 @@
 
 @mixin neu-embossed-sm {
   box-shadow:
-    calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
-      var(--shadow-blur-sm) var(--color-shadow-light),
-    var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm)
-      var(--color-shadow-dark);
+    calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1) var(--shadow-blur-sm)
+      var(--color-shadow-light),
+    var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm) var(--color-shadow-dark);
 }
 
 @mixin neu-embossed-normal {
   box-shadow:
     calc(var(--shadow-size-normal) * -1) calc(var(--shadow-size-normal) * -1)
       var(--shadow-blur-normal) var(--color-shadow-light),
-    var(--shadow-size-normal) var(--shadow-size-normal)
-      var(--shadow-blur-normal) var(--color-shadow-dark);
+    var(--shadow-size-normal) var(--shadow-size-normal) var(--shadow-blur-normal)
+      var(--color-shadow-dark);
 }
 
 @mixin neu-embossed-lg {
   box-shadow:
-    calc(var(--shadow-size-lg) * -1) calc(var(--shadow-size-lg) * -1)
-      var(--shadow-blur-lg) var(--color-shadow-light),
-    var(--shadow-size-lg) var(--shadow-size-lg) var(--shadow-blur-lg)
-      var(--color-shadow-dark);
+    calc(var(--shadow-size-lg) * -1) calc(var(--shadow-size-lg) * -1) var(--shadow-blur-lg)
+      var(--color-shadow-light),
+    var(--shadow-size-lg) var(--shadow-size-lg) var(--shadow-blur-lg) var(--color-shadow-dark);
 }
 
 @mixin neu-flat {
@@ -31,25 +29,23 @@
 
 @mixin neu-debossed-sm {
   box-shadow:
-    inset calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
-      var(--shadow-blur-sm) var(--color-shadow-light),
-    inset var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm)
-      var(--color-shadow-dark);
+    inset calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1) var(--shadow-blur-sm)
+      var(--color-shadow-light),
+    inset var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-sm) var(--color-shadow-dark);
 }
 
 @mixin neu-debossed-normal {
   box-shadow:
-    inset calc(var(--shadow-size-normal) * -1)
-      calc(var(--shadow-size-normal) * -1) var(--shadow-blur-normal)
-      var(--color-shadow-light),
-    inset var(--shadow-size-normal) var(--shadow-size-normal)
-      var(--shadow-blur-normal) var(--color-shadow-dark);
+    inset calc(var(--shadow-size-normal) * -1) calc(var(--shadow-size-normal) * -1)
+      var(--shadow-blur-normal) var(--color-shadow-light),
+    inset var(--shadow-size-normal) var(--shadow-size-normal) var(--shadow-blur-normal)
+      var(--color-shadow-dark);
 }
 
 @mixin neu-custom($shadow-color) {
   box-shadow:
-    calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1)
-      var(--shadow-blur-sm) var(--color-shadow-light),
+    calc(var(--shadow-size-sm) * -1) calc(var(--shadow-size-sm) * -1) var(--shadow-blur-sm)
+      var(--color-shadow-light),
     var(--shadow-size-sm) var(--shadow-size-sm) var(--shadow-blur-normal)
       color.scale($shadow-color, $lightness: -40%);
 }

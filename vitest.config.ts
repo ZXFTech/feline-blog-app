@@ -10,9 +10,7 @@ export default defineConfig({
       },
       {
         find: /^.*\.(css|scss)$/,
-        replacement: fileURLToPath(
-          new URL("./src/test/styleMock.ts", import.meta.url),
-        ),
+        replacement: fileURLToPath(new URL("./src/test/styleMock.ts", import.meta.url)),
       },
     ],
   },

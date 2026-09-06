@@ -35,7 +35,7 @@ type SnapWheelOptions = {
 
 export function useSnapWheelScroll(
   containerRef: React.RefObject<HTMLElement>,
-  opts: SnapWheelOptions = {},
+  opts: SnapWheelOptions = {}
 ) {
   const {
     threshold = 120,
@@ -95,14 +95,7 @@ export function useSnapWheelScroll(
       el.removeEventListener("wheel", onWheel);
       if (resetTimerRef.current) window.clearTimeout(resetTimerRef.current);
     };
-  }, [
-    containerRef,
-    threshold,
-    step,
-    behavior,
-    resetAfterMs,
-    allowShiftForHorizontal,
-  ]);
+  }, [containerRef, threshold, step, behavior, resetAfterMs, allowShiftForHorizontal]);
 }
 
 function clamp(v: number, min: number, max: number) {

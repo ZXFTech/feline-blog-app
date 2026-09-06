@@ -25,16 +25,12 @@ function TagOperator() {
       }
       router.replace(`${pathname}?${params}`);
     },
-    [searchParams, router, pathname],
+    [searchParams, router, pathname]
   );
 
   const debounceUpdate = useMemo(
-    () =>
-      debounce(
-        (key: string, value: string) => updateSearchParams(key, value),
-        500,
-      ),
-    [updateSearchParams],
+    () => debounce((key: string, value: string) => updateSearchParams(key, value), 500),
+    [updateSearchParams]
   );
 
   return (
@@ -59,9 +55,7 @@ function TagOperator() {
           todo
         </NeuButton>
         <NeuButton
-          onClick={() =>
-            updateSearchParams("orderBy", pOrderBy === "asc" ? "desc" : "asc")
-          }
+          onClick={() => updateSearchParams("orderBy", pOrderBy === "asc" ? "desc" : "asc")}
         >
           {pOrderBy === "asc" ? "降序" : "升序"}
         </NeuButton>

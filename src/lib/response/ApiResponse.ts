@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import type { ActionFailure } from '@/lib/server/actionResult';
+import { NextResponse } from "next/server";
+import type { ActionFailure } from "@/lib/server/actionResult";
 
 export type ActionResponse<T = unknown> = {
   error: boolean;
@@ -8,7 +8,7 @@ export type ActionResponse<T = unknown> = {
 };
 
 export const actionResponse = {
-  error: (message = '服务器内部错误', status = 500): NextResponse<ActionResponse<null>> => {
+  error: (message = "服务器内部错误", status = 500): NextResponse<ActionResponse<null>> => {
     return NextResponse.json(
       {
         error: true,
@@ -21,7 +21,7 @@ export const actionResponse = {
 
   success: <T = unknown>(
     data?: T,
-    message = 'success',
+    message = "success",
     status = 200
   ): NextResponse<ActionResponse<T>> => {
     return NextResponse.json(

@@ -1,8 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import {
-  PomodoroEndReason,
-  PomodoroType,
-} from "../../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
 import type { PomodoroOutboxItem, PomodoroState } from "@/types/pomodoro";
 import { initialState } from "./reducer";
 import {
@@ -19,9 +16,7 @@ import {
 const userId = "user-a";
 const eventId = "019d3b54-2e18-7000-8000-000000000001";
 
-function outbox(
-  overrides: Partial<PomodoroOutboxItem> = {},
-): PomodoroOutboxItem {
+function outbox(overrides: Partial<PomodoroOutboxItem> = {}): PomodoroOutboxItem {
   return {
     schemaVersion: 2,
     userId,
@@ -60,17 +55,15 @@ describe("pomodoro storage", () => {
 
     expect(readTimer(userId)).toEqual({ state: null, recovered: true });
     expect(localStorage.getItem(timerKey(userId))).toBeNull();
-    expect(
-      [...Array(localStorage.length)].map((_, index) =>
-        localStorage.key(index),
-      ),
-    ).toEqual([expect.stringMatching(/^pomodoro:v2:quarantine:user-a:/)]);
+    expect([...Array(localStorage.length)].map((_, index) => localStorage.key(index))).toEqual([
+      expect.stringMatching(/^pomodoro:v2:quarantine:user-a:/),
+    ]);
   });
 
   it("AC-8 quarantines unsupported timer versions", () => {
     localStorage.setItem(
       timerKey(userId),
-      JSON.stringify({ schemaVersion: 1, userId, state: initialState }),
+      JSON.stringify({ schemaVersion: 1, userId, state: initialState })
     );
 
     expect(readTimer(userId).recovered).toBe(true);
@@ -88,10 +81,7 @@ describe("pomodoro storage", () => {
     writeOutbox(later);
     writeOutbox(outbox());
 
-    expect(readOutbox(userId).map((item) => item.eventId)).toEqual([
-      eventId,
-      later.eventId,
-    ]);
+    expect(readOutbox(userId).map((item) => item.eventId)).toEqual([eventId, later.eventId]);
     expect(localStorage.getItem(outboxKey(userId, eventId))).not.toBeNull();
   });
 
@@ -112,17 +102,13 @@ describe("pomodoro storage", () => {
   });
 
   it("AC-4 applies exponential retry from one second and caps it at five minutes", () => {
-    expect([0, 1, 2, 8, 30].map(retryDelayMs)).toEqual([
-      1_000, 2_000, 4_000, 256_000, 300_000,
-    ]);
+    expect([0, 1, 2, 8, 30].map(retryDelayMs)).toEqual([1_000, 2_000, 4_000, 256_000, 300_000]);
   });
 
   it("AC-8 surfaces local storage write failures", () => {
-    const failure = vi
-      .spyOn(Storage.prototype, "setItem")
-      .mockImplementation(() => {
-        throw new DOMException("full", "QuotaExceededError");
-      });
+    const failure = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+      throw new DOMException("full", "QuotaExceededError");
+    });
 
     expect(() => writeTimer(userId, initialState)).toThrow("full");
     failure.mockRestore();

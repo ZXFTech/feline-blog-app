@@ -23,18 +23,14 @@ function localMidnightUtc(year: number, monthIndex: number, timeZone: string) {
       Number(parts.day),
       Number(parts.hour),
       Number(parts.minute),
-      Number(parts.second),
+      Number(parts.second)
     );
     guess += desired - represented;
   }
   return new Date(guess);
 }
 
-export function monthUtcRange(
-  year: number,
-  monthIndex: number,
-  timeZone: string,
-) {
+export function monthUtcRange(year: number, monthIndex: number, timeZone: string) {
   return {
     startUtc: localMidnightUtc(year, monthIndex, timeZone).toISOString(),
     endUtc: localMidnightUtc(year, monthIndex + 1, timeZone).toISOString(),

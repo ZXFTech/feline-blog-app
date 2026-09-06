@@ -1,18 +1,18 @@
-'use server';
+"use server";
 
-import { Prisma } from '../../generated/prisma/client';
-import { PomodoroEndReason, PomodoroType } from '../../generated/prisma/enums';
-import { requireAuth } from '@/lib/auth/userAuth';
+import { Prisma } from "../../generated/prisma/client";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
+import { requireAuth } from "@/lib/auth/userAuth";
 import type {
   PomodoroHistoryRecord,
   SavePomodoroInput,
   SavePomodoroResult,
-} from '@/types/pomodoro';
-import db from './client';
-import { actionResult } from '@/lib/server/actionResult';
-import logger from '@/lib/logger/Logger';
-import { safeErrorContext } from '@/lib/server/error';
-import { parseString } from '@/lib/server/validation';
+} from "@/types/pomodoro";
+import db from "./client";
+import { actionResult } from "@/lib/server/actionResult";
+import logger from "@/lib/logger/Logger";
+import { safeErrorContext } from "@/lib/server/error";
+import { parseString } from "@/lib/server/validation";
 
 const MAX_DURATION_MS = 24 * 60 * 60 * 1000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -32,7 +32,7 @@ function normalizeRecord(record: {
     ...record,
     startAt: record.startAt.toISOString(),
     endAt: record.endAt.toISOString(),
-    syncStatus: 'synced',
+    syncStatus: "synced",
   };
 }
 
@@ -88,38 +88,38 @@ function sameContent(
 
 export async function savePomodoroRecord(input: SavePomodoroInput): Promise<SavePomodoroResult> {
   const auth = await requireAuth();
-  if (auth.status !== 'success') {
-    return auth.status === 'conflict'
-      ? { status: 'temporary_failure', message: '暂时无法验证登录状态' }
+  if (auth.status !== "success") {
+    return auth.status === "conflict"
+      ? { status: "temporary_failure", message: "暂时无法验证登录状态" }
       : { status: auth.status, message: auth.message };
   }
   const user = auth.data;
   const data = parseInput(input);
-  if (!data) return { status: 'invalid_input', message: '番茄记录内容无效' };
+  if (!data) return { status: "invalid_input", message: "番茄记录内容无效" };
   try {
     const created = await db.pomodoroRecord.create({
-      data: { ...data, summary: '', userId: user.id },
+      data: { ...data, summary: "", userId: user.id },
     });
-    return { status: 'created', record: normalizeRecord(created) };
+    return { status: "created", record: normalizeRecord(created) };
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
       const existing = await db.pomodoroRecord.findUnique({
         where: { userId_eventId: { userId: user.id, eventId: data.eventId } },
       });
-      if (!existing) return { status: 'temporary_failure', message: '记录暂时不可用' };
+      if (!existing) return { status: "temporary_failure", message: "记录暂时不可用" };
       const record = normalizeRecord(existing);
       return sameContent(record, data)
-        ? { status: 'already_exists', record }
-        : { status: 'conflict', record, message: '服务端已有不同记录' };
+        ? { status: "already_exists", record }
+        : { status: "conflict", record, message: "服务端已有不同记录" };
     }
-    logger.error(safeErrorContext('savePomodoroRecord', error, { userId: user.id }));
-    return { status: 'temporary_failure', message: '暂时无法保存番茄记录' };
+    logger.error(safeErrorContext("savePomodoroRecord", error, { userId: user.id }));
+    return { status: "temporary_failure", message: "暂时无法保存番茄记录" };
   }
 }
 
 export async function getTomatoHistory(input: { startUtc: string; endUtc: string }) {
   const auth = await requireAuth();
-  if (auth.status !== 'success') return auth;
+  if (auth.status !== "success") return auth;
   const user = auth.data;
   const startUtc = new Date(input.startUtc);
   const endUtc = new Date(input.endUtc);
@@ -128,16 +128,16 @@ export async function getTomatoHistory(input: { startUtc: string; endUtc: string
     !Number.isFinite(endUtc.getTime()) ||
     startUtc >= endUtc
   )
-    return actionResult.failure('invalid_input', '月份范围无效');
+    return actionResult.failure("invalid_input", "月份范围无效");
   try {
     const records = await db.pomodoroRecord.findMany({
       where: { userId: user.id, endAt: { gte: startUtc, lt: endUtc } },
-      orderBy: [{ startAt: 'desc' }, { id: 'desc' }],
+      orderBy: [{ startAt: "desc" }, { id: "desc" }],
     });
     return actionResult.success(records.map(normalizeRecord));
   } catch (error) {
-    logger.error(safeErrorContext('getTomatoHistory', error, { userId: user.id }));
-    return actionResult.failure('temporary_failure', '暂时无法读取番茄记录');
+    logger.error(safeErrorContext("getTomatoHistory", error, { userId: user.id }));
+    return actionResult.failure("temporary_failure", "暂时无法读取番茄记录");
   }
 }
 
@@ -148,16 +148,16 @@ export async function addTomatoHistory(input: SavePomodoroInput) {
 
 export async function updateTomatoHistory(recordId: string, data: unknown) {
   const auth = await requireAuth();
-  if (auth.status !== 'success') return auth;
-  if (!data || typeof data !== 'object')
-    return actionResult.failure('invalid_input', '记录内容无效');
+  if (auth.status !== "success") return auth;
+  if (!data || typeof data !== "object")
+    return actionResult.failure("invalid_input", "记录内容无效");
   const summary = parseString((data as Record<string, unknown>).summary, {
-    label: '总结',
+    label: "总结",
     max: 65_535,
     trim: false,
     allowEmpty: true,
   });
-  if (summary === null) return actionResult.failure('invalid_input', '记录内容无效');
+  if (summary === null) return actionResult.failure("invalid_input", "记录内容无效");
   try {
     const result = await db.pomodoroRecord.updateMany({
       where: { id: recordId, userId: auth.data.id },
@@ -165,11 +165,11 @@ export async function updateTomatoHistory(recordId: string, data: unknown) {
     });
     return result.count
       ? actionResult.success({ id: recordId })
-      : actionResult.failure('not_found', '记录不存在');
+      : actionResult.failure("not_found", "记录不存在");
   } catch (error) {
     logger.error(
-      safeErrorContext('updateTomatoHistory', error, { userId: auth.data.id, resourceId: recordId })
+      safeErrorContext("updateTomatoHistory", error, { userId: auth.data.id, resourceId: recordId })
     );
-    return actionResult.failure('temporary_failure', '暂时无法更新番茄记录');
+    return actionResult.failure("temporary_failure", "暂时无法更新番茄记录");
   }
 }

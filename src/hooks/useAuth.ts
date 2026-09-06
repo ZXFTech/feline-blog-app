@@ -54,11 +54,7 @@ export function useAuth() {
     }
   };
 
-  const register = async function (
-    email: string,
-    password: string,
-    username: string,
-  ) {
+  const register = async function (email: string, password: string, username: string) {
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",

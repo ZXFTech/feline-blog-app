@@ -202,6 +202,7 @@ export default function Calendar({
           {cells.map((cell) => {
             const record = cell.isCurrentMonth ? recordDates.get(cell.dateKey) : undefined;
             const isSelected = cell.dateKey === selectedDateKey;
+            const isToday = cell.dateKey === todayKey;
             const isFocused = cell.dateKey === gridFocusKey;
             return (
               <div role="gridcell" key={cell.dateKey} aria-selected={isSelected}>
@@ -219,6 +220,7 @@ export default function Calendar({
                   className={cn(
                     "group flex aspect-square w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-md! p-1 text-sm font-medium transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary",
                     !cell.isCurrentMonth && "opacity-50",
+                    isToday && !isSelected && "bg-warning hover:bg-warning",
                     isSelected && "bg-primary text-white hover:bg-primary hover:text-white"
                   )}
                 >

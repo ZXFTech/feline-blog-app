@@ -109,3 +109,13 @@ export function recordsForDate(
 ) {
   return records.filter((record) => localDateKey(record.endAt, timeZone) === selectedDateKey);
 }
+
+export function completedFocusCountForDate(
+  records: PomodoroHistoryRecord[],
+  selectedDateKey: string,
+  timeZone: string
+) {
+  return recordsForDate(records, selectedDateKey, timeZone).filter(
+    (record) => record.type === "FOCUS" && record.endReason === "COMPLETED"
+  ).length;
+}

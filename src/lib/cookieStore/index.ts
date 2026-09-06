@@ -7,7 +7,7 @@ async function getCookieData(key: string): Promise<RequestCookie | undefined> {
   return new Promise((resolve) =>
     setTimeout(() => {
       resolve(cookieData);
-    }, 1000),
+    }, 1000)
   );
 }
 

@@ -40,14 +40,12 @@ describe("Tag", () => {
     render(
       <Tag onSelect={onSelect} onClose={onClose}>
         重要
-      </Tag>,
+      </Tag>
     );
 
     const selectButton = screen.getByRole("button", { name: "重要" });
     const closeButton = screen.getByRole("button", { name: "移除重要" });
-    expect(selectButton.closest(".neu-div")).toBe(
-      closeButton.closest(".neu-div"),
-    );
+    expect(selectButton.closest(".neu-div")).toBe(closeButton.closest(".neu-div"));
 
     await user.click(closeButton);
     expect(onClose).toHaveBeenCalledOnce();
@@ -62,8 +60,8 @@ describe("Tag", () => {
       render(
         <Tag onClose={vi.fn()}>
           <strong>复杂标签</strong>
-        </Tag>,
-      ),
+        </Tag>
+      )
     ).toThrow("requires closeLabel");
   });
 
@@ -71,7 +69,7 @@ describe("Tag", () => {
     render(
       <Tag onClose={vi.fn()} closeLabel="移除复杂标签">
         <strong>复杂标签</strong>
-      </Tag>,
+      </Tag>
     );
 
     expect(screen.getByRole("button", { name: "移除复杂标签" })).toBeVisible();
@@ -84,7 +82,7 @@ describe("Tag", () => {
     render(
       <Tag onSelect={onSelect} onClose={onClose}>
         键盘标签
-      </Tag>,
+      </Tag>
     );
 
     screen.getByRole("button", { name: "键盘标签" }).focus();
@@ -102,15 +100,11 @@ describe("Tag", () => {
     const { container } = render(
       <Tag onSelect={vi.fn()} onClose={vi.fn()}>
         组合标签
-      </Tag>,
+      </Tag>
     );
 
     expect(container.querySelectorAll(".neu-div")).toHaveLength(1);
-    expect(screen.getByRole("button", { name: "组合标签" })).not.toHaveClass(
-      "neu-div",
-    );
-    expect(
-      screen.getByRole("button", { name: "移除组合标签" }),
-    ).not.toHaveClass("neu-div");
+    expect(screen.getByRole("button", { name: "组合标签" })).not.toHaveClass("neu-div");
+    expect(screen.getByRole("button", { name: "移除组合标签" })).not.toHaveClass("neu-div");
   });
 });

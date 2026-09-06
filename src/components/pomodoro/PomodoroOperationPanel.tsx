@@ -1,9 +1,9 @@
-import { RefreshCw } from 'lucide-react';
-import Calendar, { type RecordDate } from '@/components/Calendar';
-import NeuButton from '@/components/NeuButton';
-import NeuDiv from '@/components/NeuDiv';
-import type { CalendarMonth } from '@/lib/pomodoro/calendar';
-import type { PomodoroOutboxItem } from '@/types/pomodoro';
+import { RefreshCw } from "lucide-react";
+import Calendar, { type RecordDate } from "@/components/Calendar";
+import NeuButton from "@/components/NeuButton";
+import NeuDiv from "@/components/NeuDiv";
+import type { CalendarMonth } from "@/lib/pomodoro/calendar";
+import type { PomodoroOutboxItem } from "@/types/pomodoro";
 
 interface PomodoroOperationPanelProps {
   selectedDateKey: string;
@@ -36,23 +36,23 @@ export default function PomodoroOperationPanel({
   onRetry,
   onAdoptServer,
 }: PomodoroOperationPanelProps) {
-  const formatter = new Intl.DateTimeFormat('zh-CN', {
+  const formatter = new Intl.DateTimeFormat("zh-CN", {
     timeZone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hourCycle: "h23",
   });
   const retryDisabled = pendingCount === 0 || !isOnline || isSyncing;
   const retryReason =
     pendingCount === 0
-      ? '没有待同步记录'
+      ? "没有待同步记录"
       : !isOnline
-        ? '离线时不能同步'
+        ? "离线时不能同步"
         : isSyncing
-          ? '正在同步'
+          ? "正在同步"
           : null;
 
   return (
@@ -90,7 +90,7 @@ export default function PomodoroOperationPanel({
                       本地 {formatter.format(new Date(item.payload.endAt))}，{item.payload.type}
                       {item.serverRecord
                         ? `；服务端 ${formatter.format(new Date(item.serverRecord.endAt))}，${item.serverRecord.type}`
-                        : '；服务端记录暂不可用'}
+                        : "；服务端记录暂不可用"}
                     </p>
                     <div className="flex justify-end">
                       <NeuButton

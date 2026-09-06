@@ -27,7 +27,6 @@ function TOC() {
     const container = document.getElementById("content");
     if (container) {
       containerRef.current = container;
-      console.log("container", container);
     }
 
     const headings = Array.from(article.querySelectorAll("h1,h2,h3"));
@@ -61,7 +60,7 @@ function TOC() {
       {
         rootMargin: "-80px 0px -70% 0px",
         threshold: 0,
-      },
+      }
     );
 
     toc.forEach((item) => {
@@ -118,9 +117,7 @@ function TOC() {
               <button
                 key={heading.id + "_" + i}
                 onClick={() =>
-                  document
-                    .getElementById(heading.id)
-                    ?.scrollIntoView({ behavior: "smooth" })
+                  document.getElementById(heading.id)?.scrollIntoView({ behavior: "smooth" })
                 }
                 className={`w-full text-left px-3 py-2 rounded transition ${
                   activeId === heading.id

@@ -1,9 +1,5 @@
 import { cn } from "@/lib/utils";
-import type {
-  NeuInteractionEffect,
-  NeuSurface,
-  NeuSurfaceIntensity,
-} from "@/types";
+import type { NeuInteractionEffect, NeuSurface, NeuSurfaceIntensity } from "@/types";
 
 interface NeuSurfaceBaseOptions {
   surface?: NeuSurface;
@@ -22,12 +18,7 @@ export type NeuSurfaceOptions =
     });
 
 export function neuSurfaceClassNames(options: NeuSurfaceOptions = {}): string {
-  const {
-    surface = "embossed",
-    intensity = "normal",
-    interactionEffect,
-    className,
-  } = options;
+  const { surface = "embossed", intensity = "normal", interactionEffect, className } = options;
 
   return cn(
     "neu-div",
@@ -36,6 +27,6 @@ export function neuSurfaceClassNames(options: NeuSurfaceOptions = {}): string {
     surface !== "flat" && `neu-${surface}-${intensity}`,
     interactionEffect && `neu-interaction-${interactionEffect}-${intensity}`,
     surface === "embossed" && "p-1",
-    className,
+    className
   );
 }

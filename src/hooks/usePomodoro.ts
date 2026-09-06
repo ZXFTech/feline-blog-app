@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { savePomodoroRecord } from '@/db/tomatoActions';
-import { initialState, pomodoroReducer } from '@/lib/pomodoro/reducer';
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { savePomodoroRecord } from "@/db/tomatoActions";
+import { initialState, pomodoroReducer } from "@/lib/pomodoro/reducer";
 import {
   probePomodoroStorage,
   readOutbox,
@@ -12,9 +12,9 @@ import {
   timerKey,
   writeOutbox,
   writeTimer,
-} from '@/lib/pomodoro/storage';
-import { AudioPlugin, tickPlugin, titlePlugin } from '@/lib/pomodoro/plugins';
-import { useCtxAuth } from '@/providers/AuthProviders';
+} from "@/lib/pomodoro/storage";
+import { AudioPlugin, tickPlugin, titlePlugin } from "@/lib/pomodoro/plugins";
+import { useCtxAuth } from "@/providers/AuthProviders";
 import type {
   PluginContext,
   PomodoroOutboxItem,
@@ -22,7 +22,7 @@ import type {
   PomodoroSettlement,
   PomodoroSettings,
   PomodoroState,
-} from '@/types/pomodoro';
+} from "@/types/pomodoro";
 
 const defaultPlugins = [AudioPlugin(), titlePlugin(), tickPlugin({})];
 
@@ -40,7 +40,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
   const [outbox, setOutbox] = useState<PomodoroOutboxItem[]>([]);
   const [isSyncing, setIsSyncing] = useState(false);
   const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator === 'undefined' ? true : navigator.onLine
+    typeof navigator === "undefined" ? true : navigator.onLine
   );
   const syncingRef = useRef(false);
   const settlementRef = useRef(onRecordSettled);
@@ -60,7 +60,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       setOutbox(items);
       return items;
     } catch {
-      setStorageError('浏览器存储不可用，暂时不能同步番茄记录');
+      setStorageError("浏览器存储不可用，暂时不能同步番茄记录");
       return [];
     }
   }, [userId]);
@@ -73,9 +73,9 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       try {
         const items = reloadOutbox();
         for (const item of items) {
-          if (['failed', 'conflict'].includes(item.status)) continue;
+          if (["failed", "conflict"].includes(item.status)) continue;
           if (!force && item.nextAttemptAt > Date.now()) continue;
-          const syncing = { ...item, status: 'syncing' as const };
+          const syncing = { ...item, status: "syncing" as const };
           writeOutbox(syncing);
           setOutbox(readOutbox(userId));
           let result;
@@ -83,19 +83,19 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
             result = await savePomodoroRecord(item.payload);
           } catch {
             result = {
-              status: 'temporary_failure' as const,
-              message: '网络请求失败',
+              status: "temporary_failure" as const,
+              message: "网络请求失败",
             };
           }
 
-          if (result.status === 'created' || result.status === 'already_exists') {
+          if (result.status === "created" || result.status === "already_exists") {
             settlementRef.current?.({
               item,
               record: result.record,
               status: result.status,
             });
             removeOutbox(userId, item.eventId);
-          } else if (result.status === 'conflict') {
+          } else if (result.status === "conflict") {
             settlementRef.current?.({
               item,
               record: result.record,
@@ -103,31 +103,31 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
             });
             writeOutbox({
               ...item,
-              status: 'conflict',
+              status: "conflict",
               lastError: result.message,
               serverRecord: result.record,
             });
-          } else if (result.status === 'unauthenticated') {
+          } else if (result.status === "unauthenticated") {
             writeOutbox({
               ...item,
-              status: 'failed',
+              status: "failed",
               lastError: result.message,
             });
           } else if (
-            result.status === 'invalid_input' ||
-            result.status === 'forbidden' ||
-            result.status === 'not_found'
+            result.status === "invalid_input" ||
+            result.status === "forbidden" ||
+            result.status === "not_found"
           ) {
             writeOutbox({
               ...item,
-              status: 'failed',
+              status: "failed",
               lastError: result.message,
             });
-          } else if (result.status === 'temporary_failure') {
+          } else if (result.status === "temporary_failure") {
             const retryCount = item.retryCount + 1;
             writeOutbox({
               ...item,
-              status: 'pending',
+              status: "pending",
               retryCount,
               nextAttemptAt: Date.now() + retryDelayMs(retryCount),
               lastError: result.message,
@@ -135,7 +135,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
           }
         }
       } catch {
-        setStorageError('本地同步队列暂时无法读取');
+        setStorageError("本地同步队列暂时无法读取");
       } finally {
         syncingRef.current = false;
         setIsSyncing(false);
@@ -147,7 +147,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
 
   useEffect(() => {
     skipInitialPersistRef.current = true;
-    dispatch({ type: 'HYDRATE', now: Date.now(), state: initialState });
+    dispatch({ type: "HYDRATE", now: Date.now(), state: initialState });
     if (!userId) {
       setOutbox([]);
       setStorageError(null);
@@ -158,11 +158,11 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       probePomodoroStorage();
       setStorageError(null);
       const restored = readTimer(userId);
-      if (restored.recovered) setRecoveryNotice('无法恢复的计时数据已隔离，你可以重新开始');
-      if (restored.state) dispatch({ type: 'HYDRATE', now: Date.now(), state: restored.state });
+      if (restored.recovered) setRecoveryNotice("无法恢复的计时数据已隔离，你可以重新开始");
+      if (restored.state) dispatch({ type: "HYDRATE", now: Date.now(), state: restored.state });
       reloadOutbox();
     } catch {
-      setStorageError('浏览器存储不可用，无法安全开始新的计时');
+      setStorageError("浏览器存储不可用，无法安全开始新的计时");
     }
   }, [reloadOutbox, userId]);
 
@@ -187,12 +187,12 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
             retryCount: 0,
             nextAttemptAt: 0,
             lastError: null,
-            status: 'pending',
+            status: "pending",
           });
         }
         writeTimer(userId, { ...state, pendingOutcome: null });
         dispatch({
-          type: 'ACK_OUTCOME',
+          type: "ACK_OUTCOME",
           eventId: state.pendingOutcome.eventId,
         });
         reloadOutbox();
@@ -202,7 +202,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       writeTimer(userId, state);
       setStorageError(null);
     } catch {
-      setStorageError('计时结果尚未安全保存，已阻止下一阶段，请保持页面开启以便恢复');
+      setStorageError("计时结果尚未安全保存，已阻止下一阶段，请保持页面开启以便恢复");
     }
   }, [reloadOutbox, state, syncOutbox, userId]);
 
@@ -213,7 +213,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
         try {
           probePomodoroStorage();
           const action = {
-            type: 'START' as const,
+            type: "START" as const,
             now: Date.now(),
             eventId: crypto.randomUUID(),
           };
@@ -221,15 +221,15 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
           writeTimer(userId, nextState);
           dispatch(action);
         } catch {
-          setStorageError('浏览器存储不可用，无法安全开始新的计时');
+          setStorageError("浏览器存储不可用，无法安全开始新的计时");
         }
       },
-      pause: () => dispatch({ type: 'PAUSE', now: Date.now() }),
-      resume: () => dispatch({ type: 'RESUME', now: Date.now() }),
-      stop: () => dispatch({ type: 'STOP', now: Date.now() }),
-      skip: () => dispatch({ type: 'SKIP', now: Date.now() }),
+      pause: () => dispatch({ type: "PAUSE", now: Date.now() }),
+      resume: () => dispatch({ type: "RESUME", now: Date.now() }),
+      stop: () => dispatch({ type: "STOP", now: Date.now() }),
+      skip: () => dispatch({ type: "SKIP", now: Date.now() }),
       setSettings: (partial: Partial<PomodoroSettings>) =>
-        dispatch({ type: 'SET_SETTINGS', settings: partial }),
+        dispatch({ type: "SET_SETTINGS", settings: partial }),
     }),
     [storageError, userId]
   );
@@ -268,28 +268,28 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
     };
     const offline = () => setIsOnline(false);
     const visible = () => {
-      if (document.visibilityState === 'visible') trigger();
+      if (document.visibilityState === "visible") trigger();
     };
     const storage = (event: StorageEvent) => {
       if (event.key === timerKey(userId) && event.newValue) {
         const restored = readTimer(userId);
-        if (restored.state) dispatch({ type: 'HYDRATE', now: Date.now(), state: restored.state });
+        if (restored.state) dispatch({ type: "HYDRATE", now: Date.now(), state: restored.state });
       }
       if (event.key?.startsWith(`pomodoro:v2:outbox:${userId}:`)) reloadOutbox();
     };
     setIsOnline(navigator.onLine);
-    window.addEventListener('online', online);
-    window.addEventListener('offline', offline);
-    window.addEventListener('storage', storage);
-    document.addEventListener('visibilitychange', visible);
+    window.addEventListener("online", online);
+    window.addEventListener("offline", offline);
+    window.addEventListener("storage", storage);
+    document.addEventListener("visibilitychange", visible);
     const interval = window.setInterval(() => void syncOutbox(), 1000);
     void syncOutbox(true);
     return () => {
       window.clearInterval(interval);
-      window.removeEventListener('online', online);
-      window.removeEventListener('offline', offline);
-      window.removeEventListener('storage', storage);
-      document.removeEventListener('visibilitychange', visible);
+      window.removeEventListener("online", online);
+      window.removeEventListener("offline", offline);
+      window.removeEventListener("storage", storage);
+      document.removeEventListener("visibilitychange", visible);
     };
   }, [reloadOutbox, syncOutbox, userId]);
 

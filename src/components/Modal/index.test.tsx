@@ -10,14 +10,13 @@ describe("Modal", () => {
     const { container } = render(
       <Modal visible onClose={onClose} onOk={vi.fn()} footer="none">
         模态内容
-      </Modal>,
+      </Modal>
     );
 
     await user.click(screen.getByText("模态内容"));
     expect(onClose).not.toHaveBeenCalled();
 
-    const mask =
-      container.ownerDocument.querySelector<HTMLDivElement>(".fixed.inset-0");
+    const mask = container.ownerDocument.querySelector<HTMLDivElement>(".fixed.inset-0");
     expect(mask).not.toBeNull();
     await user.click(mask!);
     expect(onClose).toHaveBeenCalledOnce();

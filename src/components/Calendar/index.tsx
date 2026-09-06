@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { KeyboardEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, ChevronLeft, ChevronRight } from 'lucide-react';
-import NeuButton from '@/components/NeuButton';
-import NeuDiv from '@/components/NeuDiv';
+import { KeyboardEvent, useEffect, useMemo, useRef, useState } from "react";
+import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
+import NeuButton from "@/components/NeuButton";
+import NeuDiv from "@/components/NeuDiv";
 import {
   CalendarMonth,
   clampDay,
@@ -13,8 +13,8 @@ import {
   monthKey,
   parseDateKey,
   shiftMonth,
-} from '@/lib/pomodoro/calendar';
-import { cn } from '@/lib/utils';
+} from "@/lib/pomodoro/calendar";
+import { cn } from "@/lib/utils";
 
 export interface RecordDate {
   color?: string;
@@ -117,29 +117,29 @@ export default function Calendar({
     const currentUtc = Date.UTC(current.year, current.monthIndex, current.day);
     const currentWeekday = new Date(currentUtc).getUTCDay();
     let targetKey: string | null = null;
-    if (event.key === 'ArrowLeft')
+    if (event.key === "ArrowLeft")
       targetKey = new Date(currentUtc - 86_400_000).toISOString().slice(0, 10);
-    if (event.key === 'ArrowRight')
+    if (event.key === "ArrowRight")
       targetKey = new Date(currentUtc + 86_400_000).toISOString().slice(0, 10);
-    if (event.key === 'ArrowUp')
+    if (event.key === "ArrowUp")
       targetKey = new Date(currentUtc - 7 * 86_400_000).toISOString().slice(0, 10);
-    if (event.key === 'ArrowDown')
+    if (event.key === "ArrowDown")
       targetKey = new Date(currentUtc + 7 * 86_400_000).toISOString().slice(0, 10);
-    if (event.key === 'Home')
+    if (event.key === "Home")
       targetKey = new Date(currentUtc - currentWeekday * 86_400_000).toISOString().slice(0, 10);
-    if (event.key === 'End')
+    if (event.key === "End")
       targetKey = new Date(currentUtc + (6 - currentWeekday) * 86_400_000)
         .toISOString()
         .slice(0, 10);
-    if (event.key === 'PageUp' || event.key === 'PageDown') {
-      const targetMonth = shiftMonth(cell.month, event.key === 'PageUp' ? -1 : 1);
+    if (event.key === "PageUp" || event.key === "PageDown") {
+      const targetMonth = shiftMonth(cell.month, event.key === "PageUp" ? -1 : 1);
       targetKey = dateKey(
         targetMonth.year,
         targetMonth.monthIndex,
         clampDay(targetMonth, current.day)
       );
     }
-    if (event.key === 'Enter' || event.key === ' ') {
+    if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
       chooseDate(cell);
       return;
@@ -192,7 +192,7 @@ export default function Calendar({
 
       <div role="grid" aria-label={`${visibleMonth.year}年${visibleMonth.monthIndex + 1}月`}>
         <div className="grid grid-cols-7 gap-1" role="row">
-          {['日', '一', '二', '三', '四', '五', '六'].map((day) => (
+          {["日", "一", "二", "三", "四", "五", "六"].map((day) => (
             <div key={day} role="columnheader" className="text-center text-sm font-semibold">
               {day}
             </div>
@@ -215,17 +215,17 @@ export default function Calendar({
                   onFocus={() => setFocusedDateKey(cell.dateKey)}
                   onClick={() => chooseDate(cell)}
                   onKeyDown={(event) => handleGridKeyDown(event, cell)}
-                  aria-label={`${cell.dateKey}${record ? '，已完成专注' : ''}`}
+                  aria-label={`${cell.dateKey}${record ? "，已完成专注" : ""}`}
                   className={cn(
-                    'group flex aspect-square w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-md! p-1 text-sm font-medium transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary',
-                    !cell.isCurrentMonth && 'opacity-50',
-                    isSelected && 'bg-primary text-white hover:bg-primary hover:text-white'
+                    "group flex aspect-square w-full min-w-0 cursor-pointer flex-col items-center justify-center gap-1 rounded-md! p-1 text-sm font-medium transition-colors hover:bg-white hover:text-black focus-visible:outline-2 focus-visible:outline-primary",
+                    !cell.isCurrentMonth && "opacity-50",
+                    isSelected && "bg-primary text-white hover:bg-primary hover:text-white"
                   )}
                 >
                   <span>{cell.day}</span>
                   <span
                     aria-hidden="true"
-                    className={cn('h-1 w-1 rounded-full', record && (record.color || 'bg-success'))}
+                    className={cn("h-1 w-1 rounded-full", record && (record.color || "bg-success"))}
                   />
                 </button>
               </div>

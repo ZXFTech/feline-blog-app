@@ -16,7 +16,7 @@ describe("TagEditor", () => {
         setValue={setValue}
         allowCreate={false}
         defaultOpen
-      />,
+      />
     );
 
     await user.click(screen.getByRole("button", { name: "候选标签" }));

@@ -4,8 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
   authProvider: vi.fn(
-    ({ children }: { children: React.ReactNode; initialUser: unknown }) =>
-      children,
+    ({ children }: { children: React.ReactNode; initialUser: unknown }) => children
   ),
 }));
 
@@ -55,7 +54,7 @@ describe("RootLayout authentication hydration", () => {
           avatar: null,
         },
       }),
-      undefined,
+      undefined
     );
     const providerProps = mocks.authProvider.mock.calls[0]?.[0];
     expect(providerProps.initialUser).not.toHaveProperty("password");
@@ -67,7 +66,7 @@ describe("RootLayout authentication hydration", () => {
     renderToStaticMarkup(await RootLayout({ children: <main>番茄钟</main> }));
     expect(mocks.authProvider).toHaveBeenCalledWith(
       expect.objectContaining({ initialUser: null }),
-      undefined,
+      undefined
     );
   });
 });

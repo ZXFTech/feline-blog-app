@@ -1,15 +1,15 @@
-'use client';
+"use client";
 
-import { getStartOfWeek, WeeklyView } from '@/components/DailyStatus/WeeklyView';
-import NeuButton from '@/components/NeuButton';
-import { toast } from '@/components/ProMessage';
-import { getDailyStatus, getDailyRangeStatus, updateDailyStatus } from '@/db/dailyAction';
-import logger from '@/lib/logger/Logger';
-import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import DailySummary from '../../components/DailyStatus/DailySummary';
-import WorkoutEditor, { WorkoutItemData } from '../../components/DailyStatus/WorkoutEditor';
-import Content from '@/components/Content';
+import { getStartOfWeek, WeeklyView } from "@/components/DailyStatus/WeeklyView";
+import NeuButton from "@/components/NeuButton";
+import { toast } from "@/components/ProMessage";
+import { getDailyStatus, getDailyRangeStatus, updateDailyStatus } from "@/db/dailyAction";
+import logger from "@/lib/logger/Logger";
+import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import DailySummary from "../../components/DailyStatus/DailySummary";
+import WorkoutEditor, { WorkoutItemData } from "../../components/DailyStatus/WorkoutEditor";
+import Content from "@/components/Content";
 
 export type WorkoutSetData = {
   reps?: number | null;
@@ -64,7 +64,7 @@ export interface DailyStatus {
 function Daily() {
   const searchParams = useSearchParams();
 
-  const dateParams = searchParams.get('date');
+  const dateParams = searchParams.get("date");
 
   const [visible, setVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -85,12 +85,12 @@ function Daily() {
     const getData = async () => {
       try {
         setDailyLoading(true);
-        const result = await getDailyStatus(selectedDate.toISOString().split('T')[0]);
-        if (result.status !== 'success') throw new Error(result.message);
+        const result = await getDailyStatus(selectedDate.toISOString().split("T")[0]);
+        if (result.status !== "success") throw new Error(result.message);
         setDailyStatus(result.data);
       } catch (error) {
-        logger.error('获取今日数据出错.', error);
-        toast.error('获取今日数据出错');
+        logger.error("获取今日数据出错.", error);
+        toast.error("获取今日数据出错");
       } finally {
         setDailyLoading(false);
       }
@@ -109,7 +109,7 @@ function Daily() {
       startOfWeek.toISOString().slice(0, 10),
       new Date(startOfWeek.getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10)
     );
-    if (result.status !== 'success') {
+    if (result.status !== "success") {
       toast.error(result.message);
       return;
     }
@@ -127,7 +127,7 @@ function Daily() {
       const result = await updateDailyStatus({
         workouts: [
           {
-            name: data.workoutItemName || '随便动动',
+            name: data.workoutItemName || "随便动动",
             sets: Array.from({ length: data.sets || 0 }, () => ({
               reps: data.reps || 0,
               duration: data.duration_minutes,
@@ -140,12 +140,12 @@ function Daily() {
         stepCount: 10000,
         typingCount: 5000,
       });
-      if (result.status !== 'success') throw new Error(result.message);
+      if (result.status !== "success") throw new Error(result.message);
       setVisible(false);
-      toast.success('训练数据已保存');
+      toast.success("训练数据已保存");
     } catch (error) {
-      logger.error('保存训练数据失败', error);
-      toast.error('保存训练数据失败');
+      logger.error("保存训练数据失败", error);
+      toast.error("保存训练数据失败");
     } finally {
       setLoading(false);
     }

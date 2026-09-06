@@ -26,9 +26,7 @@ class Observer {
   }
 
   // We use arrow functions to maintain the correct `this` reference
-  subscribe = (
-    subscriber: (toast: ToastT | ExternalToast | ToastToDismiss) => void
-  ) => {
+  subscribe = (subscriber: (toast: ToastT | ExternalToast | ToastToDismiss) => void) => {
     this.subscribers.push(subscriber);
 
     return () => {
@@ -56,14 +54,11 @@ class Observer {
   ) => {
     const { message, ...rest } = data;
     const id =
-      typeof data?.id === "number" || (data.id?.length || 0) > 0
-        ? data.id
-        : toastsCounter++;
+      typeof data?.id === "number" || (data.id?.length || 0) > 0 ? data.id : toastsCounter++;
     const alreadyExists = this.toasts.find((toast) => {
       return toast.id === id;
     });
-    const dismissible =
-      data.dismissible === undefined ? true : data.dismissible;
+    const dismissible = data.dismissible === undefined ? true : data.dismissible;
 
     if (this.dismissedToasts.has(id!)) {
       this.dismissedToasts.delete(id!);
@@ -95,15 +90,11 @@ class Observer {
     if (id) {
       this.dismissedToasts.add(id);
       requestAnimationFrame(() =>
-        this.subscribers.forEach((subscriber) =>
-          subscriber({ id, dismiss: true })
-        )
+        this.subscribers.forEach((subscriber) => subscriber({ id, dismiss: true }))
       );
     } else {
       this.toasts.forEach((toast) => {
-        this.subscribers.forEach((subscriber) =>
-          subscriber({ id: toast.id, dismiss: true })
-        );
+        this.subscribers.forEach((subscriber) => subscriber({ id: toast.id, dismiss: true }));
       });
     }
 
@@ -134,10 +125,7 @@ class Observer {
     return this.create({ ...data, type: "loading", message });
   };
 
-  promise = <ToastData>(
-    promise: PromiseT<ToastData>,
-    data?: PromiseData<ToastData>
-  ) => {
+  promise = <ToastData>(promise: PromiseT<ToastData>, data?: PromiseData<ToastData>) => {
     if (!data) {
       // Nothing to show
       return;
@@ -150,14 +138,11 @@ class Observer {
         promise,
         type: "loading",
         message: data.loading,
-        description:
-          typeof data.description !== "function" ? data.description : undefined,
+        description: typeof data.description !== "function" ? data.description : undefined,
       });
     }
 
-    const p = Promise.resolve(
-      promise instanceof Function ? promise() : promise
-    );
+    const p = Promise.resolve(promise instanceof Function ? promise() : promise);
 
     let shouldDismiss = id !== undefined;
     let result: ["resolve", ToastData] | ["reject", unknown];
@@ -183,8 +168,7 @@ class Observer {
               : data.description;
 
           const isExtendedResult =
-            typeof promiseData === "object" &&
-            !React.isValidElement(promiseData);
+            typeof promiseData === "object" && !React.isValidElement(promiseData);
 
           const toastSettings: PromiseIExtendedResult = isExtendedResult
             ? (promiseData as PromiseIExtendedResult)
@@ -200,9 +184,7 @@ class Observer {
           shouldDismiss = false;
 
           const promiseData =
-            typeof data.error === "function"
-              ? await data.error(response)
-              : data.error;
+            typeof data.error === "function" ? await data.error(response) : data.error;
 
           const description =
             typeof data.description === "function"
@@ -210,8 +192,7 @@ class Observer {
               : data.description;
 
           const isExtendedResult =
-            typeof promiseData === "object" &&
-            !React.isValidElement(promiseData);
+            typeof promiseData === "object" && !React.isValidElement(promiseData);
 
           const toastSettings: PromiseIExtendedResult = isExtendedResult
             ? (promiseData as PromiseIExtendedResult)
@@ -221,9 +202,7 @@ class Observer {
         } else if (data.success !== undefined) {
           shouldDismiss = false;
           const promiseData =
-            typeof data.success === "function"
-              ? await data.success(response)
-              : data.success;
+            typeof data.success === "function" ? await data.success(response) : data.success;
 
           const description =
             typeof data.description === "function"
@@ -231,8 +210,7 @@ class Observer {
               : data.description;
 
           const isExtendedResult =
-            typeof promiseData === "object" &&
-            !React.isValidElement(promiseData);
+            typeof promiseData === "object" && !React.isValidElement(promiseData);
 
           const toastSettings: PromiseIExtendedResult = isExtendedResult
             ? (promiseData as PromiseIExtendedResult)
@@ -246,9 +224,7 @@ class Observer {
         if (data.error !== undefined) {
           shouldDismiss = false;
           const promiseData =
-            typeof data.error === "function"
-              ? await data.error(error)
-              : data.error;
+            typeof data.error === "function" ? await data.error(error) : data.error;
 
           const description =
             typeof data.description === "function"
@@ -256,8 +232,7 @@ class Observer {
               : data.description;
 
           const isExtendedResult =
-            typeof promiseData === "object" &&
-            !React.isValidElement(promiseData);
+            typeof promiseData === "object" && !React.isValidElement(promiseData);
 
           const toastSettings: PromiseIExtendedResult = isExtendedResult
             ? (promiseData as PromiseIExtendedResult)
@@ -279,9 +254,7 @@ class Observer {
     const unwrap = () =>
       new Promise<ToastData>((resolve, reject) =>
         originalPromise
-          .then(() =>
-            result[0] === "reject" ? reject(result[1]) : resolve(result[1])
-          )
+          .then(() => (result[0] === "reject" ? reject(result[1]) : resolve(result[1])))
           .catch(reject)
       );
 
@@ -293,10 +266,7 @@ class Observer {
     }
   };
 
-  custom = (
-    jsx: (id: number | string) => React.ReactElement,
-    data?: ExternalToast
-  ) => {
+  custom = (jsx: (id: number | string) => React.ReactElement, data?: ExternalToast) => {
     const id = data?.id || toastsCounter++;
     this.create({ jsx: jsx(id), id, ...data });
     return id;

@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { getAdjacentBlogs } from '@/db/blogAction';
-import { useRouter } from 'next/navigation';
-import React, { useEffect, useState } from 'react';
-import NeuButton from '../NeuButton';
+import { getAdjacentBlogs } from "@/db/blogAction";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import NeuButton from "../NeuButton";
 
 interface AdjacentBlogInfo {
   id: number;
@@ -32,7 +32,7 @@ function AdjacentBlogs({ id }: Props) {
     const getPrevAndNextBlogs = async () => {
       setLoading(true);
       const result = await getAdjacentBlogs(id);
-      if (result.status !== 'success') {
+      if (result.status !== "success") {
         setLoading(false);
         return;
       }
@@ -62,7 +62,7 @@ function AdjacentBlogs({ id }: Props) {
       {adjacentBlogs.prev ? (
         <NeuButton
           icon="Chevron_Left"
-          onClick={() => router.replace('/blog/' + adjacentBlogs.prev?.id)}
+          onClick={() => router.replace("/blog/" + adjacentBlogs.prev?.id)}
         >
           {adjacentBlogs.prev?.title}
         </NeuButton>
@@ -74,7 +74,7 @@ function AdjacentBlogs({ id }: Props) {
       {adjacentBlogs.next ? (
         <NeuButton
           suffixIcon="Chevron_Right"
-          onClick={() => router.replace('/blog/' + adjacentBlogs.next?.id)}
+          onClick={() => router.replace("/blog/" + adjacentBlogs.next?.id)}
         >
           {adjacentBlogs.next?.title}
         </NeuButton>

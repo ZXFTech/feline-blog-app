@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import { describe, expect, it, vi } from 'vitest';
-import Calendar from './index';
+import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+import { describe, expect, it, vi } from "vitest";
+import Calendar from "./index";
 
-describe('Calendar', () => {
-  it('fits its date cells within the available sidebar width', () => {
+describe("Calendar", () => {
+  it("fits its date cells within the available sidebar width", () => {
     render(
       <Calendar
         selectedDateKey="2026-08-15"
@@ -15,11 +15,11 @@ describe('Calendar', () => {
       />
     );
 
-    expect(screen.getByRole('region', { name: '番茄钟日期' })).toHaveClass('w-full', 'min-w-0');
-    expect(screen.getByRole('button', { name: '2026-08-15' })).toHaveClass('w-full', 'min-w-0');
+    expect(screen.getByRole("region", { name: "番茄钟日期" })).toHaveClass("w-full", "min-w-0");
+    expect(screen.getByRole("button", { name: "2026-08-15" })).toHaveClass("w-full", "min-w-0");
   });
 
-  it('AC-4 selects an adjacent month date and changes the visible month', async () => {
+  it("AC-4 selects an adjacent month date and changes the visible month", async () => {
     const user = userEvent.setup();
     const onDateSelect = vi.fn();
     const onVisibleMonthChange = vi.fn();
@@ -33,15 +33,15 @@ describe('Calendar', () => {
       />
     );
 
-    await user.click(screen.getByRole('button', { name: '2026-07-26' }));
+    await user.click(screen.getByRole("button", { name: "2026-07-26" }));
     expect(onVisibleMonthChange).toHaveBeenCalledWith({
       year: 2026,
       monthIndex: 6,
     });
-    expect(onDateSelect).toHaveBeenCalledWith('2026-07-26');
+    expect(onDateSelect).toHaveBeenCalledWith("2026-07-26");
   });
 
-  it('AC-12 restores focus after selecting an adjacent month date', async () => {
+  it("AC-12 restores focus after selecting an adjacent month date", async () => {
     const user = userEvent.setup();
     const onDateSelect = vi.fn();
     const onVisibleMonthChange = vi.fn();
@@ -55,9 +55,9 @@ describe('Calendar', () => {
       />
     );
 
-    const adjacentDate = screen.getByRole('button', { name: '2026-07-26' });
+    const adjacentDate = screen.getByRole("button", { name: "2026-07-26" });
     adjacentDate.focus();
-    await user.keyboard('{Enter}');
+    await user.keyboard("{Enter}");
     rerender(
       <Calendar
         selectedDateKey="2026-07-26"
@@ -68,10 +68,10 @@ describe('Calendar', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: '2026-07-26' })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "2026-07-26" })).toHaveFocus();
   });
 
-  it('AC-5 keeps return to today enabled when only the visible month differs', () => {
+  it("AC-5 keeps return to today enabled when only the visible month differs", () => {
     render(
       <Calendar
         selectedDateKey="2026-08-30"
@@ -82,10 +82,10 @@ describe('Calendar', () => {
       />
     );
 
-    expect(screen.getByRole('button', { name: '回到今天' })).toBeEnabled();
+    expect(screen.getByRole("button", { name: "回到今天" })).toBeEnabled();
   });
 
-  it('AC-5 returns the selection and visible month to today', async () => {
+  it("AC-5 returns the selection and visible month to today", async () => {
     const user = userEvent.setup();
     const onDateSelect = vi.fn();
     const onVisibleMonthChange = vi.fn();
@@ -99,16 +99,16 @@ describe('Calendar', () => {
       />
     );
 
-    await user.click(screen.getByRole('button', { name: '回到今天' }));
+    await user.click(screen.getByRole("button", { name: "回到今天" }));
 
     expect(onVisibleMonthChange).toHaveBeenCalledWith({
       year: 2026,
       monthIndex: 7,
     });
-    expect(onDateSelect).toHaveBeenCalledWith('2026-08-30');
+    expect(onDateSelect).toHaveBeenCalledWith("2026-08-30");
   });
 
-  it('AC-12 moves the roving tab stop with arrow keys', async () => {
+  it("AC-12 moves the roving tab stop with arrow keys", async () => {
     const user = userEvent.setup();
     render(
       <Calendar
@@ -120,24 +120,24 @@ describe('Calendar', () => {
       />
     );
 
-    const selected = screen.getByRole('button', { name: '2026-08-15' });
-    expect(selected).toHaveClass('rounded-md!');
+    const selected = screen.getByRole("button", { name: "2026-08-15" });
+    expect(selected).toHaveClass("rounded-md!");
     selected.focus();
-    await user.keyboard('{ArrowRight}');
-    expect(screen.getByRole('button', { name: '2026-08-16' })).toHaveFocus();
+    await user.keyboard("{ArrowRight}");
+    expect(screen.getByRole("button", { name: "2026-08-16" })).toHaveFocus();
     expect(
       screen
-        .getAllByRole('gridcell')
+        .getAllByRole("gridcell")
         .flatMap((cell) => [...cell.querySelectorAll('button[tabindex="0"]')])
     ).toHaveLength(1);
   });
 
   it.each([
-    ['{Home}', '2026-08-09'],
-    ['{End}', '2026-08-15'],
-    ['{ArrowUp}', '2026-08-05'],
-    ['{ArrowDown}', '2026-08-19'],
-  ])('AC-12 moves focus with %s', async (key, expectedDate) => {
+    ["{Home}", "2026-08-09"],
+    ["{End}", "2026-08-15"],
+    ["{ArrowUp}", "2026-08-05"],
+    ["{ArrowDown}", "2026-08-19"],
+  ])("AC-12 moves focus with %s", async (key, expectedDate) => {
     const user = userEvent.setup();
     render(
       <Calendar
@@ -149,13 +149,13 @@ describe('Calendar', () => {
       />
     );
 
-    screen.getByRole('button', { name: '2026-08-12' }).focus();
+    screen.getByRole("button", { name: "2026-08-12" }).focus();
     await user.keyboard(key);
 
-    expect(screen.getByRole('button', { name: expectedDate })).toHaveFocus();
+    expect(screen.getByRole("button", { name: expectedDate })).toHaveFocus();
   });
 
-  it('AC-12 changes month with Page Down and clamps the focused day', async () => {
+  it("AC-12 changes month with Page Down and clamps the focused day", async () => {
     const user = userEvent.setup();
     const onVisibleMonthChange = vi.fn();
     const { rerender } = render(
@@ -168,8 +168,8 @@ describe('Calendar', () => {
       />
     );
 
-    screen.getByRole('button', { name: '2026-01-31' }).focus();
-    await user.keyboard('{PageDown}');
+    screen.getByRole("button", { name: "2026-01-31" }).focus();
+    await user.keyboard("{PageDown}");
     expect(onVisibleMonthChange).toHaveBeenCalledWith({
       year: 2026,
       monthIndex: 1,
@@ -184,10 +184,10 @@ describe('Calendar', () => {
         onVisibleMonthChange={onVisibleMonthChange}
       />
     );
-    expect(screen.getByRole('button', { name: '2026-02-28' })).toHaveFocus();
+    expect(screen.getByRole("button", { name: "2026-02-28" })).toHaveFocus();
   });
 
-  it('AC-12 selects a focused date with Space', async () => {
+  it("AC-12 selects a focused date with Space", async () => {
     const user = userEvent.setup();
     const onDateSelect = vi.fn();
     render(
@@ -200,9 +200,9 @@ describe('Calendar', () => {
       />
     );
 
-    screen.getByRole('button', { name: '2026-08-16' }).focus();
-    await user.keyboard(' ');
+    screen.getByRole("button", { name: "2026-08-16" }).focus();
+    await user.keyboard(" ");
 
-    expect(onDateSelect).toHaveBeenCalledWith('2026-08-16');
+    expect(onDateSelect).toHaveBeenCalledWith("2026-08-16");
   });
 });

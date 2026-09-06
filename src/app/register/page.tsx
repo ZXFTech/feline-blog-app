@@ -69,12 +69,7 @@ export default function Register() {
       e.preventDefault();
       setSubmitted(true);
       const { emailError, usernameError, passwordError } = errorStatus;
-      if (
-        emailError ||
-        usernameError ||
-        passwordError ||
-        confirmedPasswordError
-      ) {
+      if (emailError || usernameError || passwordError || confirmedPasswordError) {
         return;
       }
       setLoading(true);
@@ -103,9 +98,7 @@ export default function Register() {
             disabled={loading}
             prefix={<Icon icon="email" size="lg" />}
             className={`${
-              submitted && errorStatus.emailError
-                ? "border-red-700! border-2! text-red-700!"
-                : ""
+              submitted && errorStatus.emailError ? "border-red-700! border-2! text-red-700!" : ""
             }`}
             placeholder="请输入邮箱"
             autoComplete="new-password"
@@ -113,9 +106,7 @@ export default function Register() {
             onChange={(e) => setEmail(e.target.value || "")}
           />
           {submitted && errorStatus.emailErrorMessage ? (
-            <span className="text-red-600">
-              {errorStatus.emailErrorMessage}
-            </span>
+            <span className="text-red-600">{errorStatus.emailErrorMessage}</span>
           ) : null}
           <NeuInput
             disabled={loading}
@@ -131,9 +122,7 @@ export default function Register() {
             onChange={(e) => setUsername(e.target.value || "")}
           />
           {submitted && errorStatus.usernameErrorMessage ? (
-            <span className="text-red-600">
-              {errorStatus.usernameErrorMessage}
-            </span>
+            <span className="text-red-600">{errorStatus.usernameErrorMessage}</span>
           ) : null}
           <NeuInput
             disabled={loading}
@@ -150,18 +139,14 @@ export default function Register() {
             onChange={(e) => setPassword(e.target.value || "")}
           />
           {submitted && errorStatus.passwordErrorMessage ? (
-            <span className="text-red-600">
-              {errorStatus.passwordErrorMessage}
-            </span>
+            <span className="text-red-600">{errorStatus.passwordErrorMessage}</span>
           ) : null}
           <NeuInput
             disabled={loading}
             prefix={<Icon icon="lock" size="lg" />}
             id="confirmedPassword"
             className={`${
-              submitted && confirmedPasswordError
-                ? "border-red-700! border-2! text-red-700!"
-                : ""
+              submitted && confirmedPasswordError ? "border-red-700! border-2! text-red-700!" : ""
             } mt-4`}
             placeholder="请再次输入密码"
             type="password"
@@ -181,8 +166,7 @@ export default function Register() {
             </NeuButton>
           </span>
           <span>
-            注册登录即表示同意 <Link href={""}>用户协议</Link> 和{" "}
-            <Link href={""}>隐私政策</Link>
+            注册登录即表示同意 <Link href={""}>用户协议</Link> 和 <Link href={""}>隐私政策</Link>
           </span>
           <NeuButton
             loading={loading}

@@ -11,7 +11,7 @@ describe("NeuButton", () => {
     render(
       <NeuButton ref={ref} type="submit" disabled data-state="ready">
         保存
-      </NeuButton>,
+      </NeuButton>
     );
 
     const button = screen.getByRole("button", { name: "保存" });
@@ -27,7 +27,7 @@ describe("NeuButton", () => {
     render(
       <NeuButton ref={ref} buttonType="link" href="/login" target="_blank">
         登录
-      </NeuButton>,
+      </NeuButton>
     );
 
     const link = screen.getByRole("link", { name: "登录" });
@@ -44,7 +44,7 @@ describe("NeuButton", () => {
     render(
       <NeuButton buttonType="link" href="#target" onClick={onClick}>
         前往
-      </NeuButton>,
+      </NeuButton>
     );
 
     await user.click(screen.getByRole("link", { name: "前往" }));
@@ -64,7 +64,7 @@ describe("NeuButton", () => {
         loading
       >
         登录
-      </NeuButton>,
+      </NeuButton>
     );
 
     expect(screen.getByRole("link", { name: /登录/ })).toHaveClass(
@@ -73,7 +73,7 @@ describe("NeuButton", () => {
       "loading",
       "neu-btn",
       "btn-elevated-sm",
-      "neu-btn-link",
+      "neu-btn-link"
     );
   });
 });

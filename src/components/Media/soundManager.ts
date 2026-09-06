@@ -55,8 +55,7 @@ export class SoundManager {
   private unlocked = false;
 
   constructor(init?: { globalVolume?: number; muted?: boolean }) {
-    if (typeof init?.globalVolume === "number")
-      this.globalVolume = init.globalVolume;
+    if (typeof init?.globalVolume === "number") this.globalVolume = init.globalVolume;
     if (typeof init?.muted === "boolean") this.muted = init.muted;
   }
 

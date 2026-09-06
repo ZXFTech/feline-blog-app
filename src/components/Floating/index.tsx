@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  CSSProperties,
-  ReactNode,
-  RefObject,
-  useLayoutEffect,
-  useRef,
-  useState,
-} from "react";
+import { CSSProperties, ReactNode, RefObject, useLayoutEffect, useRef, useState } from "react";
 import Portal from "../Portal";
 
 interface Props {
@@ -44,8 +37,7 @@ function Floating({
       const vw = window.innerWidth;
       const popupHeight = popupRef.current?.clientHeight || 0;
       const popupWidth = popupRef.current?.clientWidth || 0;
-      let top =
-        position === "top" ? rect.top - popupHeight - 10 : rect.bottom + 10;
+      let top = position === "top" ? rect.top - popupHeight - 10 : rect.bottom + 10;
       if (top < 0) {
         top = 0;
       } else if (top > vh - popupHeight) {

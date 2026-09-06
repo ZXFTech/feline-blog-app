@@ -1,8 +1,8 @@
-'use server';
+"use server";
 
-import db from './client';
+import db from "./client";
 
-const checkUser = async (identifier: 'id' | 'email', payload: string, password = false) => {
+const checkUser = async (identifier: "id" | "email", payload: string, password = false) => {
   const user = await db.user.findFirst({
     where: {
       [identifier]: payload,

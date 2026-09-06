@@ -25,11 +25,7 @@ const MessageContext = createContext<{
 export function MessageProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<Message[]>([]);
 
-  const addMessage = (
-    content: string,
-    type: MessageType = "info",
-    duration = 3000
-  ) => {
+  const addMessage = (content: string, type: MessageType = "info", duration = 3000) => {
     const id = Math.random().toString(36).slice(2);
     setMessages((prev) => [
       ...prev,
@@ -100,7 +96,6 @@ export function MessageProvider({ children }: { children: React.ReactNode }) {
 
 export const useMessage = () => {
   const context = useContext(MessageContext);
-  if (!context)
-    throw new Error("useMessage must be used within MessageProvider");
+  if (!context) throw new Error("useMessage must be used within MessageProvider");
   return context; // 直接返回方法
 };

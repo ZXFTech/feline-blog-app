@@ -60,10 +60,7 @@ function NeuProgressBar({
       {(title || showLabel) && (
         <div className="flex justify-between items-center mb-1">
           {title ? (
-            <Tag
-              className="ml-0!"
-              color={titleColor || titleTypeColor[type as keyof TypeColor]}
-            >
+            <Tag className="ml-0!" color={titleColor || titleTypeColor[type as keyof TypeColor]}>
               {title}
             </Tag>
           ) : (
@@ -76,9 +73,7 @@ function NeuProgressBar({
                 color: titleColor || titleTypeColor[type as keyof TypeColor],
               }}
             >
-              {showLabel === "percentage"
-                ? `${Math.round(percentage)}%`
-                : value}
+              {showLabel === "percentage" ? `${Math.round(percentage)}%` : value}
             </div>
           )}
         </div>
@@ -93,7 +88,7 @@ function NeuProgressBar({
           className={cn(
             "transition-all duration-300 ease-out rounded-full",
             sizeMap[size],
-            progressBarColor ? "" : `neu-progress-bar-${type}`,
+            progressBarColor ? "" : `neu-progress-bar-${type}`
           )}
           style={{
             width: `${percentage}%`,

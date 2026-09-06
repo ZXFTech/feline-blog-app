@@ -17,12 +17,7 @@ interface Props {
   };
 }
 
-const ColorPanel = ({
-  onColorPicked,
-  color,
-  setColor,
-  colorFilter = { i: 0, j: 0 },
-}: Props) => {
+const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0 } }: Props) => {
   const [visible, setVisible] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -57,15 +52,13 @@ const ColorPanel = ({
 
   const colorListMap = useMemo<{ name: string; color: string }[][]>(() => {
     return Object.keys(colors as TailwindColors)
-      .filter(
-        (color) => typeof colors[color as keyof TailwindColors] === "object",
-      )
+      .filter((color) => typeof colors[color as keyof TailwindColors] === "object")
       .map((key) => ({ name: key, colorList: colors[key as ColorKeys] }))
       .map((item) =>
         Object.keys(item.colorList).map((num) => ({
           name: item.name + "-" + num,
           color: item.colorList[num as keyof typeof item.colorList],
-        })),
+        }))
       );
   }, []);
 
@@ -91,10 +84,7 @@ const ColorPanel = ({
           <div className="flex flex-wrap">
             {colorListMap.map((list, i) =>
               i >= colorFilter.i ? (
-                <div
-                  className="flex flex-col"
-                  key={list.map((item) => item.name).join("")}
-                >
+                <div className="flex flex-col" key={list.map((item) => item.name).join("")}>
                   {list.map((item, j) =>
                     j >= colorFilter.j ? (
                       <div
@@ -113,10 +103,10 @@ const ColorPanel = ({
                           background: item.color,
                         }}
                       ></div>
-                    ) : null,
+                    ) : null
                   )}
                 </div>
-              ) : null,
+              ) : null
             )}
           </div>
         </NeuDiv>

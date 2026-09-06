@@ -82,9 +82,7 @@ export default function Login() {
             prefix={<Icon icon="email" size="lg" />}
             id="email"
             className={`${
-              submitted && errorStatus.emailError
-                ? "border-red-700! border-2! text-red-700!"
-                : ""
+              submitted && errorStatus.emailError ? "border-red-700! border-2! text-red-700!" : ""
             }`}
             placeholder="请输入邮箱"
             autoComplete="new-password"
@@ -92,9 +90,7 @@ export default function Login() {
             onInput={(e) => setEmail(e.currentTarget.value || "")}
           />
           {submitted && errorStatus.emailErrorMessage ? (
-            <span className="text-red-600">
-              {errorStatus.emailErrorMessage}
-            </span>
+            <span className="text-red-600">{errorStatus.emailErrorMessage}</span>
           ) : null}
           <NeuInput
             disabled={loading}
@@ -111,9 +107,7 @@ export default function Login() {
             onInput={(e) => setPassword(e.currentTarget.value || "")}
           />
           {submitted && errorStatus.passwordErrorMessage ? (
-            <span className="text-red-600">
-              {errorStatus.passwordErrorMessage}
-            </span>
+            <span className="text-red-600">{errorStatus.passwordErrorMessage}</span>
           ) : null}
           <span className="mt-4">
             还没有账号,

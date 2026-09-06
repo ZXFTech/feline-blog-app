@@ -50,10 +50,7 @@ const inputSizeMap = {
   "3xl": { p: "2", font: "text-2xl" },
 };
 
-const NeuInput = forwardRef<
-  HTMLInputElement & HTMLTextAreaElement,
-  NeuInputProps
->(
+const NeuInput = forwardRef<HTMLInputElement & HTMLTextAreaElement, NeuInputProps>(
   (
     {
       className = "",
@@ -68,7 +65,7 @@ const NeuInput = forwardRef<
       defaultValue,
       ...restProps
     },
-    ref,
+    ref
   ) => {
     const internalRef = useRef<HTMLInputElement>(null);
     const mergedRef = composeRef(internalRef, ref);
@@ -77,9 +74,7 @@ const NeuInput = forwardRef<
     const [innerValue, setInnerValue] = useState(defaultValue ?? "");
     const mergedValue = isControlled ? value : innerValue;
 
-    const handleChange = (
-      e: ChangeEvent<HTMLInputElement> & ChangeEvent<HTMLTextAreaElement>,
-    ) => {
+    const handleChange = (e: ChangeEvent<HTMLInputElement> & ChangeEvent<HTMLTextAreaElement>) => {
       if (!isControlled) {
         setInnerValue(e.target.value);
       }
@@ -138,9 +133,7 @@ const NeuInput = forwardRef<
               icon="clear"
               size="sm"
               className="input-clear absolute right-2 top-[50%-6] cursor-pointer rounded-full bg-stone-400 hover:bg-stone-300"
-              onClick={(e) =>
-                handleClear(e as unknown as ChangeEvent<HTMLInputElement>)
-              }
+              onClick={(e) => handleClear(e as unknown as ChangeEvent<HTMLInputElement>)}
             >
               x
             </Icon>
@@ -155,7 +148,7 @@ const NeuInput = forwardRef<
         ) : null}
       </NeuDiv>
     );
-  },
+  }
 );
 
 NeuInput.displayName = "NeuInput";

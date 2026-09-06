@@ -8,9 +8,9 @@ import path from "path";
 try {
   // release-年-月-次数
   const args = process.argv;
-  console.log("args", args);
+  console.log("args", args); // @allow-console
   const buildType = args[2]?.includes("dev") ? "development" : "release";
-  console.log("buildType", buildType);
+  console.log("buildType", buildType); // @allow-console
   const date = new Date();
   const dateStr = `${date.getUTCFullYear()}-${date.getUTCMonth()}`;
   // const lastVersion = checkVersion(); todo: 接口:获取当月构建次数
@@ -19,12 +19,12 @@ try {
   // 本次构建的版本号
   const buildVersion = `${buildType}-${dateStr}-${lastVersion + 1}`;
   const releaseDir = path.join(process.cwd(), `/dist/${buildVersion}`);
-  console.log("创建版本文件夹...", releaseDir);
+  console.log("创建版本文件夹...", releaseDir); // @allow-console
   rmSync(releaseDir, { recursive: true, force: true });
   mkdirSync(releaseDir, { recursive: true });
   const distDir = path.join(process.cwd(), "dist", ".next");
 
-  console.log("开始构建 next 项目...");
+  console.log("开始构建 next 项目..."); // @allow-console
   const child = spawn("npm", ["run", "next-build"], {
     shell: process.platform === "win32",
   });
@@ -33,7 +33,7 @@ try {
   });
   // 监听子进程的 stdout 输出
   child.stdout.on("data", (data) => {
-    console.log(` ${data}`);
+    console.log(` ${data}`); // @allow-console
   });
   // 监听子进程的 stderr 输出
   child.stderr.on("data", (data) => {
@@ -41,12 +41,12 @@ try {
   });
   child.on("close", (code) => {
     if (code !== 0) {
-      console.log("构建进程退出码", code);
+      console.log("构建进程退出码", code); // @allow-console
     } else {
-      console.log(`构建完成, 复制产物到${releaseDir}目录下...`);
+      console.log(`构建完成, 复制产物到${releaseDir}目录下...`); // @allow-console
       cpSync(distDir, releaseDir, { recursive: true });
     }
   });
 } catch (error) {
-  console.log("构建失败", error);
+  console.log("构建失败", error); // @allow-console
 }

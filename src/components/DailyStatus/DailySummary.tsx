@@ -26,9 +26,7 @@ function DailySummary({ dailyData, loading = false }: Props) {
   return (
     <NeuDiv surface="flat">
       <div className="flex justify-between">
-        <Tag>
-          {dayjs(new Date(dailyData.createdAt!)).format("YYYY-MM-DD HH:mm:ss")}
-        </Tag>
+        <Tag>{dayjs(new Date(dailyData.createdAt!)).format("YYYY-MM-DD HH:mm:ss")}</Tag>
         <div className="flex items-center gap-1 py-1!">
           {/* <Footprints className="w-4 h-4" /> */}
           <Tag className="text-slate-700" icon="FootPrint">

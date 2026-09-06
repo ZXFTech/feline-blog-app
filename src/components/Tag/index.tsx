@@ -1,8 +1,4 @@
-import {
-  type ComponentPropsWithoutRef,
-  type CSSProperties,
-  type ReactNode,
-} from "react";
+import { type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import Icon, { type IconType } from "../Icon";
 import { neuSurfaceClassNames } from "../NeuDiv";
@@ -60,14 +56,12 @@ function TagContent({
 }) {
   return (
     <>
-      {icon ? (
-        <Icon className="ml-1 text-xs/0.5! tag-icon" icon={icon} />
-      ) : null}
+      {icon ? <Icon className="ml-1 text-xs/0.5! tag-icon" icon={icon} /> : null}
       <span
         className={cn(
           icon ? "ml-0.5" : "ml-2",
           hasCloseAction ? "mr-0.5" : "mr-2",
-          "text-xs font-medium whitespace-nowrap",
+          "text-xs font-medium whitespace-nowrap"
         )}
       >
         {children}
@@ -77,46 +71,29 @@ function TagContent({
 }
 
 export default function Tag(props: TagProps) {
-  const {
-    children,
-    color,
-    icon,
-    className,
-    style,
-    containerProps,
-    onSelect,
-    onClose,
-    closeLabel,
-  } = props;
+  const { children, color, icon, className, style, containerProps, onSelect, onClose, closeLabel } =
+    props;
   const surfaceClassName = neuSurfaceClassNames({
     surface: "embossed",
     intensity: "sm",
     className: cn(
       "tag group px-0! py-1! mx-0.5! my-1.25! font-medium inline-flex justify-center items-center",
       (onSelect || onClose) && "cursor-pointer",
-      className,
+      className
     ),
   });
   const surfaceStyle = { color, ...style };
   const resolvedCloseLabel =
-    closeLabel ??
-    (typeof children === "string" ? `移除${children}` : undefined);
+    closeLabel ?? (typeof children === "string" ? `移除${children}` : undefined);
 
   if (onClose && !resolvedCloseLabel) {
-    throw new Error(
-      "A closable Tag with non-text children requires closeLabel.",
-    );
+    throw new Error("A closable Tag with non-text children requires closeLabel.");
   }
 
   if (!onClose && onSelect) {
     return (
       <span {...containerProps} className="contents">
-        <button
-          type="button"
-          className={surfaceClassName}
-          style={surfaceStyle}
-          onClick={onSelect}
-        >
+        <button type="button" className={surfaceClassName} style={surfaceStyle} onClick={onSelect}>
           <TagContent icon={icon} hasCloseAction={false}>
             {children}
           </TagContent>
@@ -127,11 +104,7 @@ export default function Tag(props: TagProps) {
 
   if (onClose) {
     return (
-      <span
-        {...containerProps}
-        className={surfaceClassName}
-        style={surfaceStyle}
-      >
+      <span {...containerProps} className={surfaceClassName} style={surfaceStyle}>
         {onSelect ? (
           <button
             type="button"

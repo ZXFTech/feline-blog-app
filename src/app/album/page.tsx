@@ -16,34 +16,17 @@ const Album = () => {
         <span className="text-sm">进度条</span>
         <NeuProgressBar value={55} max={100} />
         <NeuProgressBar value={55} max={100} showLabel />
-        <NeuProgressBar
-          value={55}
-          title="primary 进度条"
-          showLabel
-          type="primary"
-        />
+        <NeuProgressBar value={55} title="primary 进度条" showLabel type="primary" />
         <NeuProgressBar
           value={55}
           title="自定义 danger title 颜色"
           titleColor="#1aab5b"
           type="danger"
         />
-        <NeuProgressBar
-          title="默认 title 颜色跟随 type"
-          value={55}
-          type="success"
-        />
-        <NeuProgressBar
-          value={55}
-          title="自定义颜色"
-          progressBarColor="#d315e4"
-          type="warning"
-        />
+        <NeuProgressBar title="默认 title 颜色跟随 type" value={55} type="success" />
+        <NeuProgressBar value={55} title="自定义颜色" progressBarColor="#d315e4" type="warning" />
       </NeuDiv>
-      <NeuDiv
-        surface="debossed"
-        className="flex flex-wrap items-center gap-2 p-4"
-      >
+      <NeuDiv surface="debossed" className="flex flex-wrap items-center gap-2 p-4">
         <span className="text-sm">toast</span>
         <NeuButton
           onClick={() => {
@@ -104,20 +87,14 @@ const Album = () => {
           测试
         </NeuButton>
       </NeuDiv>
-      <NeuDiv
-        surface="debossed"
-        className="flex flex-wrap items-center gap-2 p-4"
-      >
+      <NeuDiv surface="debossed" className="flex flex-wrap items-center gap-2 p-4">
         <span className="text-sm">button:</span>
         <NeuButton loading>测试</NeuButton>
         <NeuButton icon="search" loading>
           测试
         </NeuButton>
       </NeuDiv>
-      <NeuDiv
-        surface="debossed"
-        className="flex flex-wrap items-center gap-2 p-4"
-      >
+      <NeuDiv surface="debossed" className="flex flex-wrap items-center gap-2 p-4">
         <span className="text-sm">tag:</span>
         <Tag icon="search">测试</Tag>
         <Tag color="green">测试</Tag>
@@ -149,19 +126,13 @@ const Album = () => {
           defaultValue={"这是一段默认文字"}
           allowClear
         />
-        <NeuInput
-          inputSize="2xl"
-          defaultValue={"这是一段默认文字"}
-          allowClear
-          onChange={(e) => console.log("e.target.value", e.target.value)}
-        />
+        <NeuInput inputSize="2xl" defaultValue={"这是一段默认文字"} allowClear />
         <NeuInput
           prefix={<Icon icon="search" size="2xl" />}
           suffix={123}
           allowClear
           inputSize="3xl"
           defaultValue={"这是一段默认文字"}
-          onChange={(e) => console.log("e.target.value", e.target.value)}
         />
       </NeuDiv>
     </Content>

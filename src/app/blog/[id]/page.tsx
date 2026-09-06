@@ -1,21 +1,21 @@
-'use server';
+"use server";
 
-import Head from 'next/head';
-import NeuDiv from '@/components/NeuDiv';
-import Tag from '@/components/Tag';
-import { CodeBlock } from '@/components/NotionBlock';
-import Image from 'next/image';
-import { getBlogById } from '@/db/blogAction';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { message } from '@/lib/message';
-import BlogOperationBar from '@/components/Blog/BlogOperationBar';
-import TOC from '../../../components/Blog/TOC';
-import rehypeSlug from 'rehype-slug';
-import Content from '@/components/Content';
-import NeuButton from '@/components/NeuButton';
-import { PermissionAccess } from '@/components/Auth/PermissionAccess';
-import AdjacentBlogs from '@/components/Blog/AdjacentBlogs';
+import Head from "next/head";
+import NeuDiv from "@/components/NeuDiv";
+import Tag from "@/components/Tag";
+import { CodeBlock } from "@/components/NotionBlock";
+import Image from "next/image";
+import { getBlogById } from "@/db/blogAction";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { message } from "@/lib/message";
+import BlogOperationBar from "@/components/Blog/BlogOperationBar";
+import TOC from "../../../components/Blog/TOC";
+import rehypeSlug from "rehype-slug";
+import Content from "@/components/Content";
+import NeuButton from "@/components/NeuButton";
+import { PermissionAccess } from "@/components/Auth/PermissionAccess";
+import AdjacentBlogs from "@/components/Blog/AdjacentBlogs";
 
 interface Props {
   params: Promise<{ id: number }>;
@@ -24,11 +24,11 @@ interface Props {
 const Blog = async ({ params }: Props) => {
   const { id } = await params;
   const result = await getBlogById(id);
-  if (result.status !== 'success') throw new Error(result.message);
+  if (result.status !== "success") throw new Error(result.message);
   const { blog, isLiked, isFavorite } = result.data;
 
   if (!blog) {
-    message.error('未找到博客');
+    message.error("未找到博客");
     // 暂时这么写 后续跳转到 404
     // redirect("/blog");
     return (
@@ -95,11 +95,11 @@ const Blog = async ({ params }: Props) => {
             <ReactMarkdown
               components={{
                 code({ className, children, ...props }) {
-                  const match = /language-(\w+)/.exec(className || '');
+                  const match = /language-(\w+)/.exec(className || "");
                   return match ? (
                     <CodeBlock
                       title="test"
-                      code={children ? children.toString() : ''}
+                      code={children ? children.toString() : ""}
                       language={match[1]}
                     ></CodeBlock>
                   ) : (

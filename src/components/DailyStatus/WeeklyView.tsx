@@ -27,17 +27,11 @@ export function getStartOfWeek(date: Date): Date {
   return new Date(d.setDate(diff));
 }
 
-export function WeeklyView({
-  weeklyStatus,
-  selectedDate,
-  onWeekChanged,
-}: WeeklyViewProps) {
+export function WeeklyView({ weeklyStatus, selectedDate, onWeekChanged }: WeeklyViewProps) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const [weekStart, setWeekStart] = useState<Date>(
-    getStartOfWeek(selectedDate),
-  );
+  const [weekStart, setWeekStart] = useState<Date>(getStartOfWeek(selectedDate));
 
   useEffect(() => {
     setWeekStart(getStartOfWeek(selectedDate));
@@ -56,9 +50,7 @@ export function WeeklyView({
       currentDate.setDate(currentDate.getDate() + i);
       const dateStr = currentDate.toISOString().split("T")[0];
 
-      const daySessions = weeklyStatus.find(
-        (s) => s.date?.toISOString().split("T")[0] === dateStr,
-      );
+      const daySessions = weeklyStatus.find((s) => s.date?.toISOString().split("T")[0] === dateStr);
 
       let duration = 0;
 
@@ -105,9 +97,7 @@ export function WeeklyView({
           <NeuButton
             icon="Chevron_Left"
             onClick={() => {
-              const startOfWeek = new Date(
-                weekStart.setDate(weekStart.getDate() - 7),
-              );
+              const startOfWeek = new Date(weekStart.setDate(weekStart.getDate() - 7));
               setWeekStart(startOfWeek);
               onWeekChanged(startOfWeek);
             }}
@@ -119,16 +109,15 @@ export function WeeklyView({
               day: "numeric",
             })}{" "}
             -{" "}
-            {new Date(
-              weekStart.getTime() + 6 * 24 * 60 * 60 * 1000,
-            ).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+            {new Date(weekStart.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+            })}
           </h3>
           <NeuButton
             icon="Chevron_Right"
             onClick={() => {
-              const startOfWeek = new Date(
-                weekStart.setDate(weekStart.getDate() + 7),
-              );
+              const startOfWeek = new Date(weekStart.setDate(weekStart.getDate() + 7));
               onWeekChanged(startOfWeek);
               setWeekStart(startOfWeek);
             }}
@@ -142,9 +131,7 @@ export function WeeklyView({
             const startOfWeek = getStartOfWeek(selectedDate);
             setWeekStart(startOfWeek);
             onWeekChanged(startOfWeek);
-            router.replace(
-              `${pathname}?date=${new Date().toISOString().split("T")[0]}`,
-            );
+            router.replace(`${pathname}?date=${new Date().toISOString().split("T")[0]}`);
           }}
         >
           回到今天
@@ -164,7 +151,7 @@ export function WeeklyView({
                   "border border-border rounded-lg p-3! flex flex-col gap-1 min-h-16 cursor-pointer text-left",
                   {
                     "bg-gray-500/20!": selectedDateStr !== day.date,
-                  },
+                  }
                 ),
               })}
             >
@@ -172,18 +159,13 @@ export function WeeklyView({
                 <span className="text-xs font-semibold text-muted-foreground">
                   {dayLabels[index]}
                 </span>
-                <span className="text-xs font-medium">
-                  {new Date(day.date).getDate()}
-                </span>
+                <span className="text-xs font-medium">{new Date(day.date).getDate()}</span>
               </div>
 
               <div className="flex flex-wrap gap-1 grow items-center content-start">
                 {day.activities?.map((w, i) => {
                   return (
-                    <div
-                      key={w.name + w.sets.toString()}
-                      className="flex flex-wrap gap-1"
-                    >
+                    <div key={w.name + w.sets.toString()} className="flex flex-wrap gap-1">
                       {w.sets.map((s, j) => {
                         return (
                           <div

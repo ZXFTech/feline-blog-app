@@ -1,8 +1,4 @@
-export type SidebarComp =
-  | "profile"
-  | "calendar"
-  | "blogOperationBar"
-  | "todoConclusion";
+export type SidebarComp = "profile" | "calendar" | "blogOperationBar" | "todoConclusion";
 
 interface PathMeta {
   path: string;

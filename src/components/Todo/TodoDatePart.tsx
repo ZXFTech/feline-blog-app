@@ -12,13 +12,7 @@ interface Props {
   handleUpdate: (todo: TagTodo) => void;
 }
 
-const TodoDatePart = ({
-  todoList,
-  dateKey,
-  handleClick,
-  handleDelete,
-  handleUpdate,
-}: Props) => {
+const TodoDatePart = ({ todoList, dateKey, handleClick, handleDelete, handleUpdate }: Props) => {
   return (
     <>
       <Tag className="mb-0! sticky top-17 bg-bg! z-10">

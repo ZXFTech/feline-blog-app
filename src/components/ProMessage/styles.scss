@@ -154,8 +154,7 @@ html[dir="rtl"],
   color: #3f3f3f;
 }
 
-[data-rich-colors="true"][data-sonner-toast][data-styled="true"]
-  [data-description] {
+[data-rich-colors="true"][data-sonner-toast][data-styled="true"] [data-description] {
   color: inherit;
 }
 
@@ -267,8 +266,7 @@ html[dir="rtl"],
 
 [data-sonner-toast][data-expanded="false"][data-front="false"] {
   --scale: var(--toasts-before) * 0.05 + 1;
-  --y: translateY(calc(var(--lift-amount) * var(--toasts-before)))
-    scale(calc(-1 * var(--scale)));
+  --y: translateY(calc(var(--lift-amount) * var(--toasts-before))) scale(calc(-1 * var(--scale)));
   height: var(--front-toast-height);
 }
 
@@ -284,8 +282,7 @@ html[dir="rtl"],
   left: 0;
 }
 
-[data-sonner-toast][data-expanded="false"][data-front="false"][data-styled="true"]
-  > * {
+[data-sonner-toast][data-expanded="false"][data-front="false"][data-styled="true"] > * {
   opacity: 0;
 }
 
@@ -305,9 +302,7 @@ html[dir="rtl"],
 }
 
 [data-sonner-toast][data-removed="true"][data-front="false"][data-swipe-out="false"][data-expanded="true"] {
-  --y: translateY(
-    calc(var(--lift) * calc(var(--offset) - 5px) + var(--lift) * -100%)
-  );
+  --y: translateY(calc(var(--lift) * calc(var(--offset) - 5px) + var(--lift) * -100%));
   opacity: 0;
 }
 
@@ -324,8 +319,7 @@ html[dir="rtl"],
 }
 
 [data-sonner-toast][data-swiping="true"] {
-  transform: var(--y) translateY(var(--swipe-amount-y, 0px))
-    translateX(var(--swipe-amount-x, 0px));
+  transform: var(--y) translateY(var(--swipe-amount-y, 0px)) translateX(var(--swipe-amount-x, 0px));
   transition: none;
 }
 
@@ -483,15 +477,13 @@ html[dir="rtl"],
   --error-text: #f8f9fa;
 }
 
-[data-sonner-toaster][data-sonner-theme="light"]
-  [data-sonner-toast][data-invert="true"] {
+[data-sonner-toaster][data-sonner-theme="light"] [data-sonner-toast][data-invert="true"] {
   --normal-bg: #000;
   --normal-border: hsl(0, 0%, 20%);
   --normal-text: var(--gray1);
 }
 
-[data-sonner-toaster][data-sonner-theme="dark"]
-  [data-sonner-toast][data-invert="true"] {
+[data-sonner-toaster][data-sonner-theme="dark"] [data-sonner-toast][data-invert="true"] {
   --normal-bg: #fff;
   --normal-border: var(--gray3);
   --normal-text: var(--gray12);
@@ -521,17 +513,13 @@ html[dir="rtl"],
   --error-text: hsl(358, 100%, 81%);
 }
 
-[data-sonner-toaster][data-sonner-theme="dark"]
-  [data-sonner-toast]
-  [data-close-button] {
+[data-sonner-toaster][data-sonner-theme="dark"] [data-sonner-toast] [data-close-button] {
   background: var(--normal-bg);
   border-color: var(--normal-border);
   color: var(--normal-text);
 }
 
-[data-sonner-toaster][data-sonner-theme="dark"]
-  [data-sonner-toast]
-  [data-close-button]:hover {
+[data-sonner-toaster][data-sonner-theme="dark"] [data-sonner-toast] [data-close-button]:hover {
   background: var(--normal-bg-hover);
   border-color: var(--normal-border-hover);
 }
@@ -542,8 +530,7 @@ html[dir="rtl"],
   color: var(--success-text);
 }
 
-[data-rich-colors="true"][data-sonner-toast][data-type="success"]
-  [data-close-button] {
+[data-rich-colors="true"][data-sonner-toast][data-type="success"] [data-close-button] {
   background: var(--success-bg);
   border-color: var(--success-border);
   color: var(--success-text);
@@ -555,8 +542,7 @@ html[dir="rtl"],
   color: var(--info-text);
 }
 
-[data-rich-colors="true"][data-sonner-toast][data-type="info"]
-  [data-close-button] {
+[data-rich-colors="true"][data-sonner-toast][data-type="info"] [data-close-button] {
   background: var(--info-bg);
   border-color: var(--info-border);
   color: var(--info-text);
@@ -568,8 +554,7 @@ html[dir="rtl"],
   color: var(--warning-text);
 }
 
-[data-rich-colors="true"][data-sonner-toast][data-type="warning"]
-  [data-close-button] {
+[data-rich-colors="true"][data-sonner-toast][data-type="warning"] [data-close-button] {
   background: var(--warning-bg);
   border-color: var(--warning-border);
   color: var(--warning-text);
@@ -581,8 +566,7 @@ html[dir="rtl"],
   color: var(--error-text);
 }
 
-[data-rich-colors="true"][data-sonner-toast][data-type="error"]
-  [data-close-button] {
+[data-rich-colors="true"][data-sonner-toast][data-type="error"] [data-close-button] {
   background: var(--error-bg);
   border-color: var(--error-border);
   color: var(--error-text);

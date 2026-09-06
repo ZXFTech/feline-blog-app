@@ -45,13 +45,7 @@ const Toast = ({ message, removeMessage }: ToastProps) => {
 };
 
 export function MessageContainer() {
-  const {
-    messages,
-    updateMessageState,
-    removeMessage,
-    pauseMessage,
-    resumeMessage,
-  } = useMessage();
+  const { messages, updateMessageState, removeMessage, pauseMessage, resumeMessage } = useMessage();
   const timerList = useRef<Map<string, NodeJS.Timeout>>(new Map());
 
   // 自动移除逻辑
@@ -101,12 +95,7 @@ export function MessageContainer() {
       onMouseLeave={() => handleMouseLeave()}
     >
       {messages.map((msg, index) => (
-        <Toast
-          key={msg.id}
-          message={msg}
-          index={index}
-          removeMessage={removeMessage}
-        />
+        <Toast key={msg.id} message={msg} index={index} removeMessage={removeMessage} />
       ))}
     </div>
   );

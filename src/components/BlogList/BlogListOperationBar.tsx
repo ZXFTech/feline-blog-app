@@ -29,16 +29,12 @@ export const BlogListOperationBar = () => {
       }
       router.replace(`${pathname}?${params}`);
     },
-    [searchParams, router, pathname],
+    [searchParams, router, pathname]
   );
 
   const debounceUpdate = useMemo(
-    () =>
-      debounce(
-        (key: string, value: string) => updateSearchParams(key, value),
-        500,
-      ),
-    [updateSearchParams],
+    () => debounce((key: string, value: string) => updateSearchParams(key, value), 500),
+    [updateSearchParams]
   );
 
   const switchOrderBy = () => {
@@ -47,19 +43,12 @@ export const BlogListOperationBar = () => {
 
   return (
     <div className="flex flex-col gap-4 mb-4 sticky right-0 left-0 top-0 z-100">
-      <NeuDiv
-        surface="flat"
-        className="flex flex-row flex-wrap items-center justify-between"
-      >
+      <NeuDiv surface="flat" className="flex flex-row flex-wrap items-center justify-between">
         <div className="flex flex-row gap-2">
-          <NeuInput
-            onChange={(e) => debounceUpdate("content", e.target.value)}
-          />
+          <NeuInput onChange={(e) => debounceUpdate("content", e.target.value)} />
           <NeuButton
             icon={`${
-              orderBy === "desc"
-                ? "keyboard_double_arrow_up"
-                : "keyboard_double_arrow_down"
+              orderBy === "desc" ? "keyboard_double_arrow_up" : "keyboard_double_arrow_down"
             }`}
             className="p-1!"
             onClick={switchOrderBy}

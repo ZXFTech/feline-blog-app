@@ -8,16 +8,7 @@ interface NeuDivProps extends ComponentPropsWithoutRef<"div"> {
 }
 
 const NeuDiv = forwardRef<HTMLDivElement, NeuDivProps>(
-  (
-    {
-      surface = "embossed",
-      intensity = "normal",
-      className,
-      children,
-      ...restProps
-    },
-    ref,
-  ) => {
+  ({ surface = "embossed", intensity = "normal", className, children, ...restProps }, ref) => {
     const classNames = neuSurfaceClassNames({
       surface,
       intensity,
@@ -29,7 +20,7 @@ const NeuDiv = forwardRef<HTMLDivElement, NeuDivProps>(
         {children}
       </div>
     );
-  },
+  }
 );
 
 NeuDiv.displayName = "NeuDiv";

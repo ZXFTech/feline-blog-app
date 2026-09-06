@@ -57,7 +57,7 @@ export type NotionBlogProperties = {
               person: {
                 email: string;
               };
-            }
+            },
           ]
         | never[];
     };
@@ -81,7 +81,7 @@ export type NotionBlogProperties = {
           };
           plain_text: string;
           href: null;
-        }
+        },
       ];
     };
     Page: {
@@ -104,7 +104,7 @@ export type NotionBlogProperties = {
           };
           plain_text: string;
           href: null;
-        }
+        },
       ];
     };
   };
@@ -161,7 +161,7 @@ export type NotionPage = {
           id: string;
           name: string;
           color: string;
-        }
+        },
       ];
     };
     authors: {
@@ -178,7 +178,7 @@ export type NotionPage = {
               person: {
                 email: string;
               };
-            }
+            },
           ]
         | never[];
     };
@@ -202,7 +202,7 @@ export type NotionPage = {
           };
           plain_text: string;
           href: string | null;
-        }
+        },
       ];
     };
     Page: {
@@ -225,7 +225,7 @@ export type NotionPage = {
           };
           plain_text: string;
           href: null;
-        }
+        },
       ];
     };
   };

@@ -117,9 +117,7 @@ export default function WorkoutEditor({
         </div>
         <div className="flex gap-3">
           <div className="grow">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              时长 (分钟)
-            </label>
+            <label className="block text-sm font-medium text-foreground mb-2">时长 (分钟)</label>
             <NeuInput
               type="number"
               disabled={loading}
@@ -134,9 +132,7 @@ export default function WorkoutEditor({
             />
           </div>
           <div className="grow">
-            <label className="block text-sm font-medium text-foreground mb-2">
-              消耗 (kcal)
-            </label>
+            <label className="block text-sm font-medium text-foreground mb-2">消耗 (kcal)</label>
             <NeuInput
               type="number"
               disabled={loading}
@@ -155,35 +151,25 @@ export default function WorkoutEditor({
         {workoutType === true ? (
           <div className="flex gap-3">
             <div className="grow">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                次数
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">次数</label>
               <NeuInput
                 type="number"
                 disabled={loading}
-                onChange={(e) =>
-                  setFormData({ ...formData, reps: parseInt(e.target.value) })
-                }
+                onChange={(e) => setFormData({ ...formData, reps: parseInt(e.target.value) })}
                 placeholder={defaultValue.reps + ""}
               />
             </div>
             <div className="grow">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                组数
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">组数</label>
               <NeuInput
                 type="number"
                 disabled={loading}
-                onChange={(e) =>
-                  setFormData({ ...formData, sets: parseInt(e.target.value) })
-                }
+                onChange={(e) => setFormData({ ...formData, sets: parseInt(e.target.value) })}
                 placeholder={defaultValue.sets + ""}
               />
             </div>
             <div className="grow">
-              <label className="block text-sm font-medium text-foreground mb-2">
-                重量 (kg)
-              </label>
+              <label className="block text-sm font-medium text-foreground mb-2">重量 (kg)</label>
               <NeuInput
                 type="number"
                 disabled={loading}
@@ -200,15 +186,11 @@ export default function WorkoutEditor({
         ) : null}
 
         <div>
-          <label className="block text-sm font-medium text-foreground mb-2">
-            Notes
-          </label>
+          <label className="block text-sm font-medium text-foreground mb-2">Notes</label>
           <NeuInput
             textArea
             disabled={loading}
-            onChange={(e) =>
-              setFormData({ ...formData, notes: e.target.value })
-            }
+            onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
             placeholder={defaultValue.notes}
             rows={3}
             className="w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"

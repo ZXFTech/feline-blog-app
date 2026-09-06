@@ -1,12 +1,6 @@
 import React from "react";
 
-export type ToastTypes =
-  | "default"
-  | "success"
-  | "info"
-  | "warning"
-  | "error"
-  | "loading";
+export type ToastTypes = "default" | "success" | "info" | "warning" | "error" | "loading";
 
 export type PromiseT<Data = unknown> = Promise<Data> | (() => Promise<Data>);
 
@@ -21,9 +15,7 @@ export type PromiseTExtendedResult<Data = unknown> =
 export type PromiseTResult<Data = unknown> =
   | string
   | React.ReactNode
-  | ((
-      data: Data
-    ) => React.ReactNode | string | Promise<React.ReactNode | string>);
+  | ((data: Data) => React.ReactNode | string | Promise<React.ReactNode | string>);
 
 export type PromiseExternalToast = Omit<ExternalToast, "description">;
 
@@ -203,9 +195,6 @@ export interface ToastToDismiss {
   dismiss: boolean;
 }
 
-export type ExternalToast = Omit<
-  ToastT,
-  "id" | "type" | "title" | "jsx" | "delete" | "promise"
-> & {
+export type ExternalToast = Omit<ToastT, "id" | "type" | "title" | "jsx" | "delete" | "promise"> & {
   id?: number | string;
 };

@@ -51,9 +51,7 @@ export function useSoundManager(defs: SoundDefinition[]) {
         } catch (e) {
           const name = e instanceof Error ? e.name : "Error";
           if (name === "NotAllowedError") {
-            setLastError(
-              "Browser blocked audio. Ensure play() is called in a click/tap handler.",
-            );
+            setLastError("Browser blocked audio. Ensure play() is called in a click/tap handler.");
           } else {
             setLastError(`Failed to play: ${name}`);
           }

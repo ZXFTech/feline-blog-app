@@ -1,10 +1,10 @@
-import { AlertTriangle } from 'lucide-react';
-import FlipTimer from '@/components/Clock/FlipTimer';
-import NeuButton from '@/components/NeuButton';
-import NeuDiv from '@/components/NeuDiv';
-import NeuInput from '@/components/NeuInput';
-import type { PomodoroSettings, PomodoroState } from '@/types/pomodoro';
-import { formatMs, phaseLabel } from '@/utils/timeUtils';
+import { AlertTriangle } from "lucide-react";
+import FlipTimer from "@/components/Clock/FlipTimer";
+import NeuButton from "@/components/NeuButton";
+import NeuDiv from "@/components/NeuDiv";
+import NeuInput from "@/components/NeuInput";
+import type { PomodoroSettings, PomodoroState } from "@/types/pomodoro";
+import { formatMs, phaseLabel } from "@/utils/timeUtils";
 
 interface PomodoroTimerProps {
   state: PomodoroState;
@@ -30,7 +30,7 @@ export default function PomodoroTimer({
   onSettingsChange,
 }: PomodoroTimerProps) {
   const blocked = Boolean(storageError || state.pendingOutcome);
-  const isBreak = state.phase === 'short_break' || state.phase === 'long_break';
+  const isBreak = state.phase === "short_break" || state.phase === "long_break";
   return (
     <main
       className="my-auto flex shrink-0 flex-col items-center space-y-4"
@@ -59,13 +59,13 @@ export default function PomodoroTimer({
           <p className="text-sm opacity-70">本轮已完成专注 {state.completedFocus} 次</p>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
-          {state.run === 'running' ? (
+          {state.run === "running" ? (
             <NeuButton onClick={onPause}>暂停</NeuButton>
-          ) : state.run === 'paused' ? (
+          ) : state.run === "paused" ? (
             <NeuButton onClick={onResume}>继续</NeuButton>
           ) : (
             <NeuButton buttonType="primary" disabled={blocked} onClick={onStart}>
-              {isBreak ? '开始休息' : '开始专注'}
+              {isBreak ? "开始休息" : "开始专注"}
             </NeuButton>
           )}
           <NeuButton disabled={!state.activeEventId && !isBreak} onClick={onSkip}>
@@ -75,14 +75,14 @@ export default function PomodoroTimer({
             停止
           </NeuButton>
         </div>
-        <fieldset className="grid grid-cols-2 gap-3 text-sm" disabled={state.run !== 'stopped'}>
+        <fieldset className="grid grid-cols-2 gap-3 text-sm" disabled={state.run !== "stopped"}>
           <legend className="col-span-2 font-semibold">计时设置</legend>
           {(
             [
-              ['focusMin', '专注分钟'],
-              ['shortBreakMin', '短休分钟'],
-              ['longBreakMin', '长休分钟'],
-              ['longBreakEvery', '每几次长休'],
+              ["focusMin", "专注分钟"],
+              ["shortBreakMin", "短休分钟"],
+              ["longBreakMin", "长休分钟"],
+              ["longBreakEvery", "每几次长休"],
             ] as const
           ).map(([key, label]) => (
             <label key={key} className="space-y-1">

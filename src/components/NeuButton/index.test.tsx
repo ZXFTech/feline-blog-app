@@ -35,6 +35,12 @@ describe("NeuButton", () => {
     expect(link).toHaveAttribute("href", "/login");
     expect(link).toHaveAttribute("target", "_blank");
     expect(link.querySelector("button")).not.toBeInTheDocument();
+    expect(link.firstElementChild).toHaveClass(
+      "inline-flex",
+      "items-center",
+      "gap-1",
+      "whitespace-nowrap"
+    );
   });
 
   it("calls a link click handler once", async () => {

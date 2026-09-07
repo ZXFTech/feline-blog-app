@@ -16,7 +16,7 @@ function Theme() {
   };
 
   return (
-    <div className="flex gap items-center">
+    <div className="flex gap-1 items-center">
       <NeuButton
         className="bg-(--light-color-bg)! text-(--light-color-font)!"
         onClick={() => setTheme("")}

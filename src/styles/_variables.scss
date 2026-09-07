@@ -28,6 +28,7 @@ $yellow: #fadb14 !default;
 $green: #52c41a !default;
 $teal: #20c997 !default;
 $cyan: #17a2b8 !default;
+$pomodoro: #ff6347 !default;
 $neu-light: $gray-200 !default;
 $neu-dark: $gray-800 !default;
 
@@ -66,6 +67,7 @@ $theme-colors: (
   "info": $info,
   "warning": $warning,
   "danger": $danger,
+  "pomodoro": $pomodoro,
   "light": $light,
   "dark": $dark,
 );

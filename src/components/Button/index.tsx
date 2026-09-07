@@ -58,7 +58,9 @@ export const ButtonContent = ({
   <>
     {loading && <IconSpinner size={btnSize} className="btn-loading" />}
     {icon && <Icon icon={icon} size={btnSize} />}
-    <span className="text-center">{children}</span>
+    <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap text-center">
+      {children}
+    </span>
     {suffixIcon && <Icon icon={suffixIcon} size={btnSize} />}
   </>
 );

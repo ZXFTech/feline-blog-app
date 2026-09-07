@@ -31,13 +31,15 @@ describe("PomodoroGlobalStatus", () => {
       state: { ...initialState, phase: "focus", run: "running", remainingMs: 65_000 },
     };
 
-    render(<PomodoroGlobalStatus />);
+    const { container } = render(<PomodoroGlobalStatus />);
 
     expect(screen.getByRole("link", { name: "专注，剩余 01:05" })).toHaveAttribute(
       "href",
       "/tomato"
     );
     expect(screen.getByText("01:05")).toBeInTheDocument();
+    expect(screen.queryByText("专注")).not.toBeInTheDocument();
+    expect(container.querySelector(".lucide-timer")).toHaveClass("text-danger!");
   });
 
   it("AC-4 does not duplicate the status on the tomato page", () => {
@@ -70,6 +72,19 @@ describe("PomodoroGlobalStatus", () => {
     render(<PomodoroGlobalStatus />);
     expect(screen.getByRole("link", { name: "专注已暂停，剩余 01:05" })).toBeVisible();
     expect(screen.getByText("已暂停")).toBeVisible();
+  });
+
+  it("uses the success colour for a break icon", () => {
+    mocks.value = {
+      ...mocks.value,
+      state: { ...initialState, phase: "short_break", run: "running", remainingMs: 300_000 },
+    };
+
+    const { container } = render(<PomodoroGlobalStatus />);
+
+    expect(screen.getByText("05:00")).toBeInTheDocument();
+    expect(screen.queryByText("短休息")).not.toBeInTheDocument();
+    expect(container.querySelector(".lucide-timer")).toHaveClass("text-success!");
   });
 
   it("AC-9 announces storage problems and keeps the recovery link", () => {

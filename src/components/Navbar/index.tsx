@@ -4,6 +4,7 @@ import Link from "next/link";
 import { IconNeonCat } from "../Icon/presetIcon";
 import { UserMenu } from "../Profile/UserMenu";
 import Theme from "../Theme";
+import PomodoroGlobalStatus from "../pomodoro/PomodoroGlobalStatus";
 
 interface NavbarProps {
   leftSlot?: ReactNode;
@@ -38,6 +39,7 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
           );
         })}
       </ul>
+      <PomodoroGlobalStatus />
       <Theme />
       <div className="w-20">
         <UserMenu />

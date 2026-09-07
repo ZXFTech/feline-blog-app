@@ -7,6 +7,7 @@ import Head from "next/head";
 import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
 import { getCurrentUser } from "@/lib/auth/userAuth";
+import { PomodoroProvider } from "@/providers/PomodoroProvider";
 
 export const metadata: Metadata = {
   title: "neon cat",
@@ -38,10 +39,12 @@ export default async function RootLayout({
       </Head>
       <body>
         <AuthProviders initialUser={initialUser}>
-          <Navbar routeList={routeList} />
-          {children}
-          <Footer />
-          <Toaster richColors visibleToasts={5} />
+          <PomodoroProvider>
+            <Navbar routeList={routeList} />
+            {children}
+            <Footer />
+            <Toaster richColors visibleToasts={5} />
+          </PomodoroProvider>
         </AuthProviders>
       </body>
     </html>

@@ -115,7 +115,7 @@ function tickPlugin({
     }
 
     const id = setInterval(() => {
-      ctx.dispatch({ type: "TICK", now: nowMs() });
+      ctx.dispatch({ type: "TICK", now: nowMs() }, { source: "tick" });
     }, ms);
 
     runtime.set("tick:interval", id);

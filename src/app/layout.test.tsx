@@ -6,12 +6,16 @@ const mocks = vi.hoisted(() => ({
   authProvider: vi.fn(
     ({ children }: { children: React.ReactNode; initialUser: unknown }) => children
   ),
+  pomodoroProvider: vi.fn(({ children }: { children: React.ReactNode }) => children),
 }));
 
 vi.mock("@/lib/auth/userAuth", () => ({
   getCurrentUser: mocks.getCurrentUser,
 }));
 vi.mock("@/providers/AuthProviders", () => ({ default: mocks.authProvider }));
+vi.mock("@/providers/PomodoroProvider", () => ({
+  PomodoroProvider: mocks.pomodoroProvider,
+}));
 vi.mock("next/font/google", () => ({
   Geist: () => ({ variable: "geist-sans" }),
   Geist_Mono: () => ({ variable: "geist-mono" }),
@@ -29,6 +33,15 @@ import RootLayout from "./layout";
 
 describe("RootLayout authentication hydration", () => {
   beforeEach(() => vi.clearAllMocks());
+
+  it("AC-1 mounts one global pomodoro provider inside the authenticated layout", async () => {
+    mocks.getCurrentUser.mockResolvedValue(null);
+
+    renderToStaticMarkup(await RootLayout({ children: <main>页面内容</main> }));
+
+    expect(mocks.authProvider).toHaveBeenCalledOnce();
+    expect(mocks.pomodoroProvider).toHaveBeenCalledOnce();
+  });
 
   it("covers: AC-7, passes only safe restored user fields to the client provider", async () => {
     mocks.getCurrentUser.mockResolvedValue({

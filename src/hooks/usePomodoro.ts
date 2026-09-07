@@ -13,28 +13,35 @@ import {
   writeOutbox,
   writeTimer,
 } from "@/lib/pomodoro/storage";
-import { AudioPlugin, tickPlugin, titlePlugin } from "@/lib/pomodoro/plugins";
+import { AudioPlugin, tickPlugin } from "@/lib/pomodoro/plugins";
 import { useCtxAuth } from "@/providers/AuthProviders";
 import type {
+  Action,
+  DispatchMeta,
   PluginContext,
   PomodoroOutboxItem,
+  PomodoroOutcome,
   PomodoroPlugin,
   PomodoroSettlement,
   PomodoroSettings,
   PomodoroState,
 } from "@/types/pomodoro";
 
-const defaultPlugins = [AudioPlugin(), titlePlugin(), tickPlugin({})];
+const defaultPlugins = [AudioPlugin(), tickPlugin({})];
+
+export type PomodoroLifecycle = "signed_out" | "hydrating" | "ready";
 
 interface Props {
   plugins?: PomodoroPlugin<PomodoroState>[];
   onRecordSettled?: (settlement: PomodoroSettlement) => void;
+  onOutcome?: (outcome: PomodoroOutcome, source: DispatchMeta["source"]) => void;
 }
 
-export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props = {}) {
+export function usePomodoro({ plugins = defaultPlugins, onRecordSettled, onOutcome }: Props = {}) {
   const { user } = useCtxAuth();
   const userId = user?.id ?? null;
   const [state, dispatch] = useReducer(pomodoroReducer, initialState);
+  const [hydratedUserId, setHydratedUserId] = useState<string | null>(null);
   const [storageError, setStorageError] = useState<string | null>(null);
   const [recoveryNotice, setRecoveryNotice] = useState<string | null>(null);
   const [outbox, setOutbox] = useState<PomodoroOutboxItem[]>([]);
@@ -44,11 +51,30 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
   );
   const syncingRef = useRef(false);
   const settlementRef = useRef(onRecordSettled);
+  const outcomeRef = useRef(onOutcome);
   const skipInitialPersistRef = useRef(false);
   const stateRef = useRef(state);
+  const userIdRef = useRef(userId);
+  const sessionGenerationRef = useRef(0);
+  const dispatchSourceRef = useRef<DispatchMeta["source"]>("internal");
   const runtimeRef = useRef(new Map<string, unknown>());
   stateRef.current = state;
+  userIdRef.current = userId;
   settlementRef.current = onRecordSettled;
+  outcomeRef.current = onOutcome;
+
+  const lifecycle: PomodoroLifecycle = !userId
+    ? "signed_out"
+    : hydratedUserId === userId
+      ? "ready"
+      : "hydrating";
+  const lifecycleRef = useRef(lifecycle);
+  lifecycleRef.current = lifecycle;
+
+  const trackedDispatch = useCallback((action: Action, meta?: DispatchMeta) => {
+    dispatchSourceRef.current = meta?.source ?? "internal";
+    dispatch(action);
+  }, []);
 
   const reloadOutbox = useCallback(() => {
     if (!userId) {
@@ -67,19 +93,26 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
 
   const syncOutbox = useCallback(
     async (force = false) => {
-      if (!userId || syncingRef.current || !navigator.onLine) return;
+      if (!userId || lifecycleRef.current !== "ready" || syncingRef.current || !navigator.onLine)
+        return;
+      const generation = sessionGenerationRef.current;
+      const isCurrentSession = () =>
+        userIdRef.current === userId && sessionGenerationRef.current === generation;
       syncingRef.current = true;
-      setIsSyncing(true);
+      if (isCurrentSession()) setIsSyncing(true);
       try {
         const items = reloadOutbox();
         for (const item of items) {
+          if (!isCurrentSession()) break;
           if (["failed", "conflict"].includes(item.status)) continue;
           if (!force && item.nextAttemptAt > Date.now()) continue;
           const syncing = { ...item, status: "syncing" as const };
+          if (!isCurrentSession()) break;
           writeOutbox(syncing);
-          setOutbox(readOutbox(userId));
+          if (isCurrentSession()) setOutbox(readOutbox(userId));
           let result;
           try {
+            if (!isCurrentSession()) break;
             result = await savePomodoroRecord(item.payload);
           } catch {
             result = {
@@ -87,6 +120,8 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
               message: "网络请求失败",
             };
           }
+
+          if (!isCurrentSession()) break;
 
           if (result.status === "created" || result.status === "already_exists") {
             settlementRef.current?.({
@@ -138,16 +173,23 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
         setStorageError("本地同步队列暂时无法读取");
       } finally {
         syncingRef.current = false;
-        setIsSyncing(false);
-        reloadOutbox();
+        if (isCurrentSession()) {
+          setIsSyncing(false);
+          reloadOutbox();
+        }
       }
     },
     [reloadOutbox, userId]
   );
 
   useEffect(() => {
+    sessionGenerationRef.current += 1;
+    setHydratedUserId(null);
     skipInitialPersistRef.current = true;
-    dispatch({ type: "HYDRATE", now: Date.now(), state: initialState });
+    trackedDispatch(
+      { type: "HYDRATE", now: Date.now(), state: initialState },
+      { source: "hydrate" }
+    );
     if (!userId) {
       setOutbox([]);
       setStorageError(null);
@@ -159,12 +201,18 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       setStorageError(null);
       const restored = readTimer(userId);
       if (restored.recovered) setRecoveryNotice("无法恢复的计时数据已隔离，你可以重新开始");
-      if (restored.state) dispatch({ type: "HYDRATE", now: Date.now(), state: restored.state });
+      if (restored.state)
+        trackedDispatch(
+          { type: "HYDRATE", now: Date.now(), state: restored.state },
+          { source: "hydrate" }
+        );
       reloadOutbox();
     } catch {
       setStorageError("浏览器存储不可用，无法安全开始新的计时");
+    } finally {
+      if (userIdRef.current === userId) setHydratedUserId(userId);
     }
-  }, [reloadOutbox, userId]);
+  }, [reloadOutbox, trackedDispatch, userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -174,6 +222,8 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
     }
     try {
       if (state.pendingOutcome) {
+        if (dispatchSourceRef.current !== "remote")
+          outcomeRef.current?.(state.pendingOutcome, dispatchSourceRef.current);
         const existing = readOutbox(userId).find(
           (item) => item.eventId === state.pendingOutcome?.eventId
         );
@@ -191,25 +241,35 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
           });
         }
         writeTimer(userId, { ...state, pendingOutcome: null });
-        dispatch({
-          type: "ACK_OUTCOME",
-          eventId: state.pendingOutcome.eventId,
-        });
+        trackedDispatch(
+          {
+            type: "ACK_OUTCOME",
+            eventId: state.pendingOutcome.eventId,
+          },
+          { source: "internal" }
+        );
         reloadOutbox();
         void syncOutbox(true);
         return;
       }
+      if (dispatchSourceRef.current === "tick" || dispatchSourceRef.current === "remote") return;
       writeTimer(userId, state);
       setStorageError(null);
     } catch {
       setStorageError("计时结果尚未安全保存，已阻止下一阶段，请保持页面开启以便恢复");
     }
-  }, [reloadOutbox, state, syncOutbox, userId]);
+  }, [reloadOutbox, state, syncOutbox, trackedDispatch, userId]);
 
   const api = useMemo(
     () => ({
       start: () => {
-        if (!userId || storageError || stateRef.current.pendingOutcome) return;
+        if (
+          !userId ||
+          lifecycleRef.current !== "ready" ||
+          storageError ||
+          stateRef.current.pendingOutcome
+        )
+          return;
         try {
           probePomodoroStorage();
           const action = {
@@ -219,19 +279,33 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
           };
           const nextState = pomodoroReducer(stateRef.current, action);
           writeTimer(userId, nextState);
-          dispatch(action);
+          trackedDispatch(action, { source: "user" });
         } catch {
           setStorageError("浏览器存储不可用，无法安全开始新的计时");
         }
       },
-      pause: () => dispatch({ type: "PAUSE", now: Date.now() }),
-      resume: () => dispatch({ type: "RESUME", now: Date.now() }),
-      stop: () => dispatch({ type: "STOP", now: Date.now() }),
-      skip: () => dispatch({ type: "SKIP", now: Date.now() }),
-      setSettings: (partial: Partial<PomodoroSettings>) =>
-        dispatch({ type: "SET_SETTINGS", settings: partial }),
+      pause: () => {
+        if (lifecycleRef.current === "ready")
+          trackedDispatch({ type: "PAUSE", now: Date.now() }, { source: "user" });
+      },
+      resume: () => {
+        if (lifecycleRef.current === "ready")
+          trackedDispatch({ type: "RESUME", now: Date.now() }, { source: "user" });
+      },
+      stop: () => {
+        if (lifecycleRef.current === "ready")
+          trackedDispatch({ type: "STOP", now: Date.now() }, { source: "user" });
+      },
+      skip: () => {
+        if (lifecycleRef.current === "ready")
+          trackedDispatch({ type: "SKIP", now: Date.now() }, { source: "user" });
+      },
+      setSettings: (partial: Partial<PomodoroSettings>) => {
+        if (lifecycleRef.current === "ready")
+          trackedDispatch({ type: "SET_SETTINGS", settings: partial }, { source: "user" });
+      },
     }),
-    [storageError, userId]
+    [storageError, trackedDispatch, userId]
   );
 
   const ctxRef = useRef<PluginContext<PomodoroState> | null>(null);
@@ -240,7 +314,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       runtime: runtimeRef.current,
       actions: api,
       getState: () => stateRef.current,
-      dispatch,
+      dispatch: trackedDispatch,
     };
   }
   ctxRef.current.actions = api;
@@ -273,7 +347,11 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
     const storage = (event: StorageEvent) => {
       if (event.key === timerKey(userId) && event.newValue) {
         const restored = readTimer(userId);
-        if (restored.state) dispatch({ type: "HYDRATE", now: Date.now(), state: restored.state });
+        if (restored.state)
+          trackedDispatch(
+            { type: "HYDRATE", now: Date.now(), state: restored.state },
+            { source: "remote" }
+          );
       }
       if (event.key?.startsWith(`pomodoro:v2:outbox:${userId}:`)) reloadOutbox();
     };
@@ -291,18 +369,21 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
       window.removeEventListener("storage", storage);
       document.removeEventListener("visibilitychange", visible);
     };
-  }, [reloadOutbox, syncOutbox, userId]);
+  }, [lifecycle, reloadOutbox, syncOutbox, trackedDispatch, userId]);
 
   const adoptServerRecord = useCallback(
     (eventId: string) => {
-      if (!userId) return;
+      if (!userId || lifecycleRef.current !== "ready") return;
       removeOutbox(userId, eventId);
       reloadOutbox();
     },
     [reloadOutbox, userId]
   );
 
+  const retryNow = useCallback(() => syncOutbox(true), [syncOutbox]);
+
   return {
+    lifecycle,
     state,
     ...api,
     outbox,
@@ -310,7 +391,7 @@ export function usePomodoro({ plugins = defaultPlugins, onRecordSettled }: Props
     recoveryNotice,
     isOnline,
     isSyncing,
-    retryNow: () => syncOutbox(true),
+    retryNow,
     adoptServerRecord,
   };
 }

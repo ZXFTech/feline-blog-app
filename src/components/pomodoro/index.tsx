@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Content from "@/components/Content";
 import NeuDiv from "@/components/NeuDiv";
 import { getTomatoHistory } from "@/db/tomatoActions";
-import { usePomodoro } from "@/hooks/usePomodoro";
+import {
+  usePomodoroActions,
+  usePomodoroSettlement,
+  usePomodoroState,
+} from "@/providers/PomodoroProvider";
 import {
   cacheKey,
   CalendarMonth,
@@ -26,6 +30,7 @@ import type {
 import PomodoroHistoryPanel from "./PomodoroHistoryPanel";
 import PomodoroOperationPanel from "./PomodoroOperationPanel";
 import PomodoroTimer from "./PomodoroTimer";
+import PomodoroTitleBridge from "./PomodoroTitleBridge";
 
 interface MonthEntry {
   records: PomodoroHistoryRecord[];
@@ -51,6 +56,7 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
   );
   const [monthEntries, setMonthEntries] = useState<Record<string, MonthEntry>>({});
   const requestIdsRef = useRef(new Map<string, number>());
+  const settledRecordsRef = useRef(new Map<string, Map<string, PomodoroHistoryRecord>>());
   const sessionGenerationRef = useRef(0);
   const userIdRef = useRef(userId);
   userIdRef.current = userId;
@@ -60,6 +66,10 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
       if (item.userId !== userIdRef.current) return;
       const recordMonth = monthFromDateKey(localDateKey(record.endAt, timeZone));
       const key = cacheKey(item.userId, timeZone, recordMonth);
+      const recordKey = record.eventId ?? record.id;
+      const settledRecords = settledRecordsRef.current.get(key) ?? new Map();
+      settledRecords.set(recordKey, record);
+      settledRecordsRef.current.set(key, settledRecords);
       setMonthEntries((current) => {
         const entry = current[key] ?? {
           records: [],
@@ -79,7 +89,10 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
     [timeZone]
   );
 
-  const controller = usePomodoro({ onRecordSettled: handleRecordSettled });
+  usePomodoroSettlement(handleRecordSettled);
+  const controllerState = usePomodoroState();
+  const controllerActions = usePomodoroActions();
+  const controller = { ...controllerState, ...controllerActions };
 
   const loadMonth = useCallback(
     async (month: CalendarMonth) => {
@@ -101,7 +114,10 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
           monthUtcRange(month.year, month.monthIndex, timeZone)
         );
         if (result.status !== "success") throw new Error(result.message);
-        const records = result.data;
+        const records = [...(settledRecordsRef.current.get(key)?.values() ?? [])].reduce(
+          upsertRecord,
+          result.data
+        );
         if (
           userIdRef.current !== userId ||
           sessionGenerationRef.current !== generation ||
@@ -140,21 +156,32 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
   const todayCacheKey = cacheKey(userId, timeZone, todayMonth);
 
   useEffect(() => {
+    if (controller.lifecycle !== "ready") return;
     if (!monthEntries[visibleCacheKey]) void loadMonth(visibleMonth);
-  }, [loadMonth, monthEntries, visibleCacheKey, visibleMonth]);
+  }, [controller.lifecycle, loadMonth, monthEntries, visibleCacheKey, visibleMonth]);
 
   useEffect(() => {
+    if (controller.lifecycle !== "ready") return;
     if (!monthEntries[selectedCacheKey]) void loadMonth(selectedMonth);
-  }, [loadMonth, monthEntries, selectedCacheKey, selectedMonth]);
+  }, [controller.lifecycle, loadMonth, monthEntries, selectedCacheKey, selectedMonth]);
 
   useEffect(() => {
+    if (controller.lifecycle !== "ready") return;
     if (
       todayCacheKey !== visibleCacheKey &&
       todayCacheKey !== selectedCacheKey &&
       !monthEntries[todayCacheKey]
     )
       void loadMonth(todayMonth);
-  }, [loadMonth, monthEntries, selectedCacheKey, todayCacheKey, todayMonth, visibleCacheKey]);
+  }, [
+    controller.lifecycle,
+    loadMonth,
+    monthEntries,
+    selectedCacheKey,
+    todayCacheKey,
+    todayMonth,
+    visibleCacheKey,
+  ]);
 
   const previousOutboxRef = useRef<PomodoroOutboxItem[]>([]);
   useEffect(() => {
@@ -244,54 +271,71 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
   const conflicts = controller.outbox.filter((item) => item.status === "conflict");
   const selectedEntry = monthEntries[selectedCacheKey];
 
+  if (controller.lifecycle !== "ready")
+    return (
+      <Content className="flex items-center justify-center">
+        <main className="w-full" aria-labelledby="pomodoro-loading-title">
+          <NeuDiv className="p-6 text-center" role="status">
+            <h1 id="pomodoro-loading-title" className="text-xl font-bold">
+              正在恢复番茄钟状态
+            </h1>
+            <p className="mt-2">恢复完成后就可以继续操作。</p>
+          </NeuDiv>
+        </main>
+      </Content>
+    );
+
   return (
-    <Content
-      className="flex justify-center"
-      leftSideBar={
-        <PomodoroHistoryPanel
-          selectedDateKey={selectedDateKey}
-          todayKey={todayKey}
-          timeZone={timeZone}
-          records={selectedHistory}
-          loading={selectedEntry?.status === "loading" && selectedHistory.length === 0}
-          error={selectedEntry?.error ?? null}
-          pendingCount={pendingCount + syncingCount}
-          failedCount={failedItems.length}
-          conflictCount={conflicts.length}
-          pausedReason={failedItems.find((item) => item.lastError)?.lastError ?? null}
+    <>
+      <PomodoroTitleBridge />
+      <Content
+        className="flex justify-center"
+        leftSideBar={
+          <PomodoroHistoryPanel
+            selectedDateKey={selectedDateKey}
+            todayKey={todayKey}
+            timeZone={timeZone}
+            records={selectedHistory}
+            loading={selectedEntry?.status === "loading" && selectedHistory.length === 0}
+            error={selectedEntry?.error ?? null}
+            pendingCount={pendingCount + syncingCount}
+            failedCount={failedItems.length}
+            conflictCount={conflicts.length}
+            pausedReason={failedItems.find((item) => item.lastError)?.lastError ?? null}
+          />
+        }
+        rightSideBar={
+          <PomodoroOperationPanel
+            selectedDateKey={selectedDateKey}
+            todayKey={todayKey}
+            visibleMonth={visibleMonth}
+            recordDates={recordDates}
+            conflicts={conflicts}
+            pendingCount={pendingCount}
+            isOnline={controller.isOnline}
+            isSyncing={controller.isSyncing}
+            timeZone={timeZone}
+            onDateSelect={setSelectedDateKey}
+            onVisibleMonthChange={setVisibleMonth}
+            onRetry={() => void controller.retryNow()}
+            onAdoptServer={controller.adoptServerRecord}
+          />
+        }
+      >
+        <PomodoroTimer
+          state={controller.state}
+          todayCompletedFocus={todayCompletedFocus}
+          storageError={controller.storageError}
+          recoveryNotice={controller.recoveryNotice}
+          onStart={controller.start}
+          onPause={controller.pause}
+          onResume={controller.resume}
+          onSkip={controller.skip}
+          onStop={controller.stop}
+          onSettingsChange={controller.setSettings}
         />
-      }
-      rightSideBar={
-        <PomodoroOperationPanel
-          selectedDateKey={selectedDateKey}
-          todayKey={todayKey}
-          visibleMonth={visibleMonth}
-          recordDates={recordDates}
-          conflicts={conflicts}
-          pendingCount={pendingCount}
-          isOnline={controller.isOnline}
-          isSyncing={controller.isSyncing}
-          timeZone={timeZone}
-          onDateSelect={setSelectedDateKey}
-          onVisibleMonthChange={setVisibleMonth}
-          onRetry={() => void controller.retryNow()}
-          onAdoptServer={controller.adoptServerRecord}
-        />
-      }
-    >
-      <PomodoroTimer
-        state={controller.state}
-        todayCompletedFocus={todayCompletedFocus}
-        storageError={controller.storageError}
-        recoveryNotice={controller.recoveryNotice}
-        onStart={controller.start}
-        onPause={controller.pause}
-        onResume={controller.resume}
-        onSkip={controller.skip}
-        onStop={controller.stop}
-        onSettingsChange={controller.setSettings}
-      />
-    </Content>
+      </Content>
+    </>
   );
 }
 

@@ -14,6 +14,7 @@
 | `src/db/*Action.ts`        | 带有 `"use server"` 的领域数据操作     |
 | `src/lib/auth/userAuth.ts` | 当前用户和角色权限检查                 |
 | `src/styles/index.scss`    | 全局 Sass 入口和主题样式               |
+| `src/providers/PomodoroProvider.tsx` | 登录会话内唯一的番茄钟控制器与共享状态 |
 
 ## Conventions
 
@@ -25,7 +26,7 @@
 - 组件同时使用 `src/components/ui` 的生成式基础组件和项目自有 `Neu*` 组件。请先复用现有家族，并用 `cn` 合并类名。
 - 页面未显式指定布局时请复用 `Content`。文档顺序保持主区、右侧操作区、左侧展示区，并由容器查询切换三栏、双栏和单栏布局。
 - 番茄时钟状态通过 `src/lib/pomodoro/reducer.ts` 改变；计时和待同步事件按认证用户版本化保存，服务端使用事件标识幂等写入，音效、标题和计时行为通过插件扩展。
-- 番茄钟页面只创建一个 `usePomodoro` 控制器。按固定会话 IANA 时区归档记录，并将所选日期、可见月份和按用户隔离的月份缓存分开管理。
+- `PomodoroProvider` 在认证布局内创建唯一的 `usePomodoro` 控制器，导航栏与番茄钟页面通过分离的状态、操作和结算 Context 消费它。番茄钟页面继续按固定会话 IANA 时区归档记录，并分别管理所选日期、可见月份和按用户隔离的月份缓存。
 - 用户界面主要使用中文，请保持相邻界面的语言一致。
 
 ## Gotchas

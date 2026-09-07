@@ -33,6 +33,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 20  | 番茄钟按日布局与历史浏览 | Maintenance | done        |
 | 21  | 本地发布流程             | Maintenance | in-progress |
 | 22  | 接口安全与健壮性修复     | Maintenance | done        |
+| 23  | 番茄钟全局响应式状态     | Maintenance | done        |
 
 ## Current product
 
@@ -251,6 +252,22 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
   - [x] 补齐接口与数据边界测试，并通过 lint、build、Vitest 和受影响的认证页面流程，covers `AC-1` 到 `AC-16`
 - [x] Verify it: `/check verify 接口安全与健壮性修复`
 - [x] Test it: `/test 接口安全与健壮性修复`
+
+### 23. 番茄钟全局响应式状态 · done
+
+将番茄钟控制器提升为登录会话中的全局唯一状态源，让用户切换站内页面后仍能持续计时、自动结算和同步，并让其他页面实时显示同一状态。
+**Done when:** 登录用户在任意站内页面看到同一份番茄钟状态，导航不会中断计时或产生第二个控制器，到期后继续自动写入或进入离线队列；现有开始、暂停、继续、停止、跳过、设置、音效、标题、恢复、用户隔离、幂等、冲突、多标签页同步、历史和日历功能保持可用。
+
+- [x] Design it (spec): `/architect 番茄钟全局响应式状态`
+      spec [0006](../specs/0006-pomodoro-global-state/index.md)
+- [x] Build it: `/develop 番茄钟全局响应式状态`
+  - [x] 建立全局唯一 Provider、分离的强类型 Context、恢复门槛和共享导航状态，covers `AC-1` 到 `AC-5`
+  - [x] 收口用户会话代次、退出与切换隔离、有效转换持久化和普通 tick 内存更新，covers `AC-2`, `AC-6`, `AC-11`, `AC-12`
+  - [x] 接通任意页面自动结算、声音、Toast、页面标题和无重放 settlement 订阅，covers `AC-7`, `AC-8`, `AC-10`, `AC-12`
+  - [x] 完成导航响应式与错误状态，并覆盖 Provider、路由、离线、多标签页和现有页面回归，covers `AC-3`, `AC-4`, `AC-9`, `AC-12`, `AC-13`
+      code in `src/app/layout.tsx`, `src/providers/PomodoroProvider.tsx`, `src/components/Navbar/`, `src/components/pomodoro/`, `src/hooks/usePomodoro.ts`
+- [x] Verify it: `/check verify 番茄钟全局响应式状态`
+- [x] Test it: `/test 番茄钟全局响应式状态`
 
 ## Deferred
 

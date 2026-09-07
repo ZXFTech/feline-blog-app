@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
@@ -8,7 +8,7 @@ import { Pomodoro } from "./index";
 const mocks = vi.hoisted(() => ({
   user: null as null | { id: string },
   getTomatoHistory: vi.fn(),
-  usePomodoro: vi.fn(),
+  settlementListener: null as null | ((settlement: unknown) => void),
 }));
 
 vi.mock("@/providers/AuthProviders", () => ({
@@ -19,9 +19,32 @@ vi.mock("@/db/tomatoActions", () => ({
   getTomatoHistory: mocks.getTomatoHistory,
 }));
 
-vi.mock("@/hooks/usePomodoro", () => ({
-  usePomodoro: mocks.usePomodoro,
+vi.mock("@/providers/PomodoroProvider", () => ({
+  usePomodoroState: () => ({
+    lifecycle: controller.lifecycle,
+    state: controller.state,
+    outbox: controller.outbox,
+    storageError: controller.storageError,
+    recoveryNotice: controller.recoveryNotice,
+    isOnline: controller.isOnline,
+    isSyncing: controller.isSyncing,
+  }),
+  usePomodoroActions: () => ({
+    start: controller.start,
+    pause: controller.pause,
+    resume: controller.resume,
+    skip: controller.skip,
+    stop: controller.stop,
+    setSettings: controller.setSettings,
+    retryNow: controller.retryNow,
+    adoptServerRecord: controller.adoptServerRecord,
+  }),
+  usePomodoroSettlement: (listener: (settlement: unknown) => void) => {
+    mocks.settlementListener = listener;
+  },
 }));
+
+vi.mock("./PomodoroTitleBridge", () => ({ default: () => null }));
 
 vi.mock("./PomodoroTimer", () => ({
   default: ({ todayCompletedFocus }: { todayCompletedFocus: number }) => (
@@ -84,6 +107,7 @@ const augustRecord: PomodoroHistoryRecord = {
 };
 
 const controller = {
+  lifecycle: "ready" as const,
   state: {
     phase: "idle" as const,
     run: "stopped" as const,
@@ -125,8 +149,7 @@ describe("Pomodoro workspace", () => {
     mocks.user = { id: "user-1" };
     mocks.getTomatoHistory.mockReset();
     mocks.getTomatoHistory.mockResolvedValue({ status: "success", data: [] });
-    mocks.usePomodoro.mockReset();
-    mocks.usePomodoro.mockReturnValue(controller);
+    mocks.settlementListener = null;
   });
 
   afterEach(() => {
@@ -142,7 +165,7 @@ describe("Pomodoro workspace", () => {
     expect(screen.queryByLabelText("history surface")).not.toBeInTheDocument();
     expect(screen.queryByLabelText("operation surface")).not.toBeInTheDocument();
     expect(mocks.getTomatoHistory).not.toHaveBeenCalled();
-    expect(mocks.usePomodoro).not.toHaveBeenCalled();
+    expect(mocks.settlementListener).toBeNull();
   });
 
   it("AC-10 renders one workspace from the shared controller", async () => {
@@ -151,9 +174,7 @@ describe("Pomodoro workspace", () => {
     expect(await screen.findAllByText("timer surface")).toHaveLength(1);
     expect(screen.getAllByLabelText("history surface")).toHaveLength(1);
     expect(screen.getAllByLabelText("operation surface")).toHaveLength(1);
-    expect(mocks.usePomodoro).toHaveBeenCalledWith({
-      onRecordSettled: expect.any(Function),
-    });
+    expect(mocks.settlementListener).toEqual(expect.any(Function));
   });
 
   it("passes today's completed focus history to the timer", async () => {
@@ -203,5 +224,26 @@ describe("Pomodoro workspace", () => {
 
     expect(await screen.findByText("2026-07-15")).toBeVisible();
     expect(screen.queryByText("august-record")).not.toBeInTheDocument();
+  });
+
+  it("keeps a settlement that arrives while the month query is in flight", async () => {
+    let resolveHistory!: (result: { status: "success"; data: PomodoroHistoryRecord[] }) => void;
+    mocks.getTomatoHistory.mockReturnValue(
+      new Promise((resolve) => {
+        resolveHistory = resolve;
+      })
+    );
+
+    render(<Pomodoro />);
+
+    act(() => {
+      mocks.settlementListener?.({
+        item: { userId: "user-1" },
+        record: augustRecord,
+      });
+    });
+    act(() => resolveHistory({ status: "success", data: [] }));
+
+    expect(await screen.findByText("august-record")).toBeVisible();
   });
 });

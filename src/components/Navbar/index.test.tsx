@@ -5,6 +5,7 @@ import Navbar from ".";
 vi.mock("../Theme", () => ({ default: () => null }));
 vi.mock("../Profile/UserMenu", () => ({ UserMenu: () => null }));
 vi.mock("../Icon/presetIcon", () => ({ IconNeonCat: () => null }));
+vi.mock("../pomodoro/PomodoroGlobalStatus", () => ({ default: () => null }));
 
 describe("Navbar", () => {
   it("puts the raise interaction on native navigation links", () => {

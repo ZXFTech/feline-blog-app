@@ -2,8 +2,11 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
 import type {
+  PluginContext,
   PomodoroHistoryRecord,
   PomodoroOutboxItem,
+  PomodoroPlugin,
+  PomodoroState,
   SavePomodoroResult,
 } from "@/types/pomodoro";
 
@@ -208,5 +211,82 @@ describe("usePomodoro synchronization", () => {
     expect(mocks.savePomodoroRecord).toHaveBeenCalledOnce();
     resolveSave({ status: "created", record: serverRecord });
     await waitFor(() => expect(result.current.isSyncing).toBe(false));
+  });
+
+  it("AC-8 forwards a natural completion to onOutcome with the tick source", async () => {
+    mocks.outbox = [];
+    const onOutcome = vi.fn();
+    let context!: PluginContext<PomodoroState>;
+    const capturePlugin: PomodoroPlugin<PomodoroState> = {
+      name: "capture",
+      setup(pluginContext) {
+        context = pluginContext;
+      },
+    };
+    const { result } = renderHook(() => usePomodoro({ plugins: [capturePlugin], onOutcome }));
+    await waitFor(() => expect(result.current.lifecycle).toBe("ready"));
+    const now = Date.now();
+
+    act(() => {
+      context.dispatch(
+        {
+          type: "HYDRATE",
+          now,
+          state: {
+            ...result.current.state,
+            phase: "focus",
+            run: "running",
+            remainingMs: 1,
+            startAt: now - 60_000,
+            endAt: now - 1,
+            activeEventId: eventId,
+          },
+        },
+        { source: "tick" }
+      );
+    });
+
+    await waitFor(() =>
+      expect(onOutcome).toHaveBeenCalledWith(expect.objectContaining({ eventId }), "tick")
+    );
+  });
+
+  it("AC-6 keeps an ordinary tick in memory without writing the timer snapshot", async () => {
+    mocks.outbox = [];
+    let context!: PluginContext<PomodoroState>;
+    const capturePlugin: PomodoroPlugin<PomodoroState> = {
+      name: "capture",
+      setup(pluginContext) {
+        context = pluginContext;
+      },
+    };
+    const { result } = renderHook(() => usePomodoro({ plugins: [capturePlugin] }));
+    await waitFor(() => expect(result.current.lifecycle).toBe("ready"));
+    const now = Date.now();
+
+    act(() => {
+      context.dispatch({
+        type: "HYDRATE",
+        now,
+        state: {
+          ...result.current.state,
+          phase: "focus",
+          run: "running",
+          remainingMs: 60_000,
+          startAt: now - 1_000,
+          endAt: now + 60_000,
+          activeEventId: eventId,
+        },
+      });
+    });
+    await waitFor(() => expect(result.current.state.run).toBe("running"));
+    mocks.writeTimer.mockClear();
+
+    act(() => {
+      context.dispatch({ type: "TICK", now: now + 1_000 }, { source: "tick" });
+    });
+
+    expect(result.current.state.remainingMs).toBe(59_000);
+    expect(mocks.writeTimer).not.toHaveBeenCalled();
   });
 });

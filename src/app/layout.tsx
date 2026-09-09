@@ -8,6 +8,7 @@ import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
 import { getCurrentUser } from "@/lib/auth/userAuth";
 import { PomodoroProvider } from "@/providers/PomodoroProvider";
+import { themeInitializationScript } from "@/lib/theme";
 
 export const metadata: Metadata = {
   title: "neon cat",
@@ -33,11 +34,12 @@ export default async function RootLayout({
     : null;
 
   return (
-    <html lang="zh-cn">
+    <html lang="zh-cn" suppressHydrationWarning>
       <Head>
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
         <AuthProviders initialUser={initialUser}>
           <PomodoroProvider>
             <Navbar routeList={routeList} />

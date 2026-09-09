@@ -82,4 +82,16 @@ describe("RootLayout authentication hydration", () => {
       undefined
     );
   });
+
+  it("places theme restoration before the application content", async () => {
+    mocks.getCurrentUser.mockResolvedValue(null);
+
+    const markup = renderToStaticMarkup(await RootLayout({ children: <main>页面内容</main> }));
+    const themeScriptIndex = markup.indexOf("feline-blog-theme");
+    const contentIndex = markup.indexOf("<main>页面内容</main>");
+
+    expect(themeScriptIndex).toBeGreaterThan(-1);
+    expect(themeScriptIndex).toBeLessThan(contentIndex);
+    expect(markup).toContain('<html lang="zh-cn">');
+  });
 });

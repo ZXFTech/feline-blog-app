@@ -18,7 +18,7 @@ export function useAuth() {
 
         if (res.ok) {
           const { data } = await res.json();
-          setUser(data.user);
+          setUser(data?.user ?? null);
         } else {
           setUser(null);
         }

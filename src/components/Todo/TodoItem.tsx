@@ -40,7 +40,7 @@ function TodoItem({ todo, onTodoClick, onTodoDelete, onTodoUpdate, editable = tr
           {todo.content}
         </span>
         {todo.tags?.length ? (
-          <div className="todo-tags flex flex-wrap gap-1 justify-end mt-2">
+          <div className="todo-tags flex flex-wrap gap-1 justify-end">
             {todo.tags.map((tag, index) => {
               return (
                 <Tag key={tag.content + index} color={tag.color}>

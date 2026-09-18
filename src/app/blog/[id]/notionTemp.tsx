@@ -2,7 +2,7 @@
 
 // import Head from "next/head";
 
-// import NeuDiv from "@/components/NeuDiv/NeuDiv";
+// import { NeuSurface } from "@/components/ui/neu-surface";
 // import Tag from "@/components/Tag/tag";
 
 // import NotionBlock from "@/components/NotionBlock/notionBlock";
@@ -55,10 +55,10 @@
 //       <div className="text-left">
 //         {!contentList.length ? (
 //           <div className="blog-empty-content">
-//             <NeuDiv className="blog-empty-title">
+//             <NeuSurface className="blog-empty-title">
 //               未找到博客, 所以给你看看我的小猫吧~
-//             </NeuDiv>
-//             <NeuDiv className="blog-empty-image">
+//             </NeuSurface>
+//             <NeuSurface className="blog-empty-image">
 //               <div>
 //                 <Image
 //                   layout="responsive"
@@ -69,7 +69,7 @@
 //                   objectFit="cover"
 //                 />
 //               </div>
-//             </NeuDiv>
+//             </NeuSurface>
 //           </div>
 //         ) : (
 //           contentList.map((content) => {

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 
 import { Virtuoso } from "react-virtuoso";
 import logger from "@/lib/logger/Logger";
@@ -126,7 +126,7 @@ function Timeline({ timelineData }: Props) {
   return (
     <div className="timeline-container h-[100%]">
       <div className="timeline-operation">
-        <NeuButton onClick={() => setFirstItemIndex(INITIAL_FIRST_INDEX)}>回到今天</NeuButton>
+        <Button onClick={() => setFirstItemIndex(INITIAL_FIRST_INDEX)}>回到今天</Button>
       </div>
       <div className="timeline-scroller overflow-scroll h-[100%] pb-3">
         <Virtuoso

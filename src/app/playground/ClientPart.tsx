@@ -3,7 +3,7 @@
 // import { getTodoByTags } from "@/db/todoAction";
 // import { useEffect, useMemo, useState } from "react";
 // // import { getDateRange } from "@/components/Timeline";
-// import NeuDiv from "@/components/NeuDiv";
+// import { NeuSurface } from "@/components/ui/neu-surface";
 // import Tag from "@/components/Tag";
 // import { TagTodo } from "@/types/todo";
 
@@ -76,7 +76,7 @@
 //   }, [dateRange]);
 
 //   return (
-//     <div className="flex flex-col gap-3 bg-bg ">
+//     <div className="flex flex-col gap-3 bg-background ">
 //       {dateMap.map((date) => {
 //         const dateKey = new Date(date.setHours(0, 0, 0, 0))
 //           .toISOString()
@@ -98,7 +98,7 @@
 //                       >
 //                         {storyline.map((todo) => {
 //                           return (
-//                             <NeuDiv className="w-fit" key={todo.id}>
+//                             <NeuSurface className="w-fit" key={todo.id}>
 //                               <div className="flex gap-2 flex-wrap">
 //                                 {(todo.tags || []).map((tag) => {
 //                                   return (
@@ -115,7 +115,7 @@
 //                                 })}
 //                               </div>
 //                               <div>{todo.content}</div>
-//                             </NeuDiv>
+//                             </NeuSurface>
 //                           );
 //                         })}
 //                       </div>

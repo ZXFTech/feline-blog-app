@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Content from "@/components/Content";
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import { getTomatoHistory } from "@/db/tomatoActions";
 import {
   usePomodoroActions,
@@ -275,12 +275,12 @@ function PomodoroWorkspace({ userId }: { userId: string }) {
     return (
       <Content className="flex items-center justify-center">
         <main className="w-full" aria-labelledby="pomodoro-loading-title">
-          <NeuDiv className="p-6 text-center" role="status">
+          <NeuSurface className="p-6 text-center" role="status">
             <h1 id="pomodoro-loading-title" className="text-xl font-bold">
               正在恢复番茄钟状态
             </h1>
             <p className="mt-2">恢复完成后就可以继续操作。</p>
-          </NeuDiv>
+          </NeuSurface>
         </main>
       </Content>
     );
@@ -345,12 +345,12 @@ export function Pomodoro() {
     return (
       <Content className="flex items-center justify-center">
         <main className="w-full" aria-labelledby="pomodoro-login-title">
-          <NeuDiv className="p-6 text-center" role="alert">
+          <NeuSurface className="p-6 text-center" role="alert">
             <h1 id="pomodoro-login-title" className="text-xl font-bold">
               请先登录
             </h1>
             <p className="mt-2">番茄钟会按账号隔离计时与历史。</p>
-          </NeuDiv>
+          </NeuSurface>
         </main>
       </Content>
     );

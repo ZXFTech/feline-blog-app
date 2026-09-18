@@ -22,6 +22,9 @@ describe("PomodoroGlobalStatus", () => {
       state: initialState,
       outbox: [],
       storageError: null,
+      recoveryNotice: null,
+      isOnline: true,
+      isSyncing: false,
     };
   });
 
@@ -39,7 +42,7 @@ describe("PomodoroGlobalStatus", () => {
     );
     expect(screen.getByText("01:05")).toBeInTheDocument();
     expect(screen.queryByText("专注")).not.toBeInTheDocument();
-    expect(container.querySelector(".lucide-timer")).toHaveClass("text-danger!");
+    expect(container.querySelector(".lucide-timer")).toHaveClass("text-destructive!");
   });
 
   it("AC-4 does not duplicate the status on the tomato page", () => {
@@ -84,7 +87,7 @@ describe("PomodoroGlobalStatus", () => {
 
     expect(screen.getByText("05:00")).toBeInTheDocument();
     expect(screen.queryByText("短休息")).not.toBeInTheDocument();
-    expect(container.querySelector(".lucide-timer")).toHaveClass("text-success!");
+    expect(container.querySelector(".lucide-timer")).toHaveClass("text-status-success!");
   });
 
   it("AC-9 announces storage problems and keeps the recovery link", () => {

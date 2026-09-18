@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
-import { neuSurfaceClassNames } from "../NeuDiv";
+import { neuSurface } from "@/components/ui/neu-surface";
 import { DailyData, WorkoutData } from "@/app/daily/page";
 import { cn } from "@/lib/utils";
 
@@ -90,20 +90,20 @@ export function WeeklyView({ weeklyStatus, selectedDate, onWeekChanged }: Weekly
   const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="space-y-4 mb-2 p-2">
+    <div className="min-w-0 space-y-4 mb-2 p-2">
       {/* Week Navigation */}
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center justify-start gap-4">
-          <NeuButton
-            icon="Chevron_Left"
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <div className="flex min-w-0 grow items-center justify-between gap-1">
+          <Button
+            materialIcon="Chevron_Left"
             onClick={() => {
               const startOfWeek = new Date(weekStart.setDate(weekStart.getDate() - 7));
               setWeekStart(startOfWeek);
               onWeekChanged(startOfWeek);
             }}
             className="p-2 hover:bg-muted rounded-md transition-colors w-5 h-5 m-0!"
-          ></NeuButton>
-          <h3 className="font-semibold text-center w-50">
+          ></Button>
+          <h3 className="min-w-0 grow whitespace-nowrap text-center font-semibold">
             {weekStart.toLocaleDateString("en-US", {
               month: "short",
               day: "numeric",
@@ -114,19 +114,19 @@ export function WeeklyView({ weeklyStatus, selectedDate, onWeekChanged }: Weekly
               day: "numeric",
             })}
           </h3>
-          <NeuButton
-            icon="Chevron_Right"
+          <Button
+            materialIcon="Chevron_Right"
             onClick={() => {
               const startOfWeek = new Date(weekStart.setDate(weekStart.getDate() + 7));
               onWeekChanged(startOfWeek);
               setWeekStart(startOfWeek);
             }}
             className="p-2 hover:bg-muted rounded-md transition-colors w-5 h-5 m-0!"
-          ></NeuButton>
+          ></Button>
         </div>
-        <NeuButton
-          className="h-5 m-0!"
-          icon="Today"
+        <Button
+          className="h-5 shrink-0 m-0!"
+          materialIcon="Today"
           onClick={() => {
             const startOfWeek = getStartOfWeek(selectedDate);
             setWeekStart(startOfWeek);
@@ -135,27 +135,27 @@ export function WeeklyView({ weeklyStatus, selectedDate, onWeekChanged }: Weekly
           }}
         >
           回到今天
-        </NeuButton>
+        </Button>
       </div>
       <div className="space-y-3">
-        <div className="grid grid-cols-7 gap-2">
+        <div className="grid min-w-0 grid-cols-7 gap-1">
           {weeklySummary.map((day, index) => (
             <button
               type="button"
               key={day.date}
               onClick={() => router.replace(`${pathname}?date=${day.date}`)}
               aria-pressed={selectedDateStr === day.date}
-              className={neuSurfaceClassNames({
-                surface: "embossed",
+              className={neuSurface({
+                elevation: "raised",
                 className: cn(
-                  "border border-border rounded-lg p-3! flex flex-col gap-1 min-h-16 cursor-pointer text-left",
+                  "min-w-0 overflow-hidden border border-border rounded-lg p-2! flex flex-col gap-1 min-h-16 cursor-pointer text-left",
                   {
                     "bg-gray-500/20!": selectedDateStr !== day.date,
                   }
                 ),
               })}
             >
-              <div className="flex items-center gap-1">
+              <div className="flex flex-col items-center gap-0 sm:flex-row sm:gap-1">
                 <span className="text-xs font-semibold text-muted-foreground">
                   {dayLabels[index]}
                 </span>

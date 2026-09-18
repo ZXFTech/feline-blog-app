@@ -1,10 +1,11 @@
 "use client";
 
+import { StyledLink } from "@/components/ui/styled-link";
 import Content from "@/components/Content";
 import Icon from "@/components/Icon";
-import NeuButton from "@/components/NeuButton";
-import NeuDiv from "@/components/NeuDiv";
-import NeuInput from "@/components/NeuInput";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { InputField } from "@/components/ui/input-field";
 import { TextGap } from "@/components/TextGap";
 import { useAuth } from "@/hooks/useAuth";
 import { toast as message } from "@/components/ProMessage";
@@ -91,10 +92,10 @@ export default function Register() {
   return (
     <Content>
       <form onSubmit={handleSubmit} className="flex justify-center">
-        <NeuDiv className="flex flex-col w-100 min-w-50 justify-center items-stretch p-4">
+        <NeuSurface className="flex flex-col w-100 min-w-50 justify-center items-stretch p-4">
           <div className="text-3xl mb-4 text-center">注册账号</div>
-          <NeuInput
-            allowClear
+          <InputField
+            clearable
             disabled={loading}
             prefix={<Icon icon="email" size="lg" />}
             className={`${
@@ -108,7 +109,7 @@ export default function Register() {
           {submitted && errorStatus.emailErrorMessage ? (
             <span className="text-red-600">{errorStatus.emailErrorMessage}</span>
           ) : null}
-          <NeuInput
+          <InputField
             disabled={loading}
             prefix={<Icon icon="account_box" size="lg" />}
             className={`${
@@ -124,7 +125,7 @@ export default function Register() {
           {submitted && errorStatus.usernameErrorMessage ? (
             <span className="text-red-600">{errorStatus.usernameErrorMessage}</span>
           ) : null}
-          <NeuInput
+          <InputField
             disabled={loading}
             prefix={<Icon icon="lock" size="lg" />}
             id="password"
@@ -141,7 +142,7 @@ export default function Register() {
           {submitted && errorStatus.passwordErrorMessage ? (
             <span className="text-red-600">{errorStatus.passwordErrorMessage}</span>
           ) : null}
-          <NeuInput
+          <InputField
             disabled={loading}
             prefix={<Icon icon="lock" size="lg" />}
             id="confirmedPassword"
@@ -161,24 +162,22 @@ export default function Register() {
           ) : null}
           <span className="mt-4">
             已有账号,
-            <NeuButton buttonType="link" href="/login">
-              点击跳转登录
-            </NeuButton>
+            <StyledLink href="/login">点击跳转登录</StyledLink>
           </span>
           <span>
             注册登录即表示同意 <Link href={""}>用户协议</Link> 和 <Link href={""}>隐私政策</Link>
           </span>
-          <NeuButton
+          <Button
             loading={loading}
             disabled={loading}
-            buttonType="primary"
+            variant="primary"
             className="mt-4 px-4! py-2! text-xl!"
             type="submit"
-            btnSize="lg"
+            size="lg"
           >
             <TextGap text="注册" gap={4} />
-          </NeuButton>
-        </NeuDiv>
+          </Button>
+        </NeuSurface>
       </form>
     </Content>
   );

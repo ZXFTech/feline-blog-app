@@ -1,42 +1,43 @@
-import * as React from "react";
+import { Button as ButtonPrimitive } from "@base-ui/react/button";
 import { cva, type VariantProps } from "class-variance-authority";
-import { Slot } from "radix-ui";
-
+import { Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import Icon, { type IconType } from "@/components/Icon";
 
+/**
+ * Exact 1:1 reproduction of the Figma "Button" component set
+ * (types: default / primary / danger / warn / success — sizes: xs / sm / md / lg,
+ * states: default / hover / pressed / disabled). Colors, radii, padding and type
+ * scale are pulled straight from the design tokens in globals.css so the button
+ * reacts correctly across every theme (light / dark / sugar / warm).
+ */
 const buttonVariants = cva(
-  "focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 rounded-md border border-transparent bg-clip-padding text-sm font-medium focus-visible:ring-3 aria-invalid:ring-3 [&_svg:not([class*='size-'])]:size-4 inline-flex items-center justify-center whitespace-nowrap transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none shrink-0 [&_svg]:shrink-0 outline-none group/button select-none",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-1 whitespace-nowrap font-sans font-semibold transition-[background-color,box-shadow,transform] outline-none select-none focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-65 active:scale-[0.99] [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg]:size-[1em]",
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/80",
-        outline:
-          "border-border bg-background hover:bg-muted hover:text-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50 aria-expanded:bg-muted aria-expanded:text-foreground shadow-xs",
-        secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
-        ghost:
-          "hover:bg-muted hover:text-foreground dark:hover:bg-muted/50 aria-expanded:bg-muted aria-expanded:text-foreground",
-        destructive:
-          "bg-destructive/10 hover:bg-destructive/20 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/20 text-destructive focus-visible:border-destructive/40 dark:hover:bg-destructive/30",
-        link: "text-primary underline-offset-4 hover:underline",
+        default:
+          "bg-secondary text-secondary-foreground shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_10%)] active:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_16%)] active:shadow-neu-raised-pressed",
+        primary:
+          "bg-primary text-primary-foreground shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--primary),white_18%)] active:bg-[color-mix(in_oklch,var(--primary),black_18%)] active:shadow-neu-raised-pressed",
+        danger:
+          "bg-status-error text-status-error-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-error),white_18%)] active:bg-[color-mix(in_oklch,var(--status-error),black_18%)] active:shadow-neu-raised-pressed",
+        warning:
+          "bg-status-warning text-status-warning-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-warning),white_18%)] active:bg-[color-mix(in_oklch,var(--status-warning),black_18%)] active:shadow-neu-raised-pressed",
+        success:
+          "bg-status-success text-status-success-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-success),white_18%)] active:bg-[color-mix(in_oklch,var(--status-success),black_18%)] active:shadow-neu-raised-pressed",
       },
       size: {
-        default:
-          "h-9 gap-1.5 px-2.5 in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
-        xs: "h-6 gap-1 rounded-[min(var(--radius-md),8px)] px-2 text-xs in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
-        sm: "h-8 gap-1 rounded-[min(var(--radius-md),10px)] px-2.5 in-data-[slot=button-group]:rounded-md has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5",
-        lg: "h-10 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
-        icon: "size-9",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),8px)] in-data-[slot=button-group]:rounded-md [&_svg:not([class*='size-'])]:size-3",
-        "icon-sm":
-          "size-8 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-md",
-        "icon-lg": "size-10",
+        xs: "h-[1.375rem] rounded-[var(--radius-btn-xs)] px-2 py-1 text-[length:var(--text-btn-xs)] leading-[1.5]",
+        sm: "h-[1.5625rem] rounded-[var(--radius-btn-sm)] px-2 py-1 text-[length:var(--text-btn-sm)] leading-[1.5]",
+        md: "h-[1.8125rem] rounded-[var(--radius-btn-md)] px-[0.6rem] py-[0.3rem] text-[length:var(--text-btn-md)] leading-[1.5]",
+        lg: "h-[2.0625rem] rounded-[var(--radius-btn-lg)] px-[0.6rem] py-[0.3rem] text-[length:var(--text-btn-lg)] leading-[1.5]",
+        icon: "size-[1.8125rem] rounded-[var(--radius-btn-md)] p-0 text-[length:var(--text-btn-md)]",
       },
     },
     defaultVariants: {
       variant: "default",
-      size: "default",
+      size: "md",
     },
   }
 );
@@ -44,23 +45,31 @@ const buttonVariants = cva(
 function Button({
   className,
   variant = "default",
-  size = "default",
-  asChild = false,
+  size = "md",
+  loading = false,
+  materialIcon,
+  materialIconAfter,
+  disabled,
+  children,
   ...props
-}: React.ComponentProps<"button"> &
+}: ButtonPrimitive.Props &
   VariantProps<typeof buttonVariants> & {
-    asChild?: boolean;
+    loading?: boolean;
+    materialIcon?: IconType;
+    materialIconAfter?: IconType;
   }) {
-  const Comp = asChild ? Slot.Root : "button";
-
   return (
-    <Comp
+    <ButtonPrimitive
       data-slot="button"
-      data-variant={variant}
-      data-size={size}
+      disabled={disabled || loading}
       className={cn(buttonVariants({ variant, size, className }))}
       {...props}
-    />
+    >
+      {loading && <Loader2Icon className="animate-spin" />}
+      {!loading && materialIcon ? <Icon icon={materialIcon} /> : null}
+      {children}
+      {materialIconAfter ? <Icon icon={materialIconAfter} /> : null}
+    </ButtonPrimitive>
   );
 }
 

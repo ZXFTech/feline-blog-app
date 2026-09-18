@@ -2,14 +2,13 @@
 "use client";
 
 import { MouseEventHandler, ReactElement, ReactNode, useEffect, useRef, useState } from "react";
-import { neuSurfaceClassNames } from "../NeuDiv";
+import { neuSurface } from "@/components/ui/neu-surface";
 import Icon, { IconType } from "../Icon";
-import NeuButton from "../NeuButton";
-import { ButtonType } from "../Button";
+import { Button } from "@/components/ui/button";
 import Portal from "../Portal";
 
 type FooterType = "ok" | "cancel" | "default" | "none";
-type ModalButtonType = Exclude<ButtonType, "link">;
+type ModalButtonType = "default" | "primary" | "danger" | "warning" | "success";
 
 interface Props {
   visible: boolean;
@@ -81,15 +80,15 @@ const Modal = ({
     return (
       <>
         {(footer === "ok" || footer === "default") && (
-          <NeuButton icon={okIcon} loading={okLoading} buttonType={okType} onClick={onOk}>
+          <Button materialIcon={okIcon} loading={okLoading} variant={okType} onClick={onOk}>
             {okText}
-          </NeuButton>
+          </Button>
         )}
 
         {(footer === "cancel" || footer === "default") && (
-          <NeuButton buttonType={cancelType} onClick={onClose}>
+          <Button variant={cancelType} onClick={onClose}>
             {cancelText}
-          </NeuButton>
+          </Button>
         )}
       </>
     );
@@ -108,7 +107,7 @@ const Modal = ({
       >
         <div
           onClick={(e) => e.stopPropagation()}
-          className={neuSurfaceClassNames({
+          className={neuSurface({
             className: `model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
               show ? "scale-100 opacity-100" : "scale-95 opacity-0"
             }`,

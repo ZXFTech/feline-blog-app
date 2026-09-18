@@ -9,7 +9,7 @@ describe("Tag", () => {
 
     const tag = screen.getByLabelText("状态标签");
     expect(tag.tagName).toBe("SPAN");
-    expect(tag).toHaveClass("neu-div", "neu-embossed-sm");
+    expect(tag).toHaveClass("bg-background", "shadow-neu-raised");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 
@@ -19,7 +19,7 @@ describe("Tag", () => {
     render(<Tag onSelect={onSelect}>候选标签</Tag>);
 
     const button = screen.getByRole("button", { name: "候选标签" });
-    expect(button).toHaveClass("neu-div", "neu-embossed-sm");
+    expect(button).toHaveClass("bg-background", "shadow-neu-raised");
     await user.click(button);
     expect(onSelect).toHaveBeenCalledOnce();
   });
@@ -45,7 +45,9 @@ describe("Tag", () => {
 
     const selectButton = screen.getByRole("button", { name: "重要" });
     const closeButton = screen.getByRole("button", { name: "移除重要" });
-    expect(selectButton.closest(".neu-div")).toBe(closeButton.closest(".neu-div"));
+    expect(selectButton.closest(".shadow-neu-raised")).toBe(
+      closeButton.closest(".shadow-neu-raised")
+    );
 
     await user.click(closeButton);
     expect(onClose).toHaveBeenCalledOnce();
@@ -103,8 +105,10 @@ describe("Tag", () => {
       </Tag>
     );
 
-    expect(container.querySelectorAll(".neu-div")).toHaveLength(1);
-    expect(screen.getByRole("button", { name: "组合标签" })).not.toHaveClass("neu-div");
-    expect(screen.getByRole("button", { name: "移除组合标签" })).not.toHaveClass("neu-div");
+    expect(container.querySelectorAll(".shadow-neu-raised")).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "组合标签" })).not.toHaveClass("shadow-neu-raised");
+    expect(screen.getByRole("button", { name: "移除组合标签" })).not.toHaveClass(
+      "shadow-neu-raised"
+    );
   });
 });

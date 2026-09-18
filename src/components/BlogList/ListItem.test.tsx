@@ -19,7 +19,12 @@ describe("BlogList ListItem", () => {
     const { container } = render(<ListItem {...blog} />);
     const card = screen.getByText("语义测试文章").closest(".blog-list-item");
     expect(card?.tagName).toBe("DIV");
-    expect(card).toHaveClass("neu-interaction-raise-normal");
+    expect(card).toHaveClass(
+      "bg-background",
+      "shadow-none",
+      "p-[var(--spacing-panel-inset-compact)]",
+      "gap-[var(--spacing-panel-gap-compact)]"
+    );
     expect(card).not.toHaveAttribute("role", "button");
     expect(card).not.toHaveAttribute("tabindex");
     expect(container.querySelector(".blog-list-item > a")).toBeNull();

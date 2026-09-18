@@ -28,14 +28,14 @@ describe("PomodoroList", () => {
     render(<PomodoroList dataSource={[record]} timeZone="UTC" />);
 
     expect(screen.getByRole("list", { name: "番茄钟历史" })).toBeVisible();
-    expect(screen.getByLabelText("已同步")).toHaveClass("text-success");
+    expect(screen.getByLabelText("已同步")).toHaveClass("text-status-success");
     expect(screen.queryByText("已同步")).not.toBeInTheDocument();
     expect(screen.getByText("目标 25:00")).toBeVisible();
     expect(screen.getByText("实际 25:00")).toBeVisible();
     expect(screen.getByText("完成")).toBeVisible();
-    const historyCard = screen.getByLabelText("已同步").closest(".neu-div");
-    expect(historyCard).toHaveClass("neu-div");
-    expect(historyCard?.className).not.toMatch(/neu-interaction-raise|neu-embossed|neu-debossed/);
+    const historyCard = screen.getByLabelText("已同步").closest(".bg-background");
+    expect(historyCard).toHaveClass("bg-background");
+    expect(historyCard?.className).not.toMatch(/cursor-pointer/);
   });
 
   it("AC-7 keeps failed details in the display-only history", () => {
@@ -46,7 +46,7 @@ describe("PomodoroList", () => {
       />
     );
 
-    expect(screen.getByLabelText("同步暂停")).toHaveClass("text-warning");
+    expect(screen.getByLabelText("同步暂停")).toHaveClass("text-status-warning");
     expect(screen.queryByText("同步暂停")).not.toBeInTheDocument();
     expect(screen.getByText("登录状态已失效")).toBeVisible();
     expect(screen.queryByRole("button")).not.toBeInTheDocument();

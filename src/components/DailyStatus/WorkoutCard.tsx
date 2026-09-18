@@ -1,6 +1,6 @@
 import { Dumbbell, Flame, Logs, TimerIcon } from "lucide-react";
 import NeuTag from "@/components/Tag";
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import { WorkoutData } from "@/app/daily/page";
 
 interface Props {
@@ -13,8 +13,8 @@ function WorkoutCard({ data }: Props) {
       <NeuTag className="mb-4!">{data.name}</NeuTag>
       <div className="flex gap-4 flex-wrap">
         {data.sets.map((s, i) => (
-          <NeuDiv
-            surface="embossed"
+          <NeuSurface
+            elevation="raised"
             key={s.calories + "_" + i}
             className="border p-2 rounded-md flex gap-2"
           >
@@ -43,7 +43,7 @@ function WorkoutCard({ data }: Props) {
                 </div>
               ) : null}
             </div>
-          </NeuDiv>
+          </NeuSurface>
         ))}
       </div>
     </div>

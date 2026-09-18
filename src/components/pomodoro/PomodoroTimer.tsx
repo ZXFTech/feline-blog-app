@@ -1,8 +1,8 @@
 import { AlertTriangle } from "lucide-react";
 import FlipTimer from "@/components/Clock/FlipTimer";
-import NeuButton from "@/components/NeuButton";
-import NeuDiv from "@/components/NeuDiv";
-import NeuInput from "@/components/NeuInput";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { InputField } from "@/components/ui/input-field";
 import type { PomodoroSettings, PomodoroState } from "@/types/pomodoro";
 import { formatMs, phaseLabel } from "@/utils/timeUtils";
 
@@ -42,17 +42,17 @@ export default function PomodoroTimer({
         番茄钟
       </h1>
       {storageError ? (
-        <NeuDiv className="flex items-center gap-2 p-4 text-danger" role="alert">
+        <NeuSurface className="flex items-center gap-2 p-4 text-destructive" role="alert">
           <AlertTriangle aria-hidden="true" />
           {storageError}
-        </NeuDiv>
+        </NeuSurface>
       ) : null}
       {recoveryNotice ? (
-        <NeuDiv className="p-4" role="status">
+        <NeuSurface className="p-4" role="status">
           {recoveryNotice}
-        </NeuDiv>
+        </NeuSurface>
       ) : null}
-      <NeuDiv className="flex h-[30rem] w-[28rem] shrink-0 flex-col justify-center space-y-5 p-6">
+      <NeuSurface className="flex h-[30rem] w-[28rem] shrink-0 flex-col justify-center space-y-5 p-6">
         <div className="text-center">
           <p className="text-sm opacity-70">{phaseLabel(state)}</p>
           <div className="my-8" aria-label={`剩余时间 ${formatMs(state.remainingMs)}`}>
@@ -66,20 +66,20 @@ export default function PomodoroTimer({
         </div>
         <div className="flex flex-wrap justify-center gap-2">
           {state.run === "running" ? (
-            <NeuButton onClick={onPause}>暂停</NeuButton>
+            <Button onClick={onPause}>暂停</Button>
           ) : state.run === "paused" ? (
-            <NeuButton onClick={onResume}>继续</NeuButton>
+            <Button onClick={onResume}>继续</Button>
           ) : (
-            <NeuButton buttonType="primary" disabled={blocked} onClick={onStart}>
+            <Button variant="primary" disabled={blocked} onClick={onStart}>
               {isBreak ? "开始休息" : "开始专注"}
-            </NeuButton>
+            </Button>
           )}
-          <NeuButton disabled={!state.activeEventId && !isBreak} onClick={onSkip}>
+          <Button disabled={!state.activeEventId && !isBreak} onClick={onSkip}>
             跳过
-          </NeuButton>
-          <NeuButton buttonType="danger" disabled={!state.activeEventId} onClick={onStop}>
+          </Button>
+          <Button variant="danger" disabled={!state.activeEventId} onClick={onStop}>
             停止
-          </NeuButton>
+          </Button>
         </div>
         <fieldset className="grid grid-cols-2 gap-3 text-sm" disabled={state.run !== "stopped"}>
           <legend className="col-span-2 font-semibold">计时设置</legend>
@@ -93,7 +93,7 @@ export default function PomodoroTimer({
           ).map(([key, label]) => (
             <label key={key} className="space-y-1">
               <span>{label}</span>
-              <NeuInput
+              <InputField
                 className="w-full"
                 min={1}
                 max={1440}
@@ -104,7 +104,7 @@ export default function PomodoroTimer({
             </label>
           ))}
         </fieldset>
-      </NeuDiv>
+      </NeuSurface>
     </main>
   );
 }

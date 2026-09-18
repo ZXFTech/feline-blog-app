@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "material-symbols/outlined.css";
-import "../styles/index.scss";
+import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import Head from "next/head";
@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ProMessage";
 import AuthProviders from "@/providers/AuthProviders";
 import { getCurrentUser } from "@/lib/auth/userAuth";
 import { PomodoroProvider } from "@/providers/PomodoroProvider";
-import { themeInitializationScript } from "@/lib/theme";
+import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
 
 export const metadata: Metadata = {
   title: "neon cat",
@@ -39,15 +39,17 @@ export default async function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <body>
-        <script dangerouslySetInnerHTML={{ __html: themeInitializationScript }} />
-        <AuthProviders initialUser={initialUser}>
-          <PomodoroProvider>
-            <Navbar routeList={routeList} />
-            {children}
-            <Footer />
-            <Toaster richColors visibleToasts={5} />
-          </PomodoroProvider>
-        </AuthProviders>
+        <ThemeScript />
+        <ThemeProvider>
+          <AuthProviders initialUser={initialUser}>
+            <PomodoroProvider>
+              <Navbar routeList={routeList} />
+              {children}
+              <Footer />
+              <Toaster richColors visibleToasts={5} />
+            </PomodoroProvider>
+          </AuthProviders>
+        </ThemeProvider>
       </body>
     </html>
   );

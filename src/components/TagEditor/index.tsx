@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import NeuButton from "../NeuButton";
-import NeuDiv from "../NeuDiv";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import Tag from "../Tag";
-import NeuInput from "../NeuInput";
+import { InputField } from "@/components/ui/input-field";
 import ColorPanel from "../ColorPanel";
 import { Tag as ITag } from "../../../generated/prisma/client";
 import Icon from "../Icon";
@@ -129,7 +129,7 @@ const TagEditor = ({
   };
 
   return (
-    <NeuDiv surface="flat" className="tag-editor-container w-[100%] p-0">
+    <NeuSurface elevation="flat" className="tag-editor-container w-[100%] p-0">
       {value.length ? (
         <div className="tags flex flex-wrap gap-1 m-0! mb-2!">
           {value.map((tag, index) => (
@@ -144,7 +144,7 @@ const TagEditor = ({
         </div>
       ) : null}
       <div>
-        <NeuButton
+        <Button
           className="p-1!"
           style={{ lineHeight: 0 }}
           onClick={() => {
@@ -161,19 +161,19 @@ const TagEditor = ({
               "rotate-45": visible,
             })}
           />
-        </NeuButton>
+        </Button>
       </div>
       <div ref={ref} className={cn("overflow-hidden transition-[height] duration-500 h-0")}>
         {allowCreate ? (
           <div className={cn("flex flex-wrap items-center justify-end")}>
-            <NeuInput
+            <InputField
               style={{ color: tagColor }}
               className={`bg-red-500! mr-1 my-2 font-medium! ${
                 highlight && "border-red-600!"
               } ${shake ? "input-shake" : ""}`}
-              inputSize="xs"
+              fieldSize="xs"
               value={tagValue}
-              ref={tagContentInput}
+              inputRef={tagContentInput}
               onBlur={() => {
                 setShake(false);
                 setHighlight(false);
@@ -189,10 +189,10 @@ const TagEditor = ({
               color={tagColor}
               setColor={setTagColor}
             />
-            <NeuButton icon="check" onClick={updateTags}></NeuButton>
+            <Button materialIcon="check" onClick={updateTags}></Button>
           </div>
         ) : null}
-        <NeuDiv surface="debossed" className="flex gap-1 flex-wrap items-start">
+        <NeuSurface elevation="inset" className="flex gap-1 flex-wrap items-start">
           {(filteredTags || []).map((tag) => {
             return (
               <Tag
@@ -208,9 +208,9 @@ const TagEditor = ({
               </Tag>
             );
           })}
-        </NeuDiv>
+        </NeuSurface>
       </div>
-    </NeuDiv>
+    </NeuSurface>
   );
 };
 

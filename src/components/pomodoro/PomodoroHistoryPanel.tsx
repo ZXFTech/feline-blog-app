@@ -1,5 +1,5 @@
 import { CircleAlert, CloudOff, CloudUpload } from "lucide-react";
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import { formatDateHeading } from "@/lib/pomodoro/calendar";
 import type { PomodoroHistoryRecord } from "@/types/pomodoro";
 import PomodoroList from "./PomodoroList";
@@ -35,19 +35,21 @@ export default function PomodoroHistoryPanel({
       <div className="shrink-0 space-y-3" aria-live="polite" aria-atomic="true">
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <NeuDiv className="px-3 py-1 text-base font-semibold">{heading.full}</NeuDiv>
+            <NeuSurface className="px-3 py-1 text-base font-semibold">{heading.full}</NeuSurface>
             {heading.relative ? (
-              <NeuDiv className="px-3 py-1 text-base font-semibold">{heading.relative}</NeuDiv>
+              <NeuSurface className="px-3 py-1 text-base font-semibold">
+                {heading.relative}
+              </NeuSurface>
             ) : null}
           </div>
           <p className="text-sm opacity-70">按 {timeZone} 的结束日期归档</p>
         </div>
         <div className="flex flex-wrap gap-2 text-sm" role="status">
-          <span className="flex items-center gap-1 text-warning">
+          <span className="flex items-center gap-1 text-status-warning">
             <CloudUpload aria-hidden="true" size={17} />
             {pendingCount} 条待同步
           </span>
-          <span className="flex items-center gap-1 text-danger">
+          <span className="flex items-center gap-1 text-destructive">
             <CloudOff aria-hidden="true" size={17} />
             {failedCount} 条失败
           </span>
@@ -56,18 +58,18 @@ export default function PomodoroHistoryPanel({
             {conflictCount} 条冲突
           </span>
         </div>
-        {pausedReason ? <p className="text-sm text-danger">{pausedReason}</p> : null}
+        {pausedReason ? <p className="text-sm text-destructive">{pausedReason}</p> : null}
       </div>
       <div className="history-scroll min-h-0 flex-1 space-y-3 overflow-y-auto hide-scrollbar">
         {loading ? (
-          <NeuDiv className="p-6" role="status">
+          <NeuSurface className="p-6" role="status">
             正在读取这一天的历史记录…
-          </NeuDiv>
+          </NeuSurface>
         ) : null}
         {error ? (
-          <NeuDiv className="p-6 text-danger" role="alert">
+          <NeuSurface className="p-6 text-destructive" role="alert">
             {error}
-          </NeuDiv>
+          </NeuSurface>
         ) : null}
         {!loading || records.length > 0 ? (
           <PomodoroList dataSource={records} timeZone={timeZone} />

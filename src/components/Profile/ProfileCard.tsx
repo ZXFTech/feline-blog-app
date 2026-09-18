@@ -1,4 +1,4 @@
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import Image from "next/image";
 
 import {
@@ -17,7 +17,7 @@ import {
   LogoVue,
   LogoWeChat,
 } from "../Logo/svg";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 
 // const welcome = [
 //   "有朋自远方来, 不亦乐乎",
@@ -31,9 +31,9 @@ export const ProfileCard = () => {
   return (
     <div className="profile-container relative mx-2 flex flex-col px-4 h-full gap-4">
       <div className="flex items-center justify-between items-stretch justify-items-stretch">
-        <NeuDiv surface="embossed" intensity="sm" className="avatar w-fit p-3 rounded-xl!">
+        <NeuSurface elevation="raised" className="avatar w-fit p-3 rounded-xl!">
           <Image className="rounded-md" src={"/avatar.jpg"} width={100} height={100} alt="avatar" />
-        </NeuDiv>
+        </NeuSurface>
         <div className="signature h-full mb-2 text-lg font-medium grow p-2 relative">
           <span className="signature-text h-full flex justify-center items-center">
             <span className="font-ma-shan-zheng text-2xl">
@@ -83,24 +83,24 @@ export const ProfileCard = () => {
       </div>
 
       <div className="connect flex gap-4 justify-center items-center">
-        <NeuButton className="rounded-full! p-1! border-">
+        <Button className="rounded-full! p-1! border-">
           <LogoWeChat className="h-6 w-6 cursor-pointer" />
-        </NeuButton>
-        <NeuButton className="rounded-full! p-1! border-">
+        </Button>
+        <Button className="rounded-full! p-1! border-">
           <LogoQQ className="h-6 w-6 cursor-pointer" />
-        </NeuButton>
-        <NeuButton className="rounded-full! p-1! border-">
+        </Button>
+        <Button className="rounded-full! p-1! border-">
           <LogoQQMail className="h-6 w-6 cursor-pointer" />
-        </NeuButton>
-        <NeuButton className="rounded-full! p-1! border-">
+        </Button>
+        <Button className="rounded-full! p-1! border-">
           <LogoGmail className="h-6 w-6 cursor-pointer" />
-        </NeuButton>
-        <NeuButton className="rounded-full! p-1! border-">
+        </Button>
+        <Button className="rounded-full! p-1! border-">
           <a href="https://github.com/ZXFTech" target="_blank" rel="noopener noreferrer">
             <LogoGithub className="h-6 w-6 cursor-pointer" />
           </a>
-        </NeuButton>
-        <NeuButton className="rounded-full! p-1! border-">
+        </Button>
+        <Button className="rounded-full! p-1! border-">
           <a
             href="https://steamcommunity.com/profiles/76561198257471864/"
             target="_blank"
@@ -108,7 +108,7 @@ export const ProfileCard = () => {
           >
             <LogoSteam className="h-6 w-6 cursor-pointer" />
           </a>
-        </NeuButton>
+        </Button>
       </div>
     </div>
   );

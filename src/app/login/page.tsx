@@ -1,10 +1,11 @@
 "use client";
 
+import { StyledLink } from "@/components/ui/styled-link";
 import Content from "@/components/Content";
 import Icon from "@/components/Icon";
-import NeuButton from "@/components/NeuButton";
-import NeuDiv from "@/components/NeuDiv";
-import NeuInput from "@/components/NeuInput";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { InputField } from "@/components/ui/input-field";
 import { useAuth } from "@/hooks/useAuth";
 import { toast as message } from "@/components/ProMessage";
 import Link from "next/link";
@@ -75,9 +76,9 @@ export default function Login() {
   return (
     <Content>
       <form onSubmit={handleSubmit} className="flex justify-center">
-        <NeuDiv className="flex flex-col w-100 min-w-50 justify-center items-stretch p-4">
+        <NeuSurface className="flex flex-col w-100 min-w-50 justify-center items-stretch p-4">
           <div className="text-3xl mb-4 text-center">欢迎</div>
-          <NeuInput
+          <InputField
             disabled={loading}
             prefix={<Icon icon="email" size="lg" />}
             id="email"
@@ -92,7 +93,7 @@ export default function Login() {
           {submitted && errorStatus.emailErrorMessage ? (
             <span className="text-red-600">{errorStatus.emailErrorMessage}</span>
           ) : null}
-          <NeuInput
+          <InputField
             disabled={loading}
             prefix={<Icon icon="lock" size="lg" />}
             id="password"
@@ -111,25 +112,23 @@ export default function Login() {
           ) : null}
           <span className="mt-4">
             还没有账号,
-            <NeuButton buttonType="link" href="/register">
-              点击注册
-            </NeuButton>
+            <StyledLink href="/register">点击注册</StyledLink>
           </span>
 
           <Link className="mt-4" href={"/forgot-password"}>
             忘记密码?
           </Link>
-          <NeuButton
+          <Button
             loading={loading}
             disabled={loading}
-            buttonType="primary"
+            variant="primary"
             className="mt-4 px-4! py-2! text-xl!"
             type="submit"
-            btnSize="lg"
+            size="lg"
           >
             <TextGap text="登录" gap={4} />
-          </NeuButton>
-        </NeuDiv>
+          </Button>
+        </NeuSurface>
       </form>
     </Content>
   );

@@ -10,7 +10,7 @@ export default function FlipTimer({ time }: { time: string }) {
   const [[m1, m2], [s1, s2]] = time.split(":").map((t) => t.split(""));
 
   return (
-    <div className="text-font">
+    <div className="text-foreground">
       <div className="flip-clock">
         <FlipDigit value={m1} countdown />
         <FlipDigit value={m2} countdown />

@@ -1,12 +1,15 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { expect, test } from "@playwright/test";
-import * as sass from "sass";
 
 test("AC-3 keeps double-layout history bounded and independently scrollable", async ({ page }) => {
   await page.setViewportSize({ width: 1200, height: 900 });
-  const source = await readFile(path.resolve("src/components/Content/_styles.scss"), "utf8");
-  const contentCss = sass.compileString(source).css;
+  const source = await readFile(path.resolve("src/app/globals.css"), "utf8");
+  const contentStart = source.indexOf(".content-container");
+  const contentEnd = source.indexOf(".flip-clock", contentStart);
+  expect(contentStart).toBeGreaterThanOrEqual(0);
+  expect(contentEnd).toBeGreaterThan(contentStart);
+  const contentCss = source.slice(contentStart, contentEnd);
   await page.setContent(`
     <style>
       html, body { margin: 0; }
@@ -44,4 +47,37 @@ test("AC-3 keeps double-layout history bounded and independently scrollable", as
 
   expect(leftHeight).toBeLessThanOrEqual(900);
   expect(dimensions.scrollHeight).toBeGreaterThan(dimensions.clientHeight);
+});
+
+test("AC-2 hides native scrollbars without disabling scrolling", async ({ page }, testInfo) => {
+  await page.goto("/album");
+  await page.evaluate(() => {
+    const region = document.createElement("div");
+    region.setAttribute("data-scroll-test", "true");
+    region.tabIndex = 0;
+    Object.assign(region.style, {
+      height: "100px",
+      overflowY: "auto",
+      width: "200px",
+    });
+    const content = document.createElement("div");
+    content.style.height = "1000px";
+    region.append(content);
+    document.body.append(region);
+  });
+
+  const region = page.locator("[data-scroll-test]");
+  await expect(region).toBeVisible();
+  const scrollbarDisplay = await region.evaluate(
+    (element) => getComputedStyle(element, "::-webkit-scrollbar").display
+  );
+  expect(scrollbarDisplay).toBe("none");
+
+  if (testInfo.project.name === "mobile") {
+    await region.evaluate((element) => element.scrollTo({ top: 500 }));
+  } else {
+    await region.hover();
+    await page.mouse.wheel(0, 500);
+  }
+  await expect.poll(() => region.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
 });

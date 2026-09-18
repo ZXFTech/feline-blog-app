@@ -2,9 +2,9 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useCallback, useMemo } from "react";
-import NeuButton from "../NeuButton";
-import NeuDiv from "../NeuDiv";
-import NeuInput from "../NeuInput";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { InputField } from "@/components/ui/input-field";
 import { debounce } from "@/utils/rateLimiting";
 import { PermissionAccess } from "../Auth/PermissionAccess";
 
@@ -43,11 +43,11 @@ export const BlogListOperationBar = () => {
 
   return (
     <div className="flex flex-col gap-4 mb-4 sticky right-0 left-0 top-0 z-100">
-      <NeuDiv surface="flat" className="flex flex-row flex-wrap items-center justify-between">
+      <NeuSurface elevation="flat" className="flex flex-row flex-wrap items-center justify-between">
         <div className="flex flex-row gap-2">
-          <NeuInput onChange={(e) => debounceUpdate("content", e.target.value)} />
-          <NeuButton
-            icon={`${
+          <InputField onChange={(e) => debounceUpdate("content", e.target.value)} />
+          <Button
+            materialIcon={`${
               orderBy === "desc" ? "keyboard_double_arrow_up" : "keyboard_double_arrow_down"
             }`}
             className="p-1!"
@@ -56,16 +56,16 @@ export const BlogListOperationBar = () => {
             <span className="font-medium tracking-wider">
               {orderBy === "desc" ? "按时间正序" : "按时间倒序"}
             </span>
-          </NeuButton>
+          </Button>
           {/* <Link href="/blog/new" className="hover:no-underline!"> */}
           <PermissionAccess>
-            <NeuButton icon="add_box" onClick={() => router.push("/blog/new")}>
+            <Button materialIcon="add_box" onClick={() => router.push("/blog/new")}>
               <span className="font-medium tracking-wider">新建</span>
-            </NeuButton>
+            </Button>
           </PermissionAccess>
           {/* </Link> */}
         </div>
-      </NeuDiv>
+      </NeuSurface>
     </div>
   );
 };

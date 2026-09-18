@@ -43,13 +43,16 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md`.
 - 请把数据库操作放在 `src/db` 的服务端操作或 `src/app/api` 中，不要让客户端组件直接访问 Prisma。
 - 请用 `requireAuth`、`hasTodoRoles` 或 `hasBlogRoles` 保护写操作，并沿用 `token` HttpOnly Cookie 的 JWT 认证流程。
 - 请不要编辑 `generated/prisma`，修改模式后重新生成客户端。
-- 请复用 `src/components/ui`、现有 `Neu*` 组件、`cn` 和主题变量，不要另建平行的组件体系。
+- 请复用 `src/components/ui` 中的基础组件、`NeuSurface`、`NeuPanel`、`cn` 和主题变量，不要另建平行的组件体系。
 - 请把本地配置放在被忽略的环境文件中，不要提交或复制密钥。
 - 提交前请运行 lint、build、Vitest 和需要安全测试账号环境变量的 Playwright；Husky 的推送脚本仍含旧工作区路径，不要把它当作完整验证。
 
 ## Agent skills
 
 - [typescript-react-patterns](.agents/skills/typescript-react-patterns/): `asyrafhussin/agent-skills`, React 组件、Hook 和类型安全约定
+- [migrate-radix-to-base](.agents/skills/migrate-radix-to-base/): `shadcn-ui/ui`, Radix UI 到 Base UI 的迁移约定
+- [react-hook-form](.agents/skills/react-hook-form/): `pproenca/dot-skills`, React Hook Form 配置、订阅、校验与组件集成约定
+- [tailwind-css](.agents/skills/tailwind-css/): `paulrberg/agent-skills`, Tailwind CSS 4 样式、配置与验证约定
 
 Declined: Vitest、React Testing Library、Playwright 和 jsdom 的额外 Agent Skills；继续使用现有 `/test` 技能与 Browser 控制。
 
@@ -62,3 +65,13 @@ MCP servers: `next-devtools` (recommended, connection pending)
 - [design.md](design.md): 全站界面设计系统、交互与可访问性方向
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->

@@ -10,7 +10,7 @@
 //     <div className="flex ">
 //       <div className="time-point h-4 w-4 bg-blue-400 rounded-full mr-4"></div>
 //       <div>
-//         <div className="sticky top-0 left-0 right-0 bg-bg">
+//         <div className="sticky top-0 left-0 right-0 bg-background">
 //           {timeline.date.toDateString()}
 //         </div>
 //         <div>{timeline.title}</div>

@@ -30,7 +30,7 @@ export default function FlipClock() {
   const weekDay = weekDayMap[time.getDay()];
 
   return (
-    <div className="text-font">
+    <div className="text-foreground">
       <div className="flip-clock year-part">
         <div>{y1}</div>
         <div>{y2}</div>

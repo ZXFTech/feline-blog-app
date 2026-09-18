@@ -2,7 +2,7 @@
 
 import { AlertTriangle, CirclePause, Timer } from "lucide-react";
 import { usePathname } from "next/navigation";
-import NeuButton from "@/components/NeuButton";
+import { StyledLink } from "@/components/ui/styled-link";
 import { usePomodoroState } from "@/providers/PomodoroProvider";
 import { formatMs, phaseLabel } from "@/utils/timeUtils";
 
@@ -17,7 +17,7 @@ export default function PomodoroGlobalStatus() {
     (item) => item.status === "failed" || item.status === "conflict"
   );
   const hasError = Boolean(storageError || hasSyncError);
-  const phaseIconClassName = state.phase === "focus" ? "text-danger!" : "text-success!";
+  const phaseIconClassName = state.phase === "focus" ? "text-destructive!" : "text-status-success!";
   const statusText =
     lifecycle === "hydrating"
       ? "番茄钟状态恢复中"
@@ -28,9 +28,8 @@ export default function PomodoroGlobalStatus() {
           : "打开番茄钟";
 
   return (
-    <NeuButton
-      btnSize="lg"
-      buttonType="link"
+    <StyledLink
+      size="lg"
       href="/tomato"
       aria-label={hasError ? `${statusText}，有需要处理的同步问题` : statusText}
       className="relative text-pomodoro! no-underline hover:bg-pomodoro/10! hover:no-underline mr-4"
@@ -53,13 +52,13 @@ export default function PomodoroGlobalStatus() {
       ) : null}
       {hasError ? (
         <span
-          className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-danger text-white"
+          className="absolute -top-1 -right-1 flex size-5 items-center justify-center rounded-full bg-destructive text-white"
           title="番茄钟有需要处理的同步问题"
         >
           <AlertTriangle aria-hidden="true" size={14} />
           <span className="sr-only">有需要处理的同步问题</span>
         </span>
       ) : null}
-    </NeuButton>
+    </StyledLink>
   );
 }

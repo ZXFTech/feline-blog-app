@@ -2,7 +2,7 @@
 name: neon-cat-neumorphic-design-system
 source: extracted-from-code
 character: "A quiet personal workspace with tactile neumorphic surfaces, compact information density, and a restrained teal action accent. The interface feels calm and practical across light, dark, sugar, and warm themes, while soft elevation keeps controls distinct without turning the page into decoration."
-tokens: "Real values live in src/styles/_variables.scss, src/styles/_global.scss, src/styles/theme.css, and the Neu component Sass files. Read them there and never duplicate them here."
+tokens: "Real values live in src/app/globals.css and the shared UI components. Read them there and never duplicate them here."
 contrast: "Verified core pairs from the existing tokens: body 8.99:1 in light, 7.68:1 in dark, white on primary 6.59:1, and sugar body 13.95:1."
 ---
 
@@ -24,7 +24,15 @@ For the Pomodoro surface, treat the active timer as the primary working area. Pl
 
 ## Component and usage rules
 
-Reuse `NeuDiv`, `NeuButton`, `NeuInput`, `NeuProgressBar`, `Content`, the existing icon set, `cn`, and theme variables before creating a new primitive. Use embossed treatment for stable panels and primary controls, debossed treatment for inset values or progress, and flatter treatment for dense history rows where repeated shadows would add noise.
+Reuse `NeuSurface`, `NeuPanel`, `Button`, `Input`, `ProgressBar`, `Content`, the existing icon set, `cn`, and theme variables before creating a new primitive. Use embossed treatment for stable panels and primary controls, debossed treatment for inset values or progress, and flatter treatment for dense history rows where repeated shadows would add noise.
+
+Use `NeuPanel` as the default layout container for new content bearing surfaces. It owns the inner padding and the gap between its direct children. Use `density="default"` for ordinary panels, `density="compact"` for dense lists and toolbars, and `density="comfortable"` for large standalone regions. The parent layout owns the gap between adjacent panels. Do not use routine child margins to simulate either kind of spacing.
+
+Keep `NeuSurface` free of default padding and gap. Use it directly only for visual elevation, edge to edge media, progress tracks, icon containers, navigation, dense rows, or a composite control that already owns its spacing. An intentional exception may override `NeuPanel` spacing, but it should remain visible at the call site.
+
+Adopt `NeuPanel` through explicit, user selected migration slices. Do not perform broad automatic replacement of existing `NeuSurface` calls. Preserve each migrated surface's layout and behavior, verify that slice, then continue only with the next requested area.
+
+Keep scrolling functional but hide native scrollbars on every surface by default. Apply `scrollbar-visible` only when a visible scrollbar is an intentional part of the interface. Overflow utilities control whether content can scroll, not whether its native scrollbar is shown.
 
 Use semantic buttons for actions and links for navigation. Primary emphasis belongs to the current main action only. Success, warning, and danger colors must pair with text or an icon and never carry meaning alone. Keep shadows restrained on repeated content, avoid raw colors and duplicate spacing values, and add missing reusable values to the existing token files instead of hardcoding them in a feature component.
 

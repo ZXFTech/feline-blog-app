@@ -1,5 +1,5 @@
 import CopyButton from "@/components/CopyButton/copyButton";
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import Tag from "@/components/Tag";
 
 import Image from "next/image";
@@ -46,7 +46,7 @@ export const CodeBlock: FC<{
   language: string;
 }> = ({ code, title, language }) => {
   return (
-    <NeuDiv surface="debossed" className="w-full mx-0">
+    <NeuSurface elevation="inset" className="w-full mx-0">
       <div suppressHydrationWarning className="flex justify-between">
         <div className="flex gap-1">
           {title && (
@@ -69,7 +69,7 @@ export const CodeBlock: FC<{
       >
         {code.trim()}
       </Highlighter>
-    </NeuDiv>
+    </NeuSurface>
   );
 };
 
@@ -101,7 +101,7 @@ const NotionBlock = {
     switch (block.image.type) {
       case "external":
         return (
-          <NeuDiv key={block.id} className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5">
+          <NeuSurface key={block.id} className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5">
             <Image
               className="m-0 rounded-md object-contain"
               width={2000}
@@ -109,11 +109,11 @@ const NotionBlock = {
               src={block.image.external.url}
               alt={block.image.caption.join(" ")}
             />
-          </NeuDiv>
+          </NeuSurface>
         );
       case "file":
         return (
-          <NeuDiv key={block.id} className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5  ">
+          <NeuSurface key={block.id} className="mx-[auto] mt-0 mb-3 w-[70%] !p-0.5  ">
             <Image
               className="m-0 rounded-md !object-cover"
               width={2000}
@@ -121,7 +121,7 @@ const NotionBlock = {
               src={block.image.file.url}
               alt={block.image.caption.join(" ")}
             />
-          </NeuDiv>
+          </NeuSurface>
         );
     }
   },

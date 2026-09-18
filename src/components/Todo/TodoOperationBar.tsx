@@ -1,11 +1,11 @@
 "use client";
 
 import React, { Dispatch, SetStateAction, useCallback, useMemo } from "react";
-import NeuButton from "../NeuButton";
-import NeuDiv from "../NeuDiv";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { TodoSearchParams } from "@/types/todo";
-import NeuInput from "../NeuInput";
+import { InputField } from "@/components/ui/input-field";
 import { debounce } from "@/utils/rateLimiting";
 import { PermissionAccess } from "../Auth/PermissionAccess";
 import Icon from "../Icon";
@@ -70,42 +70,42 @@ export const TodoOperationBar = ({
   };
 
   return (
-    <div className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100 bg-bg">
+    <div className="flex flex-row flex-wrap items-center justify-between mb-2 sticky right-0 left-0 top-0 z-100 bg-background">
       <div className="flex flex-row gap-2">
-        <NeuInput
+        <InputField
           prefix={<Icon icon="search" />}
-          allowClear
+          clearable
           onChange={(e) => debounceUpdate("content", e.target.value)}
         />
-        <NeuButton
+        <Button
           className="p-1!"
           onClick={switchOrderBy}
-          icon={`${
+          materialIcon={`${
             pOrderBy === "desc" ? "keyboard_double_arrow_up" : "keyboard_double_arrow_down"
           }`}
         >
           <span className="font-medium tracking-wider">
             {pOrderBy === "desc" ? "按时间正序" : "按时间倒序"}
           </span>
-        </NeuButton>
+        </Button>
       </div>
-      <NeuDiv surface="flat" className="flex flex-row-reverse flex-wrap ">
+      <NeuSurface elevation="flat" className="flex flex-row-reverse flex-wrap ">
         {TODO_STATUS_BUTTON_LIST.map((item) => (
-          <NeuButton
-            buttonType={`${pTodoStatus === item.status ? "primary" : "default"}`}
+          <Button
+            variant={`${pTodoStatus === item.status ? "primary" : "default"}`}
             key={item.id}
             onClick={() => {
               switchTodoStatus(item.status);
             }}
           >
             <span className="font-medium tracking-wider">{item.label}</span>
-          </NeuButton>
+          </Button>
         ))}
-      </NeuDiv>
+      </NeuSurface>
       <PermissionAccess>
-        <NeuDiv surface="flat">
-          <NeuButton onClick={() => setPanelVisible(true)}>新建</NeuButton>
-        </NeuDiv>
+        <NeuSurface elevation="flat">
+          <Button onClick={() => setPanelVisible(true)}>新建</Button>
+        </NeuSurface>
       </PermissionAccess>
     </div>
   );

@@ -1,8 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import NeuButton from "../NeuButton";
-import NeuDiv from "../NeuDiv";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
 
 interface Props {
   blogId: number;
@@ -16,11 +16,11 @@ const BlogEditBar = ({ blogId }: Props) => {
   };
 
   return (
-    <NeuDiv>
-      <NeuButton icon="edit" onClick={editBlog}>
+    <NeuSurface>
+      <Button materialIcon="edit" onClick={editBlog}>
         编辑
-      </NeuButton>
-    </NeuDiv>
+      </Button>
+    </NeuSurface>
   );
 };
 

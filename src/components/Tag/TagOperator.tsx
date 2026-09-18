@@ -2,9 +2,9 @@
 
 import React, { useCallback, useMemo } from "react";
 import Icon from "../Icon";
-import NeuDiv from "../NeuDiv";
-import NeuInput from "../NeuInput";
-import NeuButton from "../NeuButton";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { InputField } from "@/components/ui/input-field";
+import { Button } from "@/components/ui/button";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { debounce } from "@/utils/rateLimiting";
 
@@ -35,31 +35,29 @@ function TagOperator() {
 
   return (
     <div className="mb-2 flex flex-wrap justify-between items-center sticky top-0">
-      <NeuInput
+      <InputField
         prefix={<Icon icon="search" />}
-        allowClear
+        clearable
         onChange={(e) => debounceUpdate("content", e.target.value)}
       />
-      <NeuDiv surface="flat" className="flex items-center justify-center">
+      <NeuSurface elevation="flat" className="flex items-center justify-center">
         <span>展示：</span>
-        <NeuButton
-          buttonType={`${pShow === "blogs" ? "primary" : "default"}`}
+        <Button
+          variant={`${pShow === "blogs" ? "primary" : "default"}`}
           onClick={() => updateSearchParams("show", "blogs")}
         >
           blog
-        </NeuButton>
-        <NeuButton
-          buttonType={`${pShow !== "blogs" ? "primary" : "default"}`}
+        </Button>
+        <Button
+          variant={`${pShow !== "blogs" ? "primary" : "default"}`}
           onClick={() => updateSearchParams("show", "todos")}
         >
           todo
-        </NeuButton>
-        <NeuButton
-          onClick={() => updateSearchParams("orderBy", pOrderBy === "asc" ? "desc" : "asc")}
-        >
+        </Button>
+        <Button onClick={() => updateSearchParams("orderBy", pOrderBy === "asc" ? "desc" : "asc")}>
           {pOrderBy === "asc" ? "降序" : "升序"}
-        </NeuButton>
-      </NeuDiv>
+        </Button>
+      </NeuSurface>
     </div>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
 import { ChangeEventHandler, useEffect, useState } from "react";
-import NeuDiv from "../NeuDiv";
-import NeuButton from "../NeuButton";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { Button } from "@/components/ui/button";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { CodeBlock } from "../NotionBlock";
 import Link from "next/link";
-import NeuInput from "@/components/NeuInput";
+import { InputField } from "@/components/ui/input-field";
 import { getOptionTagsById } from "@/db/tagAction";
 import TagEditor, { TagData } from "../TagEditor";
 
@@ -50,30 +50,30 @@ const MarkdownEditor = ({
       <div className="top-panel mx-0! mt-1! flex justify-between items-center">
         <div className="left">
           <Link href="/blog" className="hover:no-underline!">
-            <NeuButton icon="arrow_back_ios">退出编辑</NeuButton>
+            <Button materialIcon="arrow_back_ios">退出编辑</Button>
           </Link>
         </div>
         <div className="right flex wrap">
-          <NeuButton
-            icon={fullScreen ? "fullScreen_exit" : "fullScreen"}
+          <Button
+            materialIcon={fullScreen ? "fullScreen_exit" : "fullScreen"}
             onClick={() => setFullScreen((prev) => !prev)}
           >
             {`${fullScreen ? "退出全屏" : "全屏"}`}
-          </NeuButton>
-          <NeuButton
-            icon={preview ? "visibility_off" : "visibility"}
+          </Button>
+          <Button
+            materialIcon={preview ? "visibility_off" : "visibility"}
             onClick={() => setPreview((prev) => !prev)}
           >
             {preview ? "关闭预览" : "预览"}
-          </NeuButton>
-          <NeuButton icon="save">保存</NeuButton>
-          <NeuButton loading={loading} icon="drive_folder_upload" onClick={handleSubmit}>
+          </Button>
+          <Button materialIcon="save">保存</Button>
+          <Button loading={loading} materialIcon="drive_folder_upload" onClick={handleSubmit}>
             提交
-          </NeuButton>
+          </Button>
         </div>
       </div>
       {/* TITLE */}
-      <NeuInput
+      <InputField
         disabled={loading}
         className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
         type="text"
@@ -83,8 +83,8 @@ const MarkdownEditor = ({
       />
       <TagEditor setValue={onTagChange} value={blog.tags || []} options={optionTags} />
       <div className="full-screen-content flex grow mb-1 relative">
-        <NeuInput
-          textArea
+        <InputField
+          multiline
           disabled={loading}
           className={`p-3 transition-all duration-400 ease-in-out ${
             preview ? "w-[49%]" : "w-full"
@@ -93,7 +93,7 @@ const MarkdownEditor = ({
           value={blog.content}
           onChange={onContentChange as ChangeEventHandler}
         />
-        <NeuDiv
+        <NeuSurface
           className={`preview-part m-0! overflow-scroll hide-scrollbar break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
             preview
               ? "p-3! ml-3! grow! w-full md:w-[49%]"
@@ -121,7 +121,7 @@ const MarkdownEditor = ({
           >
             {blog.content}
           </ReactMarkdown>
-        </NeuDiv>
+        </NeuSurface>
       </div>
     </div>
   );

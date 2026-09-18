@@ -1,19 +1,44 @@
 import * as React from "react";
+import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
 
-function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+const inputVariants = cva(
+  "w-full min-w-0 bg-background text-foreground shadow-neu-inset-sm outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-destructive/60",
+  {
+    variants: {
+      size: {
+        sm: "h-8 rounded-md px-2.5 text-xs",
+        md: "h-9 rounded-md px-3 text-sm",
+        lg: "h-11 rounded-lg px-3 text-sm",
+        xl: "h-12 rounded-lg px-4 text-base",
+      },
+    },
+    defaultVariants: {
+      size: "lg",
+    },
+  }
+);
+
+type InputVisualSize = NonNullable<VariantProps<typeof inputVariants>["size"]>;
+
+export interface InputProps extends Omit<React.ComponentProps<"input">, "size"> {
+  size?: number | InputVisualSize;
+}
+
+function Input({ className, size = "lg", type = "text", ...props }: InputProps) {
+  const visualSize = typeof size === "string" ? size : "lg";
+  const nativeSize = typeof size === "number" ? size : undefined;
+
   return (
     <input
       type={type}
       data-slot="input"
-      className={cn(
-        "dark:bg-input/30 border-input focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive dark:aria-invalid:border-destructive/50 h-9 rounded-md border bg-transparent px-2.5 py-1 text-base shadow-xs transition-[color,box-shadow] file:h-7 file:text-sm file:font-medium focus-visible:ring-3 aria-invalid:ring-3 md:text-sm file:text-foreground placeholder:text-muted-foreground w-full min-w-0 outline-none file:inline-flex file:border-0 file:bg-transparent disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50",
-        className
-      )}
+      size={nativeSize}
+      className={cn(inputVariants({ size: visualSize, className }))}
       {...props}
     />
   );
 }
 
-export { Input };
+export { Input, inputVariants };

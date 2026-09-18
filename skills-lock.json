@@ -37,11 +37,23 @@
       "skillPath": "skills/document/SKILL.md",
       "computedHash": "a47c5d29a1263d987c2fa05dbc993a5276aaf6c4ddc54fbd329463a5f3a1aa77"
     },
+    "migrate-radix-to-base": {
+      "source": "shadcn-ui/ui",
+      "sourceType": "github",
+      "skillPath": "skills/migrate-radix-to-base/SKILL.md",
+      "computedHash": "4fdc31bf287f674ba6bf91a648120f7b34cd7ef370f998f2cc116fed067789c5"
+    },
     "prisma-orm-v7-skills": {
       "source": "gocallum/nextjs16-agent-skills",
       "sourceType": "github",
       "skillPath": "skills/prisma-orm-v7-skills/SKILL.md",
       "computedHash": "371d23a97d15be1fdd5ae350b4b2a151045e8fabf83aed0b2d716e747f7ea6d2"
+    },
+    "react-hook-form": {
+      "source": "pproenca/dot-skills",
+      "sourceType": "github",
+      "skillPath": "skills/.curated/react-hook-form/SKILL.md",
+      "computedHash": "c32b9536b64b2bbfb26ecadac5caf9ac85697f319edffe6f77c9ecd00db51d14"
     },
     "scope": {
       "source": "jsmastery-pro/skills",
@@ -54,6 +66,12 @@
       "sourceType": "github",
       "skillPath": "skills/sync/SKILL.md",
       "computedHash": "5986c38a23bbb14f82c018862ff0a601f3f20b4a8a1f429e9731b4da6742a765"
+    },
+    "tailwind-css": {
+      "source": "paulrberg/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/tailwind-css/SKILL.md",
+      "computedHash": "ac6b1958c54ab468c8db0c2292d790111b053f2a33ef9c06c7397eaa11e4b797"
     },
     "test": {
       "source": "jsmastery-pro/skills",

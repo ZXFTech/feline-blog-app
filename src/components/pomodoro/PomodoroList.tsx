@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import type { PomodoroHistoryRecord } from "@/types/pomodoro";
 import { formatMs } from "@/utils/timeUtils";
-import NeuDiv from "../NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 
 interface Props {
   dataSource: PomodoroHistoryRecord[];
@@ -32,11 +32,11 @@ const syncLabel = {
 } as const;
 
 const syncColor = {
-  pending: "text-warning",
-  syncing: "text-warning",
-  synced: "text-success",
-  failed: "text-warning",
-  conflict: "text-danger",
+  pending: "text-status-warning",
+  syncing: "text-status-warning",
+  synced: "text-status-success",
+  failed: "text-status-warning",
+  conflict: "text-destructive",
 } as const;
 
 export default function PomodoroList({ dataSource, timeZone }: Props) {
@@ -52,22 +52,22 @@ export default function PomodoroList({ dataSource, timeZone }: Props) {
   });
   if (dataSource.length === 0) {
     return (
-      <NeuDiv surface="flat" className="p-6 text-center opacity-75">
+      <NeuSurface elevation="flat" className="p-6 text-center opacity-75">
         这一天还没有番茄钟记录。
-      </NeuDiv>
+      </NeuSurface>
     );
   }
   return (
     <ul className="m-0 flex list-none flex-col gap-3 pl-0!" aria-label="番茄钟历史">
       {dataSource.map((item) => (
         <li key={item.eventId ?? item.id}>
-          <NeuDiv surface="flat" className="flex flex-col gap-3 p-4">
+          <NeuSurface elevation="flat" className="flex flex-col gap-3 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 {item.type === "FOCUS" ? (
-                  <Apple aria-hidden="true" className="text-danger" size={20} />
+                  <Apple aria-hidden="true" className="text-destructive" size={20} />
                 ) : (
-                  <Coffee aria-hidden="true" className="text-success" size={20} />
+                  <Coffee aria-hidden="true" className="text-status-success" size={20} />
                 )}
                 <time className="font-bold" dateTime={item.startAt}>
                   {dateTimeFormatter.format(new Date(item.startAt))}
@@ -105,8 +105,8 @@ export default function PomodoroList({ dataSource, timeZone }: Props) {
                 {item.endReason ? outcomeLabel[item.endReason] : item.finished ? "完成" : "旧记录"}
               </span>
             </div>
-            {item.lastError ? <p className="text-sm text-danger">{item.lastError}</p> : null}
-          </NeuDiv>
+            {item.lastError ? <p className="text-sm text-destructive">{item.lastError}</p> : null}
+          </NeuSurface>
         </li>
       ))}
     </ul>

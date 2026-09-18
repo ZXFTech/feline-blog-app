@@ -34,6 +34,8 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 21  | 本地发布流程             | Maintenance | in-progress |
 | 22  | 接口安全与健壮性修复     | Maintenance | done        |
 | 23  | 番茄钟全局响应式状态     | Maintenance | done        |
+| 24  | newTheme 组件与样式迁移 | Maintenance | done |
+| 25  | Checklist 功能完善与交互验收 | Maintenance | planned     |
 
 ## Current product
 
@@ -268,6 +270,30 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
       code in `src/app/layout.tsx`, `src/providers/PomodoroProvider.tsx`, `src/components/Navbar/`, `src/components/pomodoro/`, `src/hooks/usePomodoro.ts`
 - [x] Verify it: `/check verify 番茄钟全局响应式状态`
 - [x] Test it: `/test 番茄钟全局响应式状态`
+
+### 24. newTheme 组件与样式迁移 · done
+
+把 `newTheme` 中的主题、视觉 token、基础组件和清单组件迁入现有应用，并逐步替换所有旧调用。现有页面保持完整功能，但允许视觉和布局采用新体系后的结果。
+**Done when:** 正式页面只使用迁入后的组件和唯一全局样式入口；点击、键盘、链接、加载、禁用、表单、错误反馈、主题和响应式能力保持可用；旧组件、旧专用样式和 `newTheme` 文件夹删除；Showcase 页面留待后续评估。
+code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`, `src/components/PomodoroCalendar/`, `src/components/theme-provider.tsx`
+
+- [x] Design it (spec): `/architect newTheme 组件与样式迁移`
+      spec [0007](../specs/0007-new-theme-migration/index.md)
+- [x] Build it: `/develop newTheme 组件与样式迁移`
+  - [x] 升级依赖，启用唯一 `globals.css` 与新主题，并用临时 token 映射承接旧页面，covers `AC-1`, `AC-2`, `AC-4`, `AC-5`
+  - [x] 迁移全站基础组件、链接、输入族和页面调用，逐簇保持功能回归，covers `AC-5`, `AC-6`, `AC-10`, `AC-11`
+  - [x] 迁入通用 Calendar、清单组件和可访问 Dialog，不引入 Showcase 页面，covers `AC-7`, `AC-8`, `AC-9`
+  - [x] 清理临时 token、reboot 与无用样式，改名 PomodoroCalendar 并收口主题与响应式验证，covers `AC-2`, `AC-3`, `AC-7`, `AC-10`, `AC-13`
+  - [x] 删除旧组件与 `newTheme` 文件夹，完成全量静态检查、构建和组件测试；真实浏览器矩阵由 `/check verify` 接续，covers `AC-1`, `AC-11`, `AC-12`, `AC-13`, `AC-14`
+- [x] Verify it: `/check verify newTheme 组件与样式迁移`
+- [x] Test it: `/test newTheme 组件与样式迁移`
+
+### 25. Checklist 功能完善与交互验收 · needs a decision
+
+为已经迁入的 Checklist 组件建立正式业务入口，并在真实使用流程中完成交互验收。（from spec 0007）
+**Done when:** 正式 Checklist 入口可以使用，并在真实浏览器中验证卡片短按与键盘操作、500ms 长按、取消、600ms 节流，以及 Dialog 的焦点约束、Tab、Escape、遮罩关闭、背景隔离和焦点返回。
+
+- [ ] Design it (spec): `/architect Checklist 功能完善与交互验收`
 
 ## Deferred
 

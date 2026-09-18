@@ -1,7 +1,7 @@
 # 0002. Neu 表面语义与交互契约
 
 **Date**: 2026-08-29
-**Status**: Accepted
+**Status**: Superseded by [0007](../0007-new-theme-migration/index.md)
 
 ## Summary
 

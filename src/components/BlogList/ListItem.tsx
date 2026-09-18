@@ -1,19 +1,16 @@
 import React, { FC } from "react";
 
-import { neuSurfaceClassNames } from "../NeuDiv";
+import { NeuPanel } from "@/components/ui/neu-panel";
 import Tag from "../Tag";
 import { CombinedBlog } from "@/types/blog";
 
 const ListItem: FC<CombinedBlog> = (blog) => {
   const { author, title, createdAt, tags = [] } = blog;
   return (
-    <div
-      className={neuSurfaceClassNames({
-        surface: "flat",
-        interactionEffect: "raise",
-        className:
-          "blog-list-item mb-2 border-1 border-border text-left transition-all! group duration-618! hover:transition-none!",
-      })}
+    <NeuPanel
+      elevation="flat"
+      density="compact"
+      className="blog-list-item mb-2 border-1 border-border text-left transition-all! group duration-618! hover:transition-none!"
     >
       <div className="px-1 py-0 text-2xl font-bold">{title}</div>
       <div className="flex flex-wrap items-center justify-between my-1">
@@ -43,13 +40,7 @@ const ListItem: FC<CombinedBlog> = (blog) => {
           )}
         </ul>
       </div>
-      {/* <NeuDiv className="list-item-content">{longContent}</NeuDiv> */}
-      {/* <div className="px-1 text-md py-2">
-        <p className="text-eclipse overflow-hidden leading-[1rem] h-[2rem]">
-          {content.slice(0, 100)}
-        </p>
-      </div> */}
-    </div>
+    </NeuPanel>
   );
 };
 

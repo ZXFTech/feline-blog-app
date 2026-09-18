@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
 import { toast as message } from "../ProMessage";
-import NeuInput from "../NeuInput";
+import { InputField } from "@/components/ui/input-field";
 import TagEditor, { TagData } from "../TagEditor";
 import { TagTodo } from "@/types/todo";
 import { addTodo, updateTodo } from "@/db/todoAction";
@@ -133,7 +133,7 @@ const TodoEditorBar = ({ visible, todo, onOk, onClose }: EditorProps) => {
       title="新增 Todo"
     >
       <div className=" mb-4">
-        <NeuInput
+        <InputField
           disabled={loading}
           className={cn("w-full mb-1", {
             "input-shake": shake,

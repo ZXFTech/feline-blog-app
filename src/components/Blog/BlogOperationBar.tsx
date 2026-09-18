@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 import { favoriteBlog, likeBlog } from "@/db/blogAction";
 import logger from "@/lib/logger/Logger";
 import { toast } from "../ProMessage";
@@ -48,9 +48,9 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
 
   return (
     <div className="mt-2 flex flex-row justify-start items-center gap-2 mt-2">
-      <NeuButton
-        btnSize="xl"
-        icon="favorite"
+      <Button
+        size="lg"
+        materialIcon="favorite"
         className={cn({
           // "bg-red-500!": isLiked,
           "text-red-500!": isLiked,
@@ -58,19 +58,19 @@ function BlogOperationBar({ likes, favorite, id, isFavorite, isLiked }: Props) {
         onClick={handleLike}
       >
         <span className="font-medium tracking-wider">{likes}</span>
-      </NeuButton>
-      <NeuButton
-        btnSize="xl"
+      </Button>
+      <Button
+        size="lg"
         className={cn({
           // "bg-red-500!": isLiked,
           "text-blue-500!": isFavorite,
         })}
-        icon={`${isFavorite ? "bookmark_added" : "bookmark_add"}`}
+        materialIcon={`${isFavorite ? "bookmark_added" : "bookmark_add"}`}
         onClick={handleFavorite}
       >
         <span className="font-medium tracking-wider">{favorite}</span>
-      </NeuButton>
-      <NeuButton btnSize="xl" icon="share" className="color-cycle rounded-full!"></NeuButton>
+      </Button>
+      <Button size="lg" materialIcon="share" className="color-cycle rounded-full!"></Button>
     </div>
   );
 }

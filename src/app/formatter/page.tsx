@@ -1,8 +1,8 @@
 "use client";
 
 import Content from "@/components/Content";
-import NeuButton from "@/components/NeuButton";
-import NeuInput from "@/components/NeuInput";
+import { Button } from "@/components/ui/button";
+import { InputField } from "@/components/ui/input-field";
 import { toast } from "@/components/ProMessage";
 import { savePrompt } from "@/db/promptAction";
 import logger from "@/lib/logger/Logger";
@@ -129,6 +129,8 @@ function Formatter() {
   const textRef = useRef<HTMLTextAreaElement>(null);
 
   const promptList = useMemo(() => {
+    if (!value.trim()) return [];
+
     try {
       const jsonObj: MidjourneyRes[] = JSON.parse(value);
       const promptList: PromptObj[] = jsonObj
@@ -176,16 +178,16 @@ function Formatter() {
       />
       <div>
         <div className="flex gap-3">
-          <NeuInput value={mark} onChange={(e) => setMark(e.target.value)}></NeuInput>
-          <NeuButton onClick={handleSave}>保存</NeuButton>
-          <NeuButton
+          <InputField value={mark} onChange={(e) => setMark(e.target.value)}></InputField>
+          <Button onClick={handleSave}>保存</Button>
+          <Button
             onClick={() => {
               setValue("");
               textRef.current?.focus();
             }}
           >
             清空
-          </NeuButton>
+          </Button>
         </div>
         <div>列表</div>
         {promptList?.map((item) => {

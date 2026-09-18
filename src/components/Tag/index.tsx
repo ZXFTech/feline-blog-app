@@ -1,7 +1,7 @@
 import { type ComponentPropsWithoutRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import Icon, { type IconType } from "../Icon";
-import { neuSurfaceClassNames } from "../NeuDiv";
+import { neuSurface } from "@/components/ui/neu-surface";
 
 type TagContainerProps = Omit<
   ComponentPropsWithoutRef<"span">,
@@ -73,9 +73,8 @@ function TagContent({
 export default function Tag(props: TagProps) {
   const { children, color, icon, className, style, containerProps, onSelect, onClose, closeLabel } =
     props;
-  const surfaceClassName = neuSurfaceClassNames({
-    surface: "embossed",
-    intensity: "sm",
+  const surfaceClassName = neuSurface({
+    elevation: "raised",
     className: cn(
       "tag group px-0! py-1! mx-0.5! my-1.25! font-medium inline-flex justify-center items-center",
       (onSelect || onClose) && "cursor-pointer",

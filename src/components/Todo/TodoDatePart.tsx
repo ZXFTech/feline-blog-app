@@ -15,7 +15,7 @@ interface Props {
 const TodoDatePart = ({ todoList, dateKey, handleClick, handleDelete, handleUpdate }: Props) => {
   return (
     <>
-      <Tag className="mb-0! sticky top-17 bg-bg! z-10">
+      <Tag className="mb-0! sticky top-17 bg-background! z-10">
         {new Date(dateKey).toLocaleDateString("zh-CN")}
       </Tag>
       {todoList.map((todo) => {

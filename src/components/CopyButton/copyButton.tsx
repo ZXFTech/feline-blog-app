@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 import logger from "@/lib/logger/Logger";
 import { cn } from "@/lib/utils";
 
@@ -42,11 +42,11 @@ function CopyButton({ code }: CopyButtonPros) {
   });
 
   return (
-    <NeuButton
-      icon={copyState ? "check" : "file_copy"}
+    <Button
+      materialIcon={copyState ? "check" : "file_copy"}
       className={`${btnClassName} p-1!`}
       onClick={() => clickToCopy()}
-    ></NeuButton>
+    ></Button>
   );
 }
 

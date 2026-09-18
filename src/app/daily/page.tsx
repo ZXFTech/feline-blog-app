@@ -1,7 +1,8 @@
 "use client";
 
+import { StyledLink } from "@/components/ui/styled-link";
 import { getStartOfWeek, WeeklyView } from "@/components/DailyStatus/WeeklyView";
-import NeuButton from "@/components/NeuButton";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ProMessage";
 import { getDailyStatus, getDailyRangeStatus, updateDailyStatus } from "@/db/dailyAction";
 import logger from "@/lib/logger/Logger";
@@ -155,10 +156,8 @@ function Daily() {
     <Content>
       <div className="flex flex-col gap-2">
         <div>
-          <NeuButton onClick={() => setVisible(true)}>添加新训练</NeuButton>
-          <NeuButton buttonType="link" href="/playground/workItem">
-            训练项目管理
-          </NeuButton>
+          <Button onClick={() => setVisible(true)}>添加新训练</Button>
+          <StyledLink href="/playground/workItem">训练项目管理</StyledLink>
         </div>
         <WeeklyView
           weeklyStatus={weeklyStatus}

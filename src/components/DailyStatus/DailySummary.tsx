@@ -1,6 +1,6 @@
 import React from "react";
 import { DailyData } from "@/app/daily/page";
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import { IconSpinner } from "@/components/Icon/presetIcon";
 import WorkoutCard from "./WorkoutCard";
 import Tag from "@/components/Tag";
@@ -14,17 +14,17 @@ interface Props {
 function DailySummary({ dailyData, loading = false }: Props) {
   if (loading) {
     return (
-      <NeuDiv>
+      <NeuSurface>
         <IconSpinner />
-      </NeuDiv>
+      </NeuSurface>
     );
   }
   if (!dailyData) {
-    return <NeuDiv>今日暂无训练</NeuDiv>;
+    return <NeuSurface>今日暂无训练</NeuSurface>;
   }
 
   return (
-    <NeuDiv surface="flat">
+    <NeuSurface elevation="flat">
       <div className="flex justify-between">
         <Tag>{dayjs(new Date(dailyData.createdAt!)).format("YYYY-MM-DD HH:mm:ss")}</Tag>
         <div className="flex items-center gap-1 py-1!">
@@ -44,7 +44,7 @@ function DailySummary({ dailyData, loading = false }: Props) {
           return <WorkoutCard key={w.name} data={w} />;
         })}
       </div>
-    </NeuDiv>
+    </NeuSurface>
   );
 }
 

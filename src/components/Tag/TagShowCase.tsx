@@ -1,6 +1,6 @@
 import React from "react";
-import NeuDiv from "../NeuDiv";
-import NeuProgressBar from "../NeuProgressBar";
+import { NeuSurface } from "@/components/ui/neu-surface";
+import { ProgressBar } from "@/components/ui/progress-bar";
 import { CountedTag } from "@/app/tag/page";
 
 interface Props {
@@ -14,7 +14,7 @@ function TagShowCase({ tags, max }: Props) {
   }
 
   return (
-    <NeuDiv surface="debossed" className="flex flex-col m-0! p-4 gap-1 flex-wrap items-stretch">
+    <NeuSurface elevation="inset" className="flex flex-col m-0! p-4 gap-1 flex-wrap items-stretch">
       {/* {(tags || []).map((tag, index) => {
         return (
           <>
@@ -29,7 +29,7 @@ function TagShowCase({ tags, max }: Props) {
       })} */}
       {tags.map((tag) => {
         return (
-          <NeuProgressBar
+          <ProgressBar
             key={tag.id}
             max={max}
             progressBarColor={tag.color}
@@ -40,7 +40,7 @@ function TagShowCase({ tags, max }: Props) {
           />
         );
       })}
-    </NeuDiv>
+    </NeuSurface>
   );
 }
 

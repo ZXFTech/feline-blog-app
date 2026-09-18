@@ -1,7 +1,8 @@
 "use server";
 
+import { StyledLink } from "@/components/ui/styled-link";
 import Head from "next/head";
-import NeuDiv from "@/components/NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import Tag from "@/components/Tag";
 import { CodeBlock } from "@/components/NotionBlock";
 import Image from "next/image";
@@ -13,7 +14,6 @@ import BlogOperationBar from "@/components/Blog/BlogOperationBar";
 import TOC from "../../../components/Blog/TOC";
 import rehypeSlug from "rehype-slug";
 import Content from "@/components/Content";
-import NeuButton from "@/components/NeuButton";
 import { PermissionAccess } from "@/components/Auth/PermissionAccess";
 import AdjacentBlogs from "@/components/Blog/AdjacentBlogs";
 
@@ -33,8 +33,10 @@ const Blog = async ({ params }: Props) => {
     // redirect("/blog");
     return (
       <div className="blog-empty-content">
-        <NeuDiv className="blog-empty-title">这篇博客没有内容, 所以给你看看我的小猫吧~</NeuDiv>
-        <NeuDiv className="blog-empty-image">
+        <NeuSurface className="blog-empty-title">
+          这篇博客没有内容, 所以给你看看我的小猫吧~
+        </NeuSurface>
+        <NeuSurface className="blog-empty-image">
           <div>
             <Image
               layout="responsive"
@@ -45,7 +47,7 @@ const Blog = async ({ params }: Props) => {
               objectFit="cover"
             />
           </div>
-        </NeuDiv>
+        </NeuSurface>
       </div>
     );
   }
@@ -55,9 +57,7 @@ const Blog = async ({ params }: Props) => {
       rightSideBar={
         <div>
           <PermissionAccess>
-            <NeuButton buttonType="link" href={`/blog/edit/${blog.id}`}>
-              编辑
-            </NeuButton>
+            <StyledLink href={`/blog/edit/${blog.id}`}>编辑</StyledLink>
           </PermissionAccess>
           <TOC />
         </div>
@@ -67,7 +67,10 @@ const Blog = async ({ params }: Props) => {
         <title>{blog.title}</title>
       </Head>
       <div className="flex flex-col" id="blog-container">
-        <NeuDiv surface="flat" className="blog-content-container px-4 pt-2 pb-4 overflow-auto">
+        <NeuSurface
+          elevation="flat"
+          className="blog-content-container px-4 pt-2 pb-4 overflow-auto"
+        >
           <div className="mb-2">
             <h1 id={blog.title}>{blog.title}</h1>
             <div className="flex flex-wrap items-center justify-between">
@@ -115,7 +118,7 @@ const Blog = async ({ params }: Props) => {
               {blog.content}
             </ReactMarkdown>
           </div>
-        </NeuDiv>
+        </NeuSurface>
         <BlogOperationBar
           likes={blog.likeCount ?? 0}
           favorite={blog.favoriteCount ?? 0}

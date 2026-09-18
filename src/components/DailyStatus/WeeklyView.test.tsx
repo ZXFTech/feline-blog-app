@@ -34,7 +34,7 @@ describe("WeeklyView", () => {
     expect(container.querySelectorAll('button[aria-pressed="true"]')).toHaveLength(1);
     expect(container.querySelectorAll('button[aria-pressed="false"]')).toHaveLength(6);
     expect(selectedButton).toHaveAttribute("type", "button");
-    expect(selectedButton).toHaveClass("neu-div", "neu-embossed-normal");
+    expect(selectedButton).toHaveClass("bg-background", "shadow-neu-raised");
   });
 
   it("uses native Enter and Space activation with one navigation per action", async () => {

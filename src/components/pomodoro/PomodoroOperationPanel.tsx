@@ -1,7 +1,7 @@
 import { RefreshCw } from "lucide-react";
-import Calendar, { type RecordDate } from "@/components/Calendar";
-import NeuButton from "@/components/NeuButton";
-import NeuDiv from "@/components/NeuDiv";
+import PomodoroCalendar, { type RecordDate } from "@/components/PomodoroCalendar";
+import { Button } from "@/components/ui/button";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import type { CalendarMonth } from "@/lib/pomodoro/calendar";
 import type { PomodoroOutboxItem } from "@/types/pomodoro";
 
@@ -58,7 +58,7 @@ export default function PomodoroOperationPanel({
   return (
     <div className="min-w-0 space-y-4">
       <div className="overflow-x-auto hide-scrollbar">
-        <Calendar
+        <PomodoroCalendar
           selectedDateKey={selectedDateKey}
           todayKey={todayKey}
           visibleMonth={visibleMonth}
@@ -67,14 +67,14 @@ export default function PomodoroOperationPanel({
           recordDate={recordDates}
         />
       </div>
-      <NeuDiv className="space-y-3 p-4" aria-label="番茄钟操作面板">
+      <NeuSurface className="space-y-3 p-4" aria-label="番茄钟操作面板">
         <div className="flex flex-wrap items-center gap-2">
-          <NeuButton disabled={retryDisabled} onClick={onRetry}>
+          <Button disabled={retryDisabled} onClick={onRetry}>
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
               <RefreshCw aria-hidden="true" className="shrink-0" size={16} />
               <span>立即同步</span>
             </span>
-          </NeuButton>
+          </Button>
           {retryReason ? <span className="text-sm opacity-70">{retryReason}</span> : null}
         </div>
         {conflicts.length > 0 ? (
@@ -85,7 +85,7 @@ export default function PomodoroOperationPanel({
             <ul className="space-y-2">
               {conflicts.map((item) => (
                 <li key={item.eventId}>
-                  <NeuDiv surface="flat" className="space-y-3 p-3 text-sm">
+                  <NeuSurface elevation="flat" className="space-y-3 p-3 text-sm">
                     <p className="break-words">
                       本地 {formatter.format(new Date(item.payload.endAt))}，{item.payload.type}
                       {item.serverRecord
@@ -93,20 +93,20 @@ export default function PomodoroOperationPanel({
                         : "；服务端记录暂不可用"}
                     </p>
                     <div className="flex justify-end">
-                      <NeuButton
+                      <Button
                         disabled={!item.serverRecord}
                         onClick={() => onAdoptServer(item.eventId)}
                       >
                         采用服务端记录
-                      </NeuButton>
+                      </Button>
                     </div>
-                  </NeuDiv>
+                  </NeuSurface>
                 </li>
               ))}
             </ul>
           </section>
         ) : null}
-      </NeuDiv>
+      </NeuSurface>
     </div>
   );
 }

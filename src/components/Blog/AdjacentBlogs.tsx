@@ -3,7 +3,7 @@
 import { getAdjacentBlogs } from "@/db/blogAction";
 import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 
 interface AdjacentBlogInfo {
   id: number;
@@ -51,8 +51,8 @@ function AdjacentBlogs({ id }: Props) {
   if (loading) {
     return (
       <div className="flex justify-between items-center mt-2 ">
-        <NeuButton icon="Chevron_Left">加载中...</NeuButton>
-        <NeuButton suffixIcon="Chevron_Right">加载中...</NeuButton>
+        <Button materialIcon="Chevron_Left">加载中...</Button>
+        <Button materialIconAfter="Chevron_Right">加载中...</Button>
       </div>
     );
   }
@@ -60,28 +60,28 @@ function AdjacentBlogs({ id }: Props) {
   return (
     <div className="flex justify-between items-center mt-2 ">
       {adjacentBlogs.prev ? (
-        <NeuButton
-          icon="Chevron_Left"
+        <Button
+          materialIcon="Chevron_Left"
           onClick={() => router.replace("/blog/" + adjacentBlogs.prev?.id)}
         >
           {adjacentBlogs.prev?.title}
-        </NeuButton>
+        </Button>
       ) : (
-        <NeuButton disabled icon="First_Page">
+        <Button disabled materialIcon="First_Page">
           已经是最新啦
-        </NeuButton>
+        </Button>
       )}
       {adjacentBlogs.next ? (
-        <NeuButton
-          suffixIcon="Chevron_Right"
+        <Button
+          materialIconAfter="Chevron_Right"
           onClick={() => router.replace("/blog/" + adjacentBlogs.next?.id)}
         >
           {adjacentBlogs.next?.title}
-        </NeuButton>
+        </Button>
       ) : (
-        <NeuButton disabled suffixIcon="Last_Page">
+        <Button disabled materialIconAfter="Last_Page">
           已经到最后啦
-        </NeuButton>
+        </Button>
       )}
     </div>
   );

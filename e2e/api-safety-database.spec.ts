@@ -45,7 +45,9 @@ test("covers: AC-3, private Todo reads and Blog mutations enforce resource owner
   try {
     await login(page, primary);
     await page.goto("/todo");
-    await expect(page.getByText(`${marker}-own`, { exact: true })).toBeVisible();
+    await expect(
+      page.getByText(`${marker}-own`, { exact: true }).filter({ visible: true })
+    ).toBeVisible();
     await expect(page.getByText(`${marker}-foreign`, { exact: true })).toHaveCount(0);
 
     await page.goto(`/blog/edit/${foreignBlog.id}`);

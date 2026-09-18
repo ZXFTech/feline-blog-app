@@ -1,7 +1,7 @@
 import { RefObject, useEffect, useMemo, useRef, useState } from "react";
-import NeuDiv from "../NeuDiv";
+import { NeuSurface } from "@/components/ui/neu-surface";
 import colors from "tailwindcss/colors";
-import NeuButton from "../NeuButton";
+import { Button } from "@/components/ui/button";
 import Floating from "../Floating";
 
 type TailwindColors = typeof colors;
@@ -64,20 +64,20 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
 
   return (
     <div className="relative">
-      <NeuButton
+      <Button
         ref={buttonRef}
         className="inline-block"
         style={{ color }}
-        icon="format_color_text"
+        materialIcon="format_color_text"
         onClick={() => setVisible((prev) => !prev)}
-      ></NeuButton>
+      ></Button>
       <Floating
         anchorRef={buttonRef as RefObject<HTMLButtonElement>}
         open={visible}
         offset={-100}
         align="right"
       >
-        <NeuDiv
+        <NeuSurface
           ref={panelRef}
           className="overflow-auto hide-scrollbar flex justify-center items-center h-45 w-90 bg-linear-to-b from-black/30 to-white/20"
         >
@@ -109,7 +109,7 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
               ) : null
             )}
           </div>
-        </NeuDiv>
+        </NeuSurface>
       </Floating>
     </div>
   );

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma-postgres/enums";
 import { defaultSettings, durationMsFor, initialState, pomodoroReducer } from "./reducer";
 
 const eventId = "019d3b54-2e18-7000-8000-000000000001";

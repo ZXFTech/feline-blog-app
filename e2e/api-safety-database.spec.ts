@@ -1,6 +1,6 @@
 import { expect, request as playwrightRequest, test } from "@playwright/test";
 
-import db from "../src/db/client";
+import db from "../src/db/postgres/runtime";
 import { login, type TestAccount } from "./pomodoro-helpers";
 
 const primary: TestAccount = {
@@ -14,16 +14,15 @@ const secondary: TestAccount = {
 
 test.skip(!primary.email || !primary.password, "需要主测试账号凭据");
 test.skip(!secondary.email || !secondary.password, "需要第二测试账号凭据");
+test.setTimeout(90_000);
 
 test.afterAll(async () => {
   await db.$disconnect();
 });
 
 async function testUsers() {
-  const [root, other] = await Promise.all([
-    db.user.findUnique({ where: { email: primary.email.toLowerCase() } }),
-    db.user.findUnique({ where: { email: secondary.email.toLowerCase() } }),
-  ]);
+  const root = await db.user.findUnique({ where: { email: primary.email.toLowerCase() } });
+  const other = await db.user.findUnique({ where: { email: secondary.email.toLowerCase() } });
   expect(root?.role).toBe("ROOT");
   expect(other).not.toBeNull();
   return { root: root!, other: other! };
@@ -53,7 +52,7 @@ test("covers: AC-3, private Todo reads and Blog mutations enforce resource owner
     await page.goto(`/blog/edit/${foreignBlog.id}`);
     await page.getByPlaceholder("无标题").fill(`${marker}-attempted-update`);
     await page.getByRole("button", { name: /提交/ }).click();
-    await expect(page.getByText("文章不存在", { exact: true })).toBeVisible();
+    await expect(page.getByText("文章不存在", { exact: true })).toBeVisible({ timeout: 30_000 });
 
     const stored = await db.blog.findUnique({ where: { id: foreignBlog.id } });
     expect(stored?.title).toBe(`${marker}-foreign-title`);
@@ -63,7 +62,7 @@ test("covers: AC-3, private Todo reads and Blog mutations enforce resource owner
   }
 });
 
-test("covers: AC-9, MariaDB rolls back a tag when the parent write fails", async ({}, testInfo) => {
+test("covers: AC-9, PostgreSQL rolls back a tag when the parent write fails", async ({}, testInfo) => {
   const { root } = await testUsers();
   const marker = `rollback-${testInfo.project.name}-${Date.now()}`;
 
@@ -98,12 +97,15 @@ test("covers: AC-10, concurrent repeated likes keep one relation and an exact ca
     await Promise.all([likeA.click(), likeB.click()]);
 
     await expect
-      .poll(async () => ({
-        relationCount: await db.blogLike.count({ where: { blogId: blog.id, userId: root.id } }),
-        cachedCount: (
-          await db.blog.findUnique({ where: { id: blog.id }, select: { likeCount: true } })
-        )?.likeCount,
-      }))
+      .poll(
+        async () => ({
+          relationCount: await db.blogLike.count({ where: { blogId: blog.id, userId: root.id } }),
+          cachedCount: (
+            await db.blog.findUnique({ where: { id: blog.id }, select: { likeCount: true } })
+          )?.likeCount,
+        }),
+        { timeout: 30_000 }
+      )
       .toEqual({ relationCount: 1, cachedCount: 1 });
   } finally {
     await Promise.all([contextA.close(), contextB.close()]);

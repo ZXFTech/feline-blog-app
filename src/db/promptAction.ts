@@ -6,7 +6,7 @@ import { actionResult } from "@/lib/server/actionResult";
 import { safeErrorContext } from "@/lib/server/error";
 import { parseString, utf8ByteLength } from "@/lib/server/validation";
 import logger from "@/lib/logger/Logger";
-import db from "./client";
+import db from "@/db/client";
 
 type ImgPlatform = "midjourney";
 

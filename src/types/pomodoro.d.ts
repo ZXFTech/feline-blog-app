@@ -5,7 +5,7 @@ import {
   playResumeSound,
   playStartSound,
 } from "@/lib/audio/tomato";
-import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma-postgres/enums";
 
 export type Phase = "idle" | "focus" | "short_break" | "long_break";
 export type RunState = "stopped" | "running" | "paused";

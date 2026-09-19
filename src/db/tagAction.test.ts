@@ -3,7 +3,9 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ hasRootRole: vi.fn(), findMany: vi.fn() }));
 vi.mock("@/lib/auth/userAuth", () => ({ hasRootRole: mocks.hasRootRole }));
 vi.mock("@/lib/logger/Logger", () => ({ default: { error: vi.fn() } }));
-vi.mock("./client", () => ({ default: { tag: { findMany: mocks.findMany } } }));
+vi.mock("@/db/client", () => ({
+  default: { tag: { findMany: mocks.findMany } },
+}));
 
 import { getAllTags, getOptionTagsById, getSortedTags } from "./tagAction";
 

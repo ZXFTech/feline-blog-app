@@ -6,7 +6,7 @@ import logger from "@/lib/logger/Logger";
 import { actionResult } from "@/lib/server/actionResult";
 import { safeErrorContext } from "@/lib/server/error";
 import { parsePositiveInt } from "@/lib/server/validation";
-import db from "./client";
+import db from "@/db/client";
 
 export async function getAllTags() {
   const auth = await hasRootRole();

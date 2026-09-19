@@ -9,7 +9,7 @@ import {
   useRef,
   type ReactNode,
 } from "react";
-import { PomodoroEndReason } from "../../generated/prisma/enums";
+import { PomodoroEndReason } from "../../generated/prisma-postgres/enums";
 import { toast } from "@/components/ProMessage";
 import { usePomodoro, type PomodoroLifecycle } from "@/hooks/usePomodoro";
 import { useCtxAuth } from "@/providers/AuthProviders";

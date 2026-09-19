@@ -1,14 +1,14 @@
 "use server";
 
-import { Prisma } from "../../generated/prisma/client";
-import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
+import { Prisma } from "../../generated/prisma-postgres/client";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma-postgres/enums";
 import { requireAuth } from "@/lib/auth/userAuth";
 import type {
   PomodoroHistoryRecord,
   SavePomodoroInput,
   SavePomodoroResult,
 } from "@/types/pomodoro";
-import db from "./client";
+import db from "@/db/client";
 import { actionResult } from "@/lib/server/actionResult";
 import logger from "@/lib/logger/Logger";
 import { safeErrorContext } from "@/lib/server/error";

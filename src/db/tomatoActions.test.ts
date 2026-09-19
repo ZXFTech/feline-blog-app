@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { Prisma } from "../../generated/prisma/client";
-import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
+import { Prisma } from "../../generated/prisma-postgres/client";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma-postgres/enums";
 
 const mocks = vi.hoisted(() => ({
   requireAuth: vi.fn(),
@@ -11,7 +11,7 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/auth/userAuth", () => ({ requireAuth: mocks.requireAuth }));
-vi.mock("./client", () => ({
+vi.mock("@/db/client", () => ({
   default: {
     pomodoroRecord: {
       create: mocks.create,

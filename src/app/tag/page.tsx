@@ -3,7 +3,7 @@ import TagOperator from "@/components/Tag/TagOperator";
 import TagShowCase from "@/components/Tag/TagShowCase";
 import { getSortedTags } from "@/db/tagAction";
 import React from "react";
-import { Tag as ITag } from "../../../generated/prisma/client";
+import { Tag as ITag } from "../../../generated/prisma-postgres/client";
 
 export type CountedTag = ITag & {
   _count: { blogs?: number; todos?: number };

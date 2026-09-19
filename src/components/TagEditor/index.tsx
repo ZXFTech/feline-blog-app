@@ -6,7 +6,7 @@ import { NeuSurface } from "@/components/ui/neu-surface";
 import Tag from "../Tag";
 import { InputField } from "@/components/ui/input-field";
 import ColorPanel from "../ColorPanel";
-import { Tag as ITag } from "../../../generated/prisma/client";
+import { Tag as ITag } from "../../../generated/prisma-postgres/client";
 import Icon from "../Icon";
 import { cn } from "@/lib/utils";
 

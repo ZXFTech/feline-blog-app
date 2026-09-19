@@ -1,7 +1,7 @@
 import { render, renderHook, screen } from "@testing-library/react";
 import { memo } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma-postgres/enums";
 import { initialState } from "@/lib/pomodoro/reducer";
 import type { DispatchMeta, PomodoroOutcome } from "@/types/pomodoro";
 import {

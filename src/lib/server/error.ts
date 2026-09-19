@@ -1,4 +1,4 @@
-import { Prisma } from "../../../generated/prisma/client";
+import { Prisma } from "../../../generated/prisma-postgres/client";
 import type { ActionFailure, ActionFailureStatus } from "./actionResult";
 
 export type SafeErrorContext = {

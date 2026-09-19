@@ -1,4 +1,4 @@
-import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma-postgres/enums";
 import type {
   Action,
   PomodoroOutcome,

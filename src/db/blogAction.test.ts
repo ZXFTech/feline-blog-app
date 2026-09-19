@@ -34,7 +34,7 @@ vi.mock("@/lib/server/error", async (importOriginal) => {
     },
   };
 });
-vi.mock("./client", () => ({
+vi.mock("@/db/client", () => ({
   default: {
     $transaction: mocks.transaction,
     blog: {
@@ -87,7 +87,10 @@ describe("public Blog data boundary", () => {
       data: { blogs: [], pageBean: { pageNum: 1, pageSize: 20 }, total: 0 },
     });
 
-    const expectedWhere = { delete: false, content: { contains: "cat" } };
+    const expectedWhere = {
+      delete: false,
+      content: { contains: "cat", mode: "insensitive" },
+    };
     expect(mocks.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
         where: expectedWhere,

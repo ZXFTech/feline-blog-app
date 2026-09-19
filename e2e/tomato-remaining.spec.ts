@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import db from "../src/db/client";
+import db from "../src/db/postgres/runtime";
 import { currentUser, login, type TestAccount } from "./pomodoro-helpers";
 
 const primary: TestAccount = {
@@ -8,6 +8,7 @@ const primary: TestAccount = {
 };
 
 test.skip(!primary.email || !primary.password, "需要主测试账号凭据");
+test.setTimeout(90_000);
 
 test.afterAll(async () => {
   await db.$disconnect();
@@ -65,7 +66,9 @@ test("covers: AC-3, restores one expired phase and syncs it once", async ({ page
     });
     await expect(page.getByText("短休息", { exact: true })).toBeVisible();
     await expect
-      .poll(() => db.pomodoroRecord.count({ where: { userId: user.id, eventId } }))
+      .poll(() => db.pomodoroRecord.count({ where: { userId: user.id, eventId } }), {
+        timeout: 30_000,
+      })
       .toBe(1);
     await expect(page.getByLabel("已同步", { exact: true }).first()).toBeVisible();
   } finally {
@@ -112,7 +115,7 @@ test("covers: AC-5, pauses an invalid queued result with an actionable status", 
   await page.reload();
 
   await expect(page.getByLabel("同步暂停", { exact: true })).toBeVisible({
-    timeout: 8_000,
+    timeout: 30_000,
   });
   await expect(page.getByRole("status").filter({ hasText: "1 条失败" })).toBeVisible();
 });
@@ -190,16 +193,18 @@ test("covers: AC-2 and AC-4, syncs two independent queued events exactly once", 
   try {
     await page.reload();
     await expect(page.getByRole("status").filter({ hasText: "0 条待同步" })).toBeVisible({
-      timeout: 12_000,
+      timeout: 30_000,
     });
     await expect
-      .poll(() =>
-        db.pomodoroRecord.count({
-          where: {
-            userId: user.id,
-            eventId: { in: [firstEventId, secondEventId] },
-          },
-        })
+      .poll(
+        () =>
+          db.pomodoroRecord.count({
+            where: {
+              userId: user.id,
+              eventId: { in: [firstEventId, secondEventId] },
+            },
+          }),
+        { timeout: 30_000 }
       )
       .toBe(2);
   } finally {

@@ -1,0 +1,240 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../../generated/prisma-postgres"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/// Internal-only model used to verify PostgreSQL CRUD and rollback behavior.
+/// It is not a business entity and can be removed after a real PostgreSQL model replaces it.
+model PostgresConnectionProbe {
+  id        String   @id @default(uuid()) @db.Uuid
+  nonce     String   @unique @db.VarChar(64)
+  value     String   @db.VarChar(255)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  @@map("_app_postgres_connection_probe")
+}
+
+model User {
+  id              String           @id @default(cuid()) @db.VarChar(191)
+  email           String           @unique @db.Citext
+  phone           String?          @unique @db.Citext
+  username        String           @db.VarChar(191)
+  password        String           @db.VarChar(191)
+  avatar          String?          @db.VarChar(191)
+  work            String?          @db.VarChar(191)
+  role            Role             @default(USER)
+  createdAt       DateTime         @default(now()) @db.Timestamptz(3)
+  updateAt        DateTime         @updatedAt @db.Timestamptz(3)
+  Blog            Blog[]
+  Tag             Tag[]
+  Todo            Todo[]
+  sessions        Session[]
+  blogLikes       BlogLike[]
+  blogFavorites   BlogFavorite[]
+  pomodoroRecords PomodoroRecord[]
+
+  @@map("users")
+}
+
+model Session {
+  id           String   @id @default(cuid()) @db.VarChar(191)
+  sessionToken String   @unique @db.VarChar(191)
+  userId       String   @db.VarChar(191)
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expires      DateTime @db.Timestamptz(3)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String   @db.VarChar(191)
+  token      String   @unique @db.VarChar(191)
+  expires    DateTime @db.Timestamptz(3)
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Blog {
+  id            Int            @id @default(autoincrement())
+  authorId      String         @db.VarChar(191)
+  author        User           @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  title         String         @db.VarChar(191)
+  content       String         @db.Text
+  createdAt     DateTime       @default(now()) @db.Timestamptz(3)
+  updatedAt     DateTime       @updatedAt @db.Timestamptz(3)
+  delete        Boolean        @default(false)
+  tags          TagsOnBlogs[]
+  likeCount     Int            @default(0)
+  favoriteCount Int            @default(0)
+  likes         BlogLike[]
+  favorites     BlogFavorite[]
+}
+
+model Tag {
+  id        Int           @id @default(autoincrement())
+  content   String        @db.Citext
+  color     String        @db.VarChar(191)
+  createdAt DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime      @updatedAt @db.Timestamptz(3)
+  userId    String        @db.VarChar(191)
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  todos     TagsOnTodos[]
+  blogs     TagsOnBlogs[]
+
+  @@unique([userId, content])
+}
+
+model Todo {
+  id         Int           @id @default(autoincrement())
+  content    String        @db.VarChar(500)
+  finished   Boolean       @default(false)
+  createAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updateAt   DateTime      @updatedAt @db.Timestamptz(3)
+  finishedAt DateTime      @updatedAt @db.Timestamptz(3)
+  delete     Boolean       @default(false)
+  userId     String        @db.VarChar(191)
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tags       TagsOnTodos[]
+}
+
+model TagsOnTodos {
+  todo       Todo     @relation(fields: [todoId], references: [id])
+  todoId     Int
+  tag        Tag      @relation(fields: [tagId], references: [id])
+  tagId      Int
+  assignedAt DateTime @default(now()) @db.Timestamptz(3)
+  assignedBy String   @db.VarChar(191)
+
+  @@id([todoId, tagId])
+}
+
+model TagsOnBlogs {
+  blog       Blog     @relation(fields: [blogId], references: [id])
+  blogId     Int
+  tag        Tag      @relation(fields: [tagId], references: [id])
+  tagId      Int
+  assignedAt DateTime @default(now()) @db.Timestamptz(3)
+  assignedBy String   @db.VarChar(191)
+
+  @@id([blogId, tagId])
+}
+
+enum Role {
+  USER
+  ADMIN
+  ROOT
+  VISITOR
+}
+
+model BlogLike {
+  id        String   @id @default(cuid()) @db.VarChar(191)
+  blogId    Int
+  userId    String   @db.VarChar(191)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([blogId, userId])
+  @@index([userId])
+  @@index([blogId])
+}
+
+model BlogFavorite {
+  id        String   @id @default(cuid()) @db.VarChar(191)
+  blogId    Int
+  userId    String   @db.VarChar(191)
+  blog      Blog     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@unique([blogId, userId])
+  @@index([userId])
+  @@index([blogId])
+}
+
+model DailyStat {
+  id          Int           @id @default(autoincrement())
+  date        DateTime      @unique @db.Timestamptz(3)
+  typingCount Int           @default(0)
+  stepCount   Int           @default(0)
+  workouts    WorkoutItem[]
+  createdAt   DateTime      @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime      @updatedAt @db.Timestamptz(3)
+}
+
+model WorkoutItem {
+  id          Int          @id @default(autoincrement())
+  name        String       @db.VarChar(191)
+  exerciseId  Int
+  dailyStatId Int
+  dailyStat   DailyStat    @relation(fields: [dailyStatId], references: [id], onDelete: Cascade)
+  sets        WorkoutSet[]
+  createdAt   DateTime     @default(now()) @db.Timestamptz(3)
+
+  @@unique([dailyStatId, exerciseId])
+}
+
+model WorkoutSet {
+  id            Int         @id @default(autoincrement())
+  reps          Int?
+  order         Int?
+  weight        Float?      @db.DoublePrecision
+  duration      Int
+  calories      Int         @default(0)
+  workoutItemId Int
+  workoutItem   WorkoutItem @relation(fields: [workoutItemId], references: [id], onDelete: Cascade)
+}
+
+model Exercise {
+  id   Int    @id @default(autoincrement())
+  name String @unique @db.Citext
+}
+
+model Prompt {
+  id       Int     @id @default(autoincrement())
+  content  String  @db.Text
+  platform String  @db.VarChar(191)
+  originId String  @db.VarChar(191)
+  imageUrl String? @db.VarChar(191)
+  marks    String  @db.VarChar(191)
+}
+
+enum PomodoroType {
+  FOCUS
+  SHORT
+  LONG
+}
+
+enum PomodoroEndReason {
+  COMPLETED
+  SKIPPED
+  STOPPED
+}
+
+model PomodoroRecord {
+  id               String             @id @default(uuid()) @db.Uuid
+  userId           String             @db.VarChar(191)
+  user             User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type             PomodoroType
+  eventId          String?            @db.VarChar(191)
+  endReason        PomodoroEndReason?
+  finished         Boolean
+  summary          String?            @db.Text
+  startAt          DateTime           @db.Timestamptz(3)
+  endAt            DateTime           @db.Timestamptz(3)
+  durationMs       Float              @db.DoublePrecision
+  actualDurationMs Float              @db.DoublePrecision
+  createAt         DateTime           @default(now()) @db.Timestamptz(3)
+  updateAt         DateTime           @updatedAt @db.Timestamptz(3)
+
+  @@unique([userId, eventId])
+}

@@ -6,8 +6,8 @@ import logger from "@/lib/logger/Logger";
 import { actionResult, type ActionResult } from "@/lib/server/actionResult";
 import { classifyDataError, isKnownPrismaError, safeErrorContext } from "@/lib/server/error";
 import { parsePositiveInt, parseString } from "@/lib/server/validation";
-import { Prisma } from "../../generated/prisma/client";
-import db from "./client";
+import { Prisma } from "../../generated/prisma-postgres/client";
+import db from "@/db/client";
 
 const publicAuthorSelect = { id: true, username: true, avatar: true } as const;
 const tagInclude = { include: { tag: true } } as const;
@@ -162,7 +162,7 @@ export async function getBlogList(
   const content = searchParams.content?.trim() ?? "";
   const where: Prisma.BlogWhereInput = {
     delete: false,
-    ...(content ? { content: { contains: content } } : {}),
+    ...(content ? { content: { contains: content, mode: "insensitive" } } : {}),
   };
   try {
     const blogs = await db.blog.findMany({

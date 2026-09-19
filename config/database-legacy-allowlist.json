@@ -1,0 +1,15 @@
+{
+  "legacyClient": [
+    "scripts/database/check-legacy-connection.ts",
+    "scripts/database/migrate-legacy-to-postgres.ts"
+  ],
+  "legacyGenerated": ["src/db/legacy-mysql/client.ts"],
+  "legacyDriver": ["src/db/legacy-mysql/client.ts"],
+  "postgresDriver": [
+    "scripts/database/audit-postgres-connections.ts",
+    "scripts/database/configure-postgres-roles.ts",
+    "scripts/database/migrate-legacy-to-postgres.ts",
+    "src/db/postgres/config.ts",
+    "src/db/postgres/runtime.ts"
+  ]
+}

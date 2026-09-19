@@ -1,5 +1,5 @@
 import type { Phase, PomodoroState } from "@/types/pomodoro";
-import { PomodoroType } from "../../generated/prisma/enums";
+import { PomodoroType } from "../../generated/prisma-postgres/enums";
 export interface DateRange {
   startTime?: Date;
   endTime?: Date;

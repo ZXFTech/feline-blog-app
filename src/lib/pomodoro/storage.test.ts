@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma-postgres/enums";
 import type { PomodoroOutboxItem, PomodoroState } from "@/types/pomodoro";
 import { initialState } from "./reducer";
 import {

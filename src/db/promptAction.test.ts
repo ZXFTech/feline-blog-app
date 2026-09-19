@@ -4,7 +4,9 @@ const mocks = vi.hoisted(() => ({ hasRootRole: vi.fn(), createMany: vi.fn(), log
 
 vi.mock("@/lib/auth/userAuth", () => ({ hasRootRole: mocks.hasRootRole }));
 vi.mock("@/lib/logger/Logger", () => ({ default: { error: mocks.logError } }));
-vi.mock("./client", () => ({ default: { prompt: { createMany: mocks.createMany } } }));
+vi.mock("@/db/client", () => ({
+  default: { prompt: { createMany: mocks.createMany } },
+}));
 
 import { savePrompt } from "./promptAction";
 

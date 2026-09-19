@@ -1,0 +1,30 @@
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+      - name: Enable locked pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma:validate
+      - run: pnpm prisma:generate
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build

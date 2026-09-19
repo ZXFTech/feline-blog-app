@@ -7,7 +7,7 @@ import { InputField } from "@/components/ui/input-field";
 import TagEditor, { TagData } from "../TagEditor";
 import { TagTodo } from "@/types/todo";
 import { addTodo, updateTodo } from "@/db/todoAction";
-import { Tag } from "../../../generated/prisma/client";
+import { Tag } from "../../../generated/prisma-postgres/client";
 import { useRouter } from "next/navigation";
 import { getOptionTagsById } from "@/db/tagAction";
 import { cn } from "@/lib/utils";

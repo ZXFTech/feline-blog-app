@@ -9,7 +9,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth/userAuth", () => ({ hasRootRole: mocks.hasRootRole }));
 vi.mock("@/lib/logger/Logger", () => ({ default: { error: vi.fn() } }));
-vi.mock("./client", () => ({
+vi.mock("@/db/client", () => ({
   default: {
     dailyStat: { findUnique: mocks.findUnique, findMany: mocks.findMany },
     $transaction: mocks.transaction,

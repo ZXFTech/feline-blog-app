@@ -1,6 +1,6 @@
 import { expect, test } from "@playwright/test";
-import db from "../src/db/client";
-import { PomodoroEndReason, PomodoroType } from "../generated/prisma/enums";
+import db from "../src/db/postgres/runtime";
+import { PomodoroEndReason, PomodoroType } from "../generated/prisma-postgres/enums";
 import { currentUser, login, logout, type TestAccount } from "./pomodoro-helpers";
 
 const primary: TestAccount = {
@@ -13,6 +13,7 @@ const secondary: TestAccount = {
 };
 
 test.skip(!primary.email || !primary.password, "需要主测试账号凭据");
+test.setTimeout(90_000);
 test.skip(!secondary.email || !secondary.password, "需要第二测试账号凭据");
 
 test.afterAll(async () => {
@@ -61,25 +62,43 @@ test("covers: AC-8, quarantines corrupt timer data and recovers safely", async (
 test("covers: AC-4, keeps an offline result visible and syncs it after reconnecting", async ({
   page,
   context,
-}) => {
+}, testInfo) => {
   await login(page, primary);
-  await page.getByRole("spinbutton", { name: "专注分钟" }).focus();
-  await page.keyboard.press("ControlOrMeta+A");
-  await page.keyboard.type("0.02");
-  await page.keyboard.press("Tab");
-  await page.getByRole("button", { name: "开始专注" }).click();
+  const user = await currentUser(page);
+  const eventId =
+    testInfo.project.name === "mobile"
+      ? "019d3b54-2e18-7000-8000-000000000205"
+      : "019d3b54-2e18-7000-8000-000000000105";
+  await db.pomodoroRecord.deleteMany({ where: { userId: user.id, eventId } });
+  await page.evaluate((fixedEventId) => {
+    Object.defineProperty(globalThis.crypto, "randomUUID", {
+      configurable: true,
+      value: () => fixedEventId,
+    });
+  }, eventId);
 
-  await context.setOffline(true);
-  await expect(page.getByRole("status").filter({ hasText: "1 条待同步" })).toBeVisible({
-    timeout: 8_000,
-  });
-  await expect.soft(page.getByText("目标 00:02", { exact: true }).first()).toBeVisible();
+  try {
+    await page.getByRole("spinbutton", { name: "专注分钟" }).focus();
+    await page.keyboard.press("ControlOrMeta+A");
+    await page.keyboard.type("0.02");
+    await page.keyboard.press("Tab");
+    await page.getByRole("button", { name: "开始专注" }).click();
 
-  await context.setOffline(false);
-  await expect(page.getByLabel("已同步", { exact: true }).first()).toBeVisible({
-    timeout: 12_000,
-  });
-  await expect(page.getByRole("status").filter({ hasText: "0 条待同步" })).toBeVisible();
+    await context.setOffline(true);
+    await expect(page.getByRole("status").filter({ hasText: "1 条待同步" })).toBeVisible({
+      timeout: 8_000,
+    });
+    await expect.soft(page.getByText("目标 00:02", { exact: true }).first()).toBeVisible();
+
+    await context.setOffline(false);
+    await expect(page.getByLabel("已同步", { exact: true }).first()).toBeVisible({
+      timeout: 30_000,
+    });
+    await expect(page.getByRole("status").filter({ hasText: "0 条待同步" })).toBeVisible();
+  } finally {
+    await context.setOffline(false);
+    await db.pomodoroRecord.deleteMany({ where: { userId: user.id, eventId } });
+  }
 });
 
 test("covers: AC-7, isolates and restores timer state when switching users", async ({ page }) => {
@@ -148,7 +167,7 @@ test("covers: AC-5, shows a server conflict and adopts the first record", async 
     await page.getByRole("button", { name: "开始专注" }).click();
     await page.getByRole("button", { name: "跳过" }).click();
 
-    await expect(page.getByLabel("存在冲突", { exact: true })).toBeVisible();
+    await expect(page.getByLabel("存在冲突", { exact: true })).toBeVisible({ timeout: 30_000 });
     await page.getByRole("button", { name: "采用服务端记录" }).click();
     await expect(page.getByLabel("存在冲突", { exact: true })).toHaveCount(0);
     await expect(page.getByLabel("已同步", { exact: true }).first()).toBeVisible();

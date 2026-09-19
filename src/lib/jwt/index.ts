@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { Role } from "../../../generated/prisma/enums";
+import { Role } from "../../../generated/prisma-postgres/enums";
 import logger from "../logger/Logger";
 
 const JWT_SECRET = process.env.JWT_SECRET!;

@@ -11,7 +11,9 @@
 | `src/app/layout.tsx`       | 全局布局、字体、导航、页脚和认证上下文 |
 | `src/app/album/_components/catalog.ts` | Album 组件目录、能力元数据、展示模块加载入口与覆盖审计 |
 | `src/app/api/**/route.ts`  | 登录、注册和查询接口                   |
-| `src/db/client.ts`         | Prisma 与 MariaDB 客户端单例           |
+| `src/db/client.ts`         | 全部业务使用的 PostgreSQL 客户端入口   |
+| `src/db/legacy-mysql/client.ts` | 仅连接检查与迁移工具使用的 MariaDB 客户端 |
+| `src/db/postgres/**`       | PostgreSQL runtime、配置和探针仓储      |
 | `src/db/*Action.ts`        | 带有 `"use server"` 的领域数据操作     |
 | `src/lib/auth/userAuth.ts` | 当前用户和角色权限检查                 |
 | `src/app/globals.css`      | 唯一全局样式入口、主题 token 和通用工具 |
@@ -21,6 +23,8 @@
 
 - 页面默认保持服务端组件。需要 Hook、浏览器 API 或事件处理时，才把交互部分拆成客户端组件。
 - 数据写操作放在 `src/db`，先校验用户或角色，再调用 Prisma。多个相关写入请使用事务。
+- 所有业务模块不得导入 legacy MySQL 客户端或旧生成类型；只有精确允许名单中的迁移基础设施可以使用。
+- PostgreSQL 是本地开发的唯一业务数据源，认证继续使用现有 JWT Cookie 流程并在同一 PostgreSQL 中核验用户。
 - HTTP 路由统一使用 `actionResponse` 返回成功或错误响应，并用项目 logger 记录异常。
 - Server Action 统一返回 `ActionResult` 判别联合；错误日志使用 `safeErrorContext`，不得记录令牌、密码、正文、完整请求体或数据库内部信息。
 - 当前认证流程是自定义 JWT 和名为 `token` 的 HttpOnly Cookie。不要假设已安装的 `next-auth` 已接入运行时。
@@ -35,6 +39,6 @@
 
 - 私有查询和写入必须使用已验证的当前用户 ID，并在资源查询中包含归属条件；生产数据操作不得回退到 `testUserId`。
 - 单元和组件测试使用 Vitest 与 Testing Library，真实页面流程使用 Playwright；修改关键流程后请运行相应测试、lint、build 和真实页面检查。
-- 需要真实 MariaDB 的 Playwright 场景使用 `.env.e2e.local` 中的测试账号、唯一数据标记和 `finally` 清理；共享账号与可变数据库记录要求 `workers: 1`。
+- 需要真实 Supabase staging 的 Playwright 场景使用 `.env.e2e.local` 中的测试账号、唯一数据标记和 `finally` 清理；共享账号与可变数据库记录要求 `workers: 1`，远程写入断言允许 30 秒收敛。
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._

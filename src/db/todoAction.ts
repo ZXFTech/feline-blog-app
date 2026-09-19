@@ -7,8 +7,8 @@ import { actionResult } from "@/lib/server/actionResult";
 import { classifyDataError, safeErrorContext } from "@/lib/server/error";
 import { parsePositiveInt, parseString } from "@/lib/server/validation";
 import type { TodoSearchParams } from "@/types/todo";
-import { Prisma } from "../../generated/prisma/client";
-import db from "./client";
+import { Prisma } from "../../generated/prisma-postgres/client";
+import db from "@/db/client";
 
 function parseTags(tags: unknown): TagData[] | null {
   if (!Array.isArray(tags)) return null;
@@ -47,7 +47,7 @@ export async function getTodoList(searchParams?: TodoSearchParams) {
     userId: auth.data.id,
     delete: false,
     ...(finished === null || finished === undefined ? {} : { finished }),
-    ...(content?.trim() ? { content: { contains: content.trim() } } : {}),
+    ...(content?.trim() ? { content: { contains: content.trim(), mode: "insensitive" } } : {}),
   };
   const totalWhere = { userId: auth.data.id, delete: false } as const;
   try {

@@ -1,7 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
-import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma-postgres/enums";
 import type { PomodoroOutboxItem } from "@/types/pomodoro";
 import PomodoroOperationPanel from "./PomodoroOperationPanel";
 

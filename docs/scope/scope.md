@@ -37,6 +37,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 24  | newTheme 组件与样式迁移 | Maintenance | done |
 | 25  | Checklist 功能完善与交互验收 | Maintenance | planned     |
 | 26  | Album 组件展示中心 | Maintenance | done |
+| 27  | 本地 PostgreSQL 开发与迁移隔离 | Maintenance | planned |
 
 ## Current product
 
@@ -311,6 +312,13 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
   - [x] 补齐组件测试与宽窄屏、键盘、历史、主题、浮层和错误恢复的 Playwright 验证，covers `AC-2`、`AC-5`、`AC-7`、`AC-8`、`AC-11`、`AC-13` 到 `AC-15`
 - [x] Verify it: `/check verify Album 组件展示中心`
 - [x] Test it: `/test Album 组件展示中心`
+
+### 27. 本地 PostgreSQL 开发与迁移隔离 · needs a decision
+
+把本地开发、Prisma 迁移校验和 Supabase staging 的连接配置分开，让日常开发和可清空重建的校验操作不再触碰远程 staging 数据。
+**Done when:** 本地开发默认使用 `feline_blog_dev`，Prisma 迁移校验和允许清空重建的操作默认使用 `feline_blog_shadow`，两者分别从 `.env.develop` 和 `.env.shadow` 读取配置，Supabase `feline_blog_staging` 只从 `.env.staging` 读取配置，并且命令与保护检查可以证明三类环境不会误连或混用。
+
+- [ ] Design it (spec): `/architect 本地 PostgreSQL 开发与迁移隔离`
 
 ## Deferred
 

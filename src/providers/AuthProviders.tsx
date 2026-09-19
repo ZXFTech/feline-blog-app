@@ -1,8 +1,8 @@
 "use client";
 
 import React, { createContext, ReactNode, useContext, useState } from "react";
-import { Role } from "../../generated/prisma/enums";
 import { usePathname } from "next/navigation";
+import { Role } from "../../generated/prisma-postgres/enums";
 
 export interface CtxUser {
   id: string;

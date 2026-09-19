@@ -11,7 +11,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    "generated/prisma", // ignore prisma generate
+    "generated/prisma/**", // ignore legacy Prisma generate
+    "generated/prisma-postgres/**", // ignore PostgreSQL Prisma generate
     "node_modules",
   ]),
 ]);

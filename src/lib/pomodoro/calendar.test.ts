@@ -10,7 +10,7 @@ import {
   shiftMonth,
 } from "./calendar";
 import type { PomodoroHistoryRecord, PomodoroOutboxItem } from "@/types/pomodoro";
-import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../../generated/prisma-postgres/enums";
 
 const serverRecord: PomodoroHistoryRecord = {
   id: "server-record",

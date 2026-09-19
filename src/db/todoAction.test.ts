@@ -13,7 +13,7 @@ const mocks = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/auth/userAuth", () => ({ hasTodoRoles: mocks.hasTodoRoles }));
 vi.mock("@/lib/logger/Logger", () => ({ default: { error: vi.fn() } }));
-vi.mock("./client", () => ({
+vi.mock("@/db/client", () => ({
   default: {
     $transaction: mocks.transaction,
     todo: {
@@ -57,7 +57,12 @@ describe("todo actions", () => {
 
     expect(mocks.findMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { userId: "root-1", delete: false, finished: false, content: { contains: "cat" } },
+        where: {
+          userId: "root-1",
+          delete: false,
+          finished: false,
+          content: { contains: "cat", mode: "insensitive" },
+        },
         orderBy: { createAt: "asc" },
       })
     );

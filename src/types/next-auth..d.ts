@@ -1,4 +1,4 @@
-import { Role } from "../../generated/prisma/enums";
+import { Role } from "../../generated/prisma-postgres/enums";
 import { DefaultSession } from "next-auth";
 
 declare module "next-auth" {

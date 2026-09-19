@@ -2,7 +2,7 @@ import { verifyToken } from "../jwt";
 import { checkUser } from "@/db/userAction";
 import logger from "../logger/Logger";
 import { getCookieData } from "../cookieStore";
-import { Role } from "../../../generated/prisma/enums";
+import { Role } from "../../../generated/prisma-postgres/enums";
 import { unstable_rethrow } from "next/navigation";
 import { actionResult, type ActionResult } from "@/lib/server/actionResult";
 import { safeErrorContext } from "@/lib/server/error";

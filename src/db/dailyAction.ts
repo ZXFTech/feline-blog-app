@@ -5,7 +5,7 @@ import logger from "@/lib/logger/Logger";
 import { actionResult } from "@/lib/server/actionResult";
 import { safeErrorContext } from "@/lib/server/error";
 import { parseDateOnly, parseString } from "@/lib/server/validation";
-import db from "./client";
+import db from "@/db/client";
 
 export type DailyStatus = {
   date?: string;

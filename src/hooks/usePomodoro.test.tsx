@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { PomodoroEndReason, PomodoroType } from "../../generated/prisma/enums";
+import { PomodoroEndReason, PomodoroType } from "../../generated/prisma-postgres/enums";
 import type {
   PluginContext,
   PomodoroHistoryRecord,

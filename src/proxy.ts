@@ -7,6 +7,15 @@ const adminRoutes = ["/admin"];
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
+  const requestHeaders = new Headers(req.headers);
+  requestHeaders.set("x-feline-pathname", pathname);
+
+  const continueRequest = () =>
+    NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
 
   const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
@@ -29,19 +38,16 @@ export async function proxy(req: NextRequest) {
     }
 
     if (isAdminRoute && decoded.role !== "ADMIN") {
-      const requestHeaders = new Headers(req.headers);
       requestHeaders.set("x-user-id", decoded.userId);
       requestHeaders.set("x-user-role", decoded.role);
 
-      return NextResponse.next({
-        request: {
-          headers: requestHeaders,
-        },
-      });
+      return continueRequest();
     }
 
-    return NextResponse.next();
+    return continueRequest();
   }
+
+  return continueRequest();
 }
 
 export const config = {

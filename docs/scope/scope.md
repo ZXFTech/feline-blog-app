@@ -36,6 +36,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 23  | 番茄钟全局响应式状态     | Maintenance | done        |
 | 24  | newTheme 组件与样式迁移 | Maintenance | done |
 | 25  | Checklist 功能完善与交互验收 | Maintenance | planned     |
+| 26  | Album 组件展示中心 | Maintenance | done |
 
 ## Current product
 
@@ -295,6 +296,22 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 
 - [ ] Design it (spec): `/architect Checklist 功能完善与交互验收`
 
+### 26. Album 组件展示中心 · done
+
+将 `album` 升级为项目组件的可浏览展示中心，让开发和设计时可以集中查看现有组件的用途、变体和关键状态。
+**Done when:** 左侧导航按功能分类列出项目现有的基础控件、复合控件和业务组件；选择组件后，主内容区展示简要说明、默认形态、支持的尺寸、四套主题及其可用的交互和语义状态，并且导航与展示内容能随项目组件持续扩展。
+
+- [x] Design it (spec): `/architect Album 组件展示中心`
+      spec [0008](../specs/0008-album-component-showcase/index.md)
+- [x] Build it: `/develop Album 组件展示中心`
+      code [page](../../src/app/album/page.tsx) · [catalog](../../src/app/album/_components/catalog.ts) · [tests](../../e2e/album-showcase.spec.ts)
+  - [x] 打通 Button、类型注册表、分类导航、搜索、URL、四主题和共享展示契约，covers `AC-1` 到 `AC-9`、`AC-11` 到 `AC-13`
+  - [x] 按功能分类接入基础与复合组件，建立稳定场景、覆盖审计和目录完整性保护，covers `AC-3`、`AC-4`、`AC-6` 到 `AC-10`
+  - [x] 使用本地沙箱与最小内存适配器接入业务组件，标注安全的待接入缺口，covers `AC-1`、`AC-9`、`AC-10`、`AC-12`、`AC-15`
+  - [x] 补齐组件测试与宽窄屏、键盘、历史、主题、浮层和错误恢复的 Playwright 验证，covers `AC-2`、`AC-5`、`AC-7`、`AC-8`、`AC-11`、`AC-13` 到 `AC-15`
+- [x] Verify it: `/check verify Album 组件展示中心`
+- [x] Test it: `/test Album 组件展示中心`
+
 ## Deferred
 
 当前开发轮次不包含这些能力，保留在这里避免它们悄悄扩大主线。
@@ -303,7 +320,9 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 - **直接上传和管理图片**: 文章暂时继续使用外部图片链接
 - **评论和公开用户资料**: 普通用户当前只点赞和收藏
 - **完整移动端与 WCAG 2.2 AA**: 当前只保证常见桌面浏览器可用
-- **实验页面产品化**: `album`、`formatter` 和 `playground` 暂不进入正式产品范围
+- **实验页面产品化**: `formatter` 和 `playground` 暂不进入正式产品范围
+- **InputField 尺寸契约修复**: 让 `fieldSize` 真正传递到内部输入组件（from spec 0008）
+- **Icon 主题颜色契约**: 评估并收口硬编码颜色与四主题语义 token 的偏移（from spec 0008）
 - **商业化**: 广告、赞助、会员和付费内容暂不规划
 
 ## References

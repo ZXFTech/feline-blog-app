@@ -37,4 +37,26 @@ describe("Calendar", () => {
     expect(onMonthChange).toHaveBeenCalledWith(new Date(2026, 9, 1));
     expect(screen.getByText("October 2026")).toBeVisible();
   });
+
+  it("uses the active theme highlight and white foreground for selected dates", () => {
+    render(
+      <Calendar mode="single" month={new Date(2026, 8, 1)} selected={new Date(2026, 8, 18)} />
+    );
+
+    const selectedDay = screen.getByRole("button", { name: /September 18th, 2026, selected/ });
+    expect(selectedDay.className).toContain(
+      "data-[selected-single=true]:!bg-[var(--calendar-day-selected-bg)]"
+    );
+    expect(selectedDay.className).toContain("data-[selected-single=true]:!text-primary-foreground");
+  });
+
+  it("uses calendar theme variables for hover, active and focus states", () => {
+    render(<Calendar mode="single" month={new Date(2026, 8, 1)} />);
+
+    const day = screen.getByRole("button", { name: /September 18th, 2026/ });
+    expect(day.className).toContain("hover:!bg-[var(--calendar-day-hover-bg)]");
+    expect(day.className).toContain("active:!bg-[var(--calendar-day-active-bg)]");
+    expect(day.className).toContain("focus-visible:!ring-[var(--calendar-day-focus-ring)]");
+    expect(day.className).not.toContain("dark:hover:!bg-[#444]");
+  });
 });

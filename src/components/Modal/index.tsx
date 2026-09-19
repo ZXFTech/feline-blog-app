@@ -2,7 +2,8 @@
 "use client";
 
 import { MouseEventHandler, ReactElement, ReactNode, useEffect, useRef, useState } from "react";
-import { neuSurface } from "@/components/ui/neu-surface";
+import { NeuPanel } from "@/components/ui/neu-panel";
+import { DIALOG_BACKDROP_CLASS_NAME } from "@/lib/dialog-backdrop";
 import Icon, { IconType } from "../Icon";
 import { Button } from "@/components/ui/button";
 import Portal from "../Portal";
@@ -102,19 +103,19 @@ const Modal = ({
         onMouseDown={handleMouseDown}
         onClick={handleMaskClick}
         className={`fixed inset-0 z-1000 flex items-center justify-center transition-colors duration-300! ${
-          show ? "bg-gray-400/40!" : "bg-gray-400/0!"
+          show ? DIALOG_BACKDROP_CLASS_NAME : "bg-black/0 backdrop-blur-none"
         }`}
       >
-        <div
+        <NeuPanel
+          data-slot="modal-panel"
+          density="comfortable"
           onClick={(e) => e.stopPropagation()}
-          className={neuSurface({
-            className: `model-main flex flex-col w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
-              show ? "scale-100 opacity-100" : "scale-95 opacity-0"
-            }`,
-          })}
+          className={`model-main w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
+            show ? "scale-100 opacity-100" : "scale-95 opacity-0"
+          }`}
         >
           {/* Header */}
-          <div className="modal-title-bar flex items-center justify-between mb-3 px-1">
+          <div className="modal-title-bar flex items-center justify-between">
             <div className="text-lg font-medium">{title}</div>
             {closeIcon && (
               <Icon
@@ -127,13 +128,11 @@ const Modal = ({
           </div>
 
           {/* Content */}
-          <div className="flex-1 px-2 mb-2">{children}</div>
+          <div className="flex-1">{children}</div>
 
           {/* Footer */}
-          <div className="modal-footer flex items-center justify-end gap-2 px-1">
-            {renderFooter()}
-          </div>
-        </div>
+          <div className="modal-footer flex items-center justify-end gap-2">{renderFooter()}</div>
+        </NeuPanel>
       </div>
     </Portal>
   );

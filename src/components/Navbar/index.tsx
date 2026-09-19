@@ -1,3 +1,5 @@
+"use client";
+
 import { FC, ReactNode } from "react";
 import { NeuPanel } from "@/components/ui/neu-panel";
 import { neuSurface } from "@/components/ui/neu-surface";
@@ -6,6 +8,7 @@ import { IconNeonCat } from "../Icon/presetIcon";
 import { UserMenu } from "../Profile/UserMenu";
 import { ThemeSwitcher } from "@/components/theme-switcher";
 import PomodoroGlobalStatus from "../pomodoro/PomodoroGlobalStatus";
+import { usePathname } from "next/navigation";
 
 interface NavbarProps {
   leftSlot?: ReactNode;
@@ -15,6 +18,9 @@ interface NavbarProps {
 }
 
 const Navbar: FC<NavbarProps> = ({ routeList }) => {
+  const pathname = usePathname();
+  const prefetch = pathname === "/album" ? false : undefined;
+
   return (
     <NeuPanel
       density="compact"
@@ -23,7 +29,7 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
     >
       <div className="flex min-w-max w-full items-center justify-between text-center">
         <div className="flex shrink-0 justify-start items-center px-2">
-          <IconNeonCat />
+          <IconNeonCat prefetch={prefetch} />
         </div>
         <ul className="flex shrink-0 flex-row items-center justify-center p-0! gap-2 xs:mx-0!">
           {routeList.map((route) => {
@@ -35,6 +41,7 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
                     className: "block p-0 mx-0 my-2",
                   })}
                   href={`/${route === "home" ? "" : route}`}
+                  prefetch={prefetch}
                 >
                   <span className="block px-4 py-1 mx-2 my-1 font-medium rounded-md navbar-link text-foreground!">
                     {route.toUpperCase()}
@@ -45,10 +52,10 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
           })}
         </ul>
         <div className="flex shrink-0 justify-between items-center gap-2 px-2 ">
-          <PomodoroGlobalStatus />
+          <PomodoroGlobalStatus prefetch={prefetch} />
           <ThemeSwitcher />
           <div className="w-20">
-            <UserMenu />
+            <UserMenu prefetch={prefetch} />
           </div>
         </div>
       </div>

@@ -1,6 +1,12 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import AuthProviders, { useCtxAuth, type CtxUser } from "./AuthProviders";
+
+const navigation = vi.hoisted(() => ({ pathname: "/" }));
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => navigation.pathname,
+}));
 
 const signedInUser: CtxUser = {
   id: "user-1",
@@ -11,18 +17,26 @@ const signedInUser: CtxUser = {
 };
 
 function CurrentUser() {
-  const { user } = useCtxAuth();
-  return <output>{user ? `${user.id}:${user.email}` : "未登录"}</output>;
+  const { authEnabled, user } = useCtxAuth();
+  return (
+    <output>
+      {authEnabled ? "认证启用" : "认证停用"}:{user ? `${user.id}:${user.email}` : "未登录"}
+    </output>
+  );
 }
 
 describe("AuthProviders", () => {
+  beforeEach(() => {
+    navigation.pathname = "/";
+  });
+
   it("covers: AC-7, shows the server restored user on the first render", () => {
     render(
       <AuthProviders initialUser={signedInUser}>
         <CurrentUser />
       </AuthProviders>
     );
-    expect(screen.getByText("user-1:cat@example.com")).toBeInTheDocument();
+    expect(screen.getByText("认证启用:user-1:cat@example.com")).toBeInTheDocument();
   });
 
   it("covers: AC-7, keeps anonymous requests unauthenticated", () => {
@@ -31,6 +45,35 @@ describe("AuthProviders", () => {
         <CurrentUser />
       </AuthProviders>
     );
-    expect(screen.getByText("未登录")).toBeInTheDocument();
+    expect(screen.getByText("认证启用:未登录")).toBeInTheDocument();
+  });
+
+  it("covers: Album AC-1, hides a restored user from the public showcase", () => {
+    navigation.pathname = "/album";
+    render(
+      <AuthProviders initialUser={signedInUser}>
+        <CurrentUser />
+      </AuthProviders>
+    );
+    expect(screen.getByText("认证停用:未登录")).toBeInTheDocument();
+  });
+
+  it("covers: Album AC-1, restores the in-memory session after leaving Album", () => {
+    navigation.pathname = "/album";
+    const { rerender } = render(
+      <AuthProviders initialUser={signedInUser}>
+        <CurrentUser />
+      </AuthProviders>
+    );
+    expect(screen.getByText("认证停用:未登录")).toBeInTheDocument();
+
+    navigation.pathname = "/todo";
+    rerender(
+      <AuthProviders initialUser={signedInUser}>
+        <CurrentUser />
+      </AuthProviders>
+    );
+
+    expect(screen.getByText("认证启用:user-1:cat@example.com")).toBeInTheDocument();
   });
 });

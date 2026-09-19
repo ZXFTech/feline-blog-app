@@ -34,6 +34,34 @@ function ExampleAlertDialog({ onConfirm }: { onConfirm: () => void }) {
 }
 
 describe("AlertDialog", () => {
+  it("uses reduced default padding while preserving compact dialog padding", async () => {
+    const { rerender } = render(
+      <AlertDialog defaultOpen>
+        <AlertDialogContent>
+          <AlertDialogTitle>默认确认</AlertDialogTitle>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+
+    expect(screen.getByRole("alertdialog", { name: "默认确认" })).toHaveClass(
+      "data-[size=default]:p-[var(--spacing-panel-inset-comfortable)]"
+    );
+    expect(document.querySelector('[data-slot="alert-dialog-overlay"]')).toHaveClass(
+      "bg-black/10",
+      "supports-backdrop-filter:backdrop-blur-xs"
+    );
+
+    rerender(
+      <AlertDialog defaultOpen>
+        <AlertDialogContent size="sm">
+          <AlertDialogTitle>紧凑确认</AlertDialogTitle>
+        </AlertDialogContent>
+      </AlertDialog>
+    );
+
+    expect(screen.getByRole("alertdialog", { name: "紧凑确认" })).toHaveClass("data-[size=sm]:p-6");
+  });
+
   it("covers: AC-5 confirms a destructive action exactly once", async () => {
     const onConfirm = vi.fn();
     render(<ExampleAlertDialog onConfirm={onConfirm} />);

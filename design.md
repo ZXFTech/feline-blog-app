@@ -32,6 +32,8 @@ Keep `NeuSurface` free of default padding and gap. Use it directly only for visu
 
 Adopt `NeuPanel` through explicit, user selected migration slices. Do not perform broad automatic replacement of existing `NeuSurface` calls. Preserve each migrated surface's layout and behavior, verify that slice, then continue only with the next requested area.
 
+All modal dialogs use the shared backdrop contract from `src/lib/dialog-backdrop.ts`: a 10% black overlay with `xs` backdrop blur when the browser supports it. `Dialog`, `AlertDialog`, and the controlled `Modal` must reuse that contract; they may add their own open and close animation classes, but must not introduce a different backdrop tint, opacity, or blur strength.
+
 Keep scrolling functional but hide native scrollbars on every surface by default. Apply `scrollbar-visible` only when a visible scrollbar is an intentional part of the interface. Overflow utilities control whether content can scroll, not whether its native scrollbar is shown.
 
 Use semantic buttons for actions and links for navigation. Primary emphasis belongs to the current main action only. Success, warning, and danger colors must pair with text or an icon and never carry meaning alone. Keep shadows restrained on repeated content, avoid raw colors and duplicate spacing values, and add missing reusable values to the existing token files instead of hardcoding them in a feature component.

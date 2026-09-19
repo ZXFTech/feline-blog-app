@@ -2,6 +2,7 @@
 
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 
+import { DIALOG_BACKDROP_CLASS_NAME } from "@/lib/dialog-backdrop";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -13,11 +14,13 @@ const DialogDescription = DialogPrimitive.Description;
 function DialogContent({ className, ...props }: DialogPrimitive.Popup.Props) {
   return (
     <DialogPrimitive.Portal>
-      <DialogPrimitive.Backdrop className="fixed inset-0 z-50 bg-black/40 transition-opacity" />
+      <DialogPrimitive.Backdrop
+        className={cn("fixed inset-0 z-50 transition-opacity", DIALOG_BACKDROP_CLASS_NAME)}
+      />
       <DialogPrimitive.Viewport className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
         <DialogPrimitive.Popup
           className={cn(
-            "w-full rounded-xl bg-background p-6 text-foreground shadow-neu-raised outline-none",
+            "w-full rounded-xl bg-background p-[var(--spacing-panel-inset-comfortable)] text-foreground shadow-neu-raised outline-none",
             className
           )}
           {...props}

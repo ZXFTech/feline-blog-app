@@ -4,11 +4,15 @@ import { StyledLink } from "@/components/ui/styled-link";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 
-export const UserMenu = () => {
+export const UserMenu = ({ prefetch }: { prefetch?: boolean }) => {
   const { logout, user } = useAuth();
 
   if (!user) {
-    return <StyledLink href="/login">登录/注册</StyledLink>;
+    return (
+      <StyledLink href="/login" prefetch={prefetch}>
+        登录/注册
+      </StyledLink>
+    );
   }
   return (
     <Button

@@ -26,7 +26,7 @@
     "prisma-studio:dev": "dotenv -e .env.development -- prisma studio",
     "prisma-studio:prod": "dotenv -e .env.production -- prisma studio",
     "build-local:dev": "dotenv -e .env.development -- prisma generate && dotenv -e .env.development -- node --loader ts-node/esm ./bin/build.ts --dev",
-    "build-local:prod": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- node --loader ts-node/esm ./bin/build.ts",
+    "build-local:prod": "dotenv -e .env.production -- prisma generate && dotenv -e .env.production -- next build",
     "prepare": "husky",
     "lint-staged": "lint-staged"
   },

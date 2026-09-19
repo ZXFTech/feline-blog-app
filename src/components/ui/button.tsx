@@ -17,15 +17,15 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-secondary text-secondary-foreground shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_10%)] active:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_16%)] active:shadow-neu-raised-pressed",
+          "bg-secondary text-secondary-foreground shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)] active:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_16%)] active:shadow-neu-raised-pressed",
         primary:
-          "bg-primary text-primary-foreground shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--primary),white_18%)] active:bg-[color-mix(in_oklch,var(--primary),black_18%)] active:shadow-neu-raised-pressed",
+          "bg-primary text-primary-foreground shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--primary),white_10%)] active:bg-[color-mix(in_oklch,var(--primary),black_18%)] active:shadow-neu-raised-pressed",
         danger:
-          "bg-status-error text-status-error-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-error),white_18%)] active:bg-[color-mix(in_oklch,var(--status-error),black_18%)] active:shadow-neu-raised-pressed",
+          "bg-status-error text-status-error-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-error),white_10%)] active:bg-[color-mix(in_oklch,var(--status-error),black_18%)] active:shadow-neu-raised-pressed",
         warning:
-          "bg-status-warning text-status-warning-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-warning),white_18%)] active:bg-[color-mix(in_oklch,var(--status-warning),black_18%)] active:shadow-neu-raised-pressed",
+          "bg-status-warning text-status-warning-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-warning),white_10%)] active:bg-[color-mix(in_oklch,var(--status-warning),black_18%)] active:shadow-neu-raised-pressed",
         success:
-          "bg-status-success text-status-success-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-success),white_18%)] active:bg-[color-mix(in_oklch,var(--status-success),black_18%)] active:shadow-neu-raised-pressed",
+          "bg-status-success text-status-success-fg shadow-neu-raised-sm hover:bg-[color-mix(in_oklch,var(--status-success),white_10%)] active:bg-[color-mix(in_oklch,var(--status-success),black_18%)] active:shadow-neu-raised-pressed",
       },
       size: {
         xs: "h-[1.375rem] rounded-[var(--radius-btn-xs)] px-2 py-1 text-[length:var(--text-btn-xs)] leading-[1.5]",

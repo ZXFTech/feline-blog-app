@@ -6,12 +6,17 @@ import logger from "@/lib/logger/Logger";
 import { useCtxAuth } from "@/providers/AuthProviders";
 
 export function useAuth() {
-  const [authLoading, setAuthLoading] = useState(true);
-
   const router = useRouter();
-  const { setUser, user } = useCtxAuth();
+  const { authEnabled, setUser, user } = useCtxAuth();
+  const [authLoading, setAuthLoading] = useState(authEnabled);
 
   useEffect(() => {
+    if (!authEnabled) {
+      setAuthLoading(false);
+      return;
+    }
+
+    setAuthLoading(true);
     const checkAuth = async function () {
       try {
         const res = await fetch("/api/auth/me");
@@ -31,7 +36,7 @@ export function useAuth() {
     };
 
     checkAuth();
-  }, [setUser]);
+  }, [authEnabled, setUser]);
 
   const login = async function (email: string, password: string) {
     try {

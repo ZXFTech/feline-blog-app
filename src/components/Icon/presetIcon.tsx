@@ -11,10 +11,10 @@ export const IconSpinner: FC<Partial<IconProps>> = (props) => {
   return <Icon icon={icon || "progress_activity"} className="animate-spin" {...restProps} />;
 };
 
-export const IconNeonCat = () => {
+export const IconNeonCat = ({ prefetch }: { prefetch?: boolean }) => {
   return (
     <div className="cursor-pointer icon-neon-cat">
-      <Link href="/playground">
+      <Link href="/playground" prefetch={prefetch}>
         <Image
           src="/neoncat.svg"
           alt="neoncat-icon"

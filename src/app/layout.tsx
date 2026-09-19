@@ -9,6 +9,7 @@ import AuthProviders from "@/providers/AuthProviders";
 import { getCurrentUser } from "@/lib/auth/userAuth";
 import { PomodoroProvider } from "@/providers/PomodoroProvider";
 import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
+import { headers } from "next/headers";
 
 export const metadata: Metadata = {
   title: "neon cat",
@@ -22,7 +23,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const currentUser = await getCurrentUser();
+  const pathname = (await headers()).get("x-feline-pathname");
+  const currentUser = pathname === "/album" ? null : await getCurrentUser();
   const initialUser = currentUser
     ? {
         id: currentUser.id,

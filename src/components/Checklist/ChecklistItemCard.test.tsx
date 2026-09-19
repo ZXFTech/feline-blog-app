@@ -30,7 +30,7 @@ describe("ChecklistItemCard", () => {
     expect(onToggle).toHaveBeenCalledOnce();
   });
 
-  it("opens detail after 500ms and does not toggle on release", () => {
+  it("opens detail on release after a 500ms hold and does not toggle", () => {
     vi.useFakeTimers();
     const onToggle = vi.fn();
     const onOpenDetail = vi.fn();
@@ -39,6 +39,11 @@ describe("ChecklistItemCard", () => {
 
     fireEvent.pointerDown(toggle, { clientX: 10, clientY: 10 });
     vi.advanceTimersByTime(500);
+
+    // Wait for pointer release before mounting the dialog. Otherwise the release
+    // can land on the newly mounted backdrop and immediately dismiss it.
+    expect(onOpenDetail).not.toHaveBeenCalled();
+
     fireEvent.pointerUp(toggle);
     fireEvent.click(toggle);
 

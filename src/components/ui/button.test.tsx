@@ -39,6 +39,25 @@ describe("Button", () => {
     expect(screen.getByRole("button", { name: "删除" })).toHaveClass("text-status-error-fg");
   });
 
+  it("uses the restrained default hover highlight", () => {
+    render(<Button>默认</Button>);
+
+    expect(screen.getByRole("button", { name: "默认" })).toHaveClass(
+      "hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)]"
+    );
+  });
+
+  it.each([
+    ["primary", "hover:bg-[color-mix(in_oklch,var(--primary),white_10%)]"],
+    ["danger", "hover:bg-[color-mix(in_oklch,var(--status-error),white_10%)]"],
+    ["warning", "hover:bg-[color-mix(in_oklch,var(--status-warning),white_10%)]"],
+    ["success", "hover:bg-[color-mix(in_oklch,var(--status-success),white_10%)]"],
+  ] as const)("mixes 10%% white into the %s hover color", (variant, expectedClass) => {
+    render(<Button variant={variant}>{variant}</Button>);
+
+    expect(screen.getByRole("button", { name: variant })).toHaveClass(expectedClass);
+  });
+
   it("covers: AC-5 activates once from Enter and Space", async () => {
     const onClick = vi.fn();
     render(<Button onClick={onClick}>执行</Button>);

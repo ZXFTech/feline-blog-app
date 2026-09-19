@@ -6,11 +6,13 @@ import { useAuth } from "./useAuth";
 
 const mocks = vi.hoisted(() => ({
   loggerError: vi.fn(),
+  pathname: "/",
   routerPush: vi.fn(),
 }));
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: mocks.routerPush }),
+  usePathname: () => mocks.pathname,
 }));
 
 vi.mock("@/lib/logger/Logger", () => ({
@@ -25,6 +27,7 @@ describe("useAuth", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     mocks.loggerError.mockClear();
+    mocks.pathname = "/";
     mocks.routerPush.mockClear();
   });
 
@@ -43,5 +46,35 @@ describe("useAuth", () => {
     expect(result.current.user).toBeNull();
     expect(result.current.isAuthenticated).toBe(false);
     expect(mocks.loggerError).not.toHaveBeenCalled();
+  });
+
+  it("covers: Album AC-1, does not request authentication on the public showcase", async () => {
+    mocks.pathname = "/album";
+    const fetchSpy = vi.spyOn(window, "fetch");
+
+    const { result } = renderHook(() => useAuth(), { wrapper });
+
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
+    expect(fetchSpy).not.toHaveBeenCalled();
+    expect(result.current.user).toBeNull();
+  });
+
+  it("covers: Album AC-1, resumes authentication checks after leaving the showcase", async () => {
+    mocks.pathname = "/album";
+    const fetchSpy = vi.spyOn(window, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ error: false, message: "", data: null }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      })
+    );
+    const { rerender, result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
+    expect(fetchSpy).not.toHaveBeenCalled();
+
+    mocks.pathname = "/todo";
+    rerender();
+
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledWith("/api/auth/me"));
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
   });
 });

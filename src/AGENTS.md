@@ -9,6 +9,7 @@
 | File                       | Owns                                   |
 | -------------------------- | -------------------------------------- |
 | `src/app/layout.tsx`       | 全局布局、字体、导航、页脚和认证上下文 |
+| `src/app/album/_components/catalog.ts` | Album 组件目录、能力元数据、展示模块加载入口与覆盖审计 |
 | `src/app/api/**/route.ts`  | 登录、注册和查询接口                   |
 | `src/db/client.ts`         | Prisma 与 MariaDB 客户端单例           |
 | `src/db/*Action.ts`        | 带有 `"use server"` 的领域数据操作     |
@@ -24,6 +25,7 @@
 - Server Action 统一返回 `ActionResult` 判别联合；错误日志使用 `safeErrorContext`，不得记录令牌、密码、正文、完整请求体或数据库内部信息。
 - 当前认证流程是自定义 JWT 和名为 `token` 的 HttpOnly Cookie。不要假设已安装的 `next-auth` 已接入运行时。
 - 组件统一复用 `src/components/ui` 的基础组件、`NeuSurface` 和 `NeuPanel`，并用 `cn` 合并类名，不要恢复已删除的旧 Neu 组件家族。
+- 新增或调整可视组件时同步维护 Album 注册表、对应的安全本地演示和覆盖审计；展示样例不得调用生产 Action、API 或真实用户数据。
 - 页面未显式指定布局时请复用 `Content`。文档顺序保持主区、右侧操作区、左侧展示区，并由容器查询切换三栏、双栏和单栏布局。
 - 番茄时钟状态通过 `src/lib/pomodoro/reducer.ts` 改变；计时和待同步事件按认证用户版本化保存，服务端使用事件标识幂等写入，音效、标题和计时行为通过插件扩展。
 - `PomodoroProvider` 在认证布局内创建唯一的 `usePomodoro` 控制器，导航栏与番茄钟页面通过分离的状态、操作和结算 Context 消费它。番茄钟页面继续按固定会话 IANA 时区归档记录，并分别管理所选日期、可见月份和按用户隔离的月份缓存。

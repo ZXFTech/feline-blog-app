@@ -108,7 +108,8 @@
 }
 
 /* ---- Theme: light (default) ---- */
-:root {
+:root,
+.light {
   color-scheme: light;
   --background: #dbdbdb;
   --foreground: #343434;
@@ -120,7 +121,7 @@
   --primary-foreground: #ffffff;
   --secondary: #dbdbdb;
   --secondary-foreground: #343434;
-  --muted: #cfcfcf;
+  --muted: #c6c6c6;
   --muted-foreground: #6b6b6b;
   --accent: #046582;
   --accent-foreground: #ffffff;
@@ -130,6 +131,10 @@
   --ring: #046582;
   --neu-light: #fcfcfc;
   --neu-dark: #bababa;
+  --calendar-day-hover-bg: color-mix(in oklch, var(--background), white 10%);
+  --calendar-day-active-bg: var(--muted);
+  --calendar-day-selected-bg: color-mix(in oklch, var(--primary), white 10%);
+  --calendar-day-focus-ring: color-mix(in oklch, var(--ring) 50%, transparent);
 
   --radius: 0.5rem;
 
@@ -157,7 +162,7 @@
   --primary-foreground: #ffffff;
   --secondary: #212121;
   --secondary-foreground: #b3b3b3;
-  --muted: #2b2b2b;
+  --muted: #404040;
   --muted-foreground: #808080;
   --accent: #046582;
   --accent-foreground: #ffffff;
@@ -165,8 +170,12 @@
   --border: #000000;
   --input: #000000;
   --ring: #046582;
-  --neu-light: #404040;
+  --neu-light: #303030;
   --neu-dark: #121212;
+  --calendar-day-hover-bg: #444444;
+  --calendar-day-active-bg: var(--muted);
+  --calendar-day-selected-bg: color-mix(in oklch, var(--primary), white 10%);
+  --calendar-day-focus-ring: color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
 /* ---- Theme: sugar ---- */
@@ -182,7 +191,7 @@
   --primary-foreground: #ffffff;
   --secondary: #f0cfd0;
   --secondary-foreground: #09060a;
-  --muted: #e4c1c2;
+  --muted: #ffb8bb;
   --muted-foreground: #6b5a5c;
   --accent: #046582;
   --accent-foreground: #ffffff;
@@ -192,6 +201,10 @@
   --ring: #046582;
   --neu-light: #ffeeef;
   --neu-dark: #ccb0b1;
+  --calendar-day-hover-bg: color-mix(in oklch, var(--background), white 10%);
+  --calendar-day-active-bg: var(--muted);
+  --calendar-day-selected-bg: color-mix(in oklch, var(--primary), white 10%);
+  --calendar-day-focus-ring: color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
 /* ---- Theme: warm ---- */
@@ -207,7 +220,7 @@
   --primary-foreground: #ffffff;
   --secondary: #fedfa8;
   --secondary-foreground: #3c095a;
-  --muted: #f2d199;
+  --muted: #ffcc70;
   --muted-foreground: #6d4a7a;
   --accent: #046582;
   --accent-foreground: #ffffff;
@@ -217,6 +230,10 @@
   --ring: #046582;
   --neu-light: #ffffc2;
   --neu-dark: #d8be90;
+  --calendar-day-hover-bg: color-mix(in oklch, var(--background), white 10%);
+  --calendar-day-active-bg: var(--muted);
+  --calendar-day-selected-bg: color-mix(in oklch, var(--primary), white 10%);
+  --calendar-day-focus-ring: color-mix(in oklch, var(--ring) 50%, transparent);
 }
 
 html.theme-transitioning,
@@ -235,6 +252,19 @@ html.theme-transitioning *::after {
   html.theme-transitioning *,
   html.theme-transitioning *::before,
   html.theme-transitioning *::after {
+    transition: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .album-showcase,
+  .album-showcase *,
+  .album-showcase::before,
+  .album-showcase::after,
+  .album-showcase *::before,
+  .album-showcase *::after {
+    animation: none !important;
+    scroll-behavior: auto !important;
     transition: none !important;
   }
 }

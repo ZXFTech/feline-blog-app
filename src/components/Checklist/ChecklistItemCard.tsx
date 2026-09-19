@@ -110,7 +110,7 @@ export function ChecklistItemCard({
     pointerOrigin.current = { x: event.clientX, y: event.clientY };
     longPressTimer.current = setTimeout(() => {
       longPressed.current = true;
-      onOpenDetail?.(item);
+      longPressTimer.current = null;
     }, LONG_PRESS_MS);
   };
 
@@ -120,6 +120,17 @@ export function ChecklistItemCard({
       longPressTimer.current = null;
     }
     pointerOrigin.current = null;
+  };
+
+  const cancelPress = () => {
+    clearPress();
+    longPressed.current = false;
+  };
+
+  const finishPress = () => {
+    const shouldOpenDetail = longPressed.current;
+    clearPress();
+    if (shouldOpenDetail) onOpenDetail?.(item);
   };
 
   useEffect(() => clearPress, []);
@@ -147,13 +158,13 @@ export function ChecklistItemCard({
           toggle();
         }}
         onPointerDown={startPress}
-        onPointerUp={clearPress}
-        onPointerCancel={clearPress}
-        onPointerLeave={clearPress}
+        onPointerUp={finishPress}
+        onPointerCancel={cancelPress}
+        onPointerLeave={cancelPress}
         onPointerMove={(event) => {
           const origin = pointerOrigin.current;
           if (origin && Math.hypot(event.clientX - origin.x, event.clientY - origin.y) > 8)
-            clearPress();
+            cancelPress();
         }}
         className="absolute inset-0 z-0 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
       />

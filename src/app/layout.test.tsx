@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
+  pathname: "/",
   authProvider: vi.fn(
     ({ children }: { children: React.ReactNode; initialUser: unknown }) => children
   ),
@@ -11,6 +12,9 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/lib/auth/userAuth", () => ({
   getCurrentUser: mocks.getCurrentUser,
+}));
+vi.mock("next/headers", () => ({
+  headers: async () => new Headers({ "x-feline-pathname": mocks.pathname }),
 }));
 vi.mock("@/providers/AuthProviders", () => ({ default: mocks.authProvider }));
 vi.mock("@/providers/PomodoroProvider", () => ({
@@ -32,7 +36,22 @@ vi.mock("@/components/ProMessage", () => ({ Toaster: () => null }));
 import RootLayout from "./layout";
 
 describe("RootLayout authentication hydration", () => {
-  beforeEach(() => vi.clearAllMocks());
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mocks.pathname = "/";
+  });
+
+  it("covers: Album AC-1, skips authentication restoration on the public showcase", async () => {
+    mocks.pathname = "/album";
+
+    renderToStaticMarkup(await RootLayout({ children: <main>组件展示</main> }));
+
+    expect(mocks.getCurrentUser).not.toHaveBeenCalled();
+    expect(mocks.authProvider).toHaveBeenCalledWith(
+      expect.objectContaining({ initialUser: null }),
+      undefined
+    );
+  });
 
   it("AC-1 mounts one global pomodoro provider inside the authenticated layout", async () => {
     mocks.getCurrentUser.mockResolvedValue(null);

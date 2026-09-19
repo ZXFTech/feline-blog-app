@@ -18,6 +18,13 @@ describe("Modal", () => {
 
     const mask = container.ownerDocument.querySelector<HTMLDivElement>(".fixed.inset-0");
     expect(mask).not.toBeNull();
+    expect(mask).toHaveClass("bg-black/10", "supports-backdrop-filter:backdrop-blur-xs");
+
+    const panel = container.ownerDocument.querySelector('[data-slot="modal-panel"]');
+    expect(panel).toHaveClass(
+      "p-[var(--spacing-panel-inset-comfortable)]",
+      "gap-[var(--spacing-panel-gap-comfortable)]"
+    );
     await user.click(mask!);
     expect(onClose).toHaveBeenCalledOnce();
   });

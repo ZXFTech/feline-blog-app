@@ -72,7 +72,15 @@ describe("noli control additions", () => {
     );
 
     expect(screen.getByText("待处理")).toHaveAttribute("data-size", "sm");
-    expect(screen.getByText("待处理")).toHaveClass("bg-status-warning");
+    expect(screen.getByText("待处理")).toHaveClass(
+      "bg-status-warning",
+      "items-end",
+      "h-6",
+      "text-[0.8rem]",
+      "font-medium",
+      "tracking-[1px]"
+    );
+    expect(screen.getByText("待处理")).not.toHaveClass("items-center", "items-start");
 
     rerender(<Badge variant="destructive">失败</Badge>);
     expect(screen.getByText("失败")).toHaveClass("text-destructive");

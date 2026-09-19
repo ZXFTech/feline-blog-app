@@ -6,7 +6,7 @@ import { StyledLink } from "@/components/ui/styled-link";
 import { usePomodoroState } from "@/providers/PomodoroProvider";
 import { formatMs, phaseLabel } from "@/utils/timeUtils";
 
-export default function PomodoroGlobalStatus() {
+export default function PomodoroGlobalStatus({ prefetch }: { prefetch?: boolean }) {
   const pathname = usePathname();
   const { lifecycle, state, outbox, storageError } = usePomodoroState();
 
@@ -31,6 +31,7 @@ export default function PomodoroGlobalStatus() {
     <StyledLink
       size="lg"
       href="/tomato"
+      prefetch={prefetch}
       aria-label={hasError ? `${statusText}，有需要处理的同步问题` : statusText}
       className="relative text-pomodoro! no-underline hover:bg-pomodoro/10! hover:no-underline mr-4"
     >

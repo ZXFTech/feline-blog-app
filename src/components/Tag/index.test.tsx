@@ -9,7 +9,8 @@ describe("Tag", () => {
 
     const tag = screen.getByLabelText("状态标签");
     expect(tag.tagName).toBe("SPAN");
-    expect(tag).toHaveClass("bg-background", "shadow-neu-raised");
+    expect(tag).toHaveClass("bg-background", "shadow-neu-raised", "items-center");
+    expect(tag).not.toHaveClass("items-end");
     expect(screen.queryByRole("button")).not.toBeInTheDocument();
   });
 

@@ -2,6 +2,7 @@
 
 import React, { createContext, ReactNode, useContext, useState } from "react";
 import { Role } from "../../generated/prisma/enums";
+import { usePathname } from "next/navigation";
 
 export interface CtxUser {
   id: string;
@@ -12,6 +13,7 @@ export interface CtxUser {
 }
 
 type AuthContextType = {
+  authEnabled: boolean;
   user: CtxUser | null;
   setUser: (u: CtxUser | null) => void;
 };
@@ -25,13 +27,17 @@ function AuthProviders({
   children: ReactNode;
   initialUser: CtxUser | null;
 }) {
-  const [user, setUser] = useState<CtxUser | null>(initialUser);
+  const pathname = usePathname();
+  const authEnabled = pathname !== "/album";
+  const [sessionUser, setUser] = useState<CtxUser | null>(initialUser);
+  const user = authEnabled ? sessionUser : null;
 
   const Provider = authCtx.Provider;
 
   return (
     <Provider
       value={{
+        authEnabled,
         user,
         setUser,
       }}

@@ -1,0 +1,58 @@
+name: Release eligibility
+
+on:
+  pull_request:
+    branches: [master]
+
+permissions: {}
+
+jobs:
+  verified-base:
+    name: verified-base
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      deployments: read
+      pull-requests: read
+    steps:
+      - name: Require a successful staging record for Release Please base
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          PR_AUTHOR: ${{ github.event.pull_request.user.login }}
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          RELEASE_APP_LOGIN: ${{ vars.RELEASE_APP_LOGIN }}
+        with:
+          script: |
+            const labels = context.payload.pull_request.labels.map((label) => label.name);
+            const isRelease = process.env.PR_AUTHOR === process.env.RELEASE_APP_LOGIN &&
+              labels.includes('autorelease: pending');
+            if (!isRelease) {
+              core.info('Not a Release Please pull request.');
+              return;
+            }
+            const { data: deployments } = await github.rest.repos.listDeployments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              sha: process.env.PR_BASE_SHA,
+              environment: 'staging',
+              per_page: 100,
+            });
+            let verified = false;
+            for (const deployment of deployments) {
+              const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                deployment_id: deployment.id,
+                per_page: 100,
+              });
+              if (statuses.some((status) =>
+                status.state === 'success' && status.description === 'staging:verified'
+              )) {
+                verified = true;
+                break;
+              }
+            }
+            if (!verified) {
+              core.setFailed('Release PR base has no successful staging verification record.');
+            }

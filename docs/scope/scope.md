@@ -235,9 +235,10 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 - [x] Revise design (spec): `/architect CI、Staging 发布与版本管理`
       spec [0010](../specs/0010-ci-staging-release-version/index.md)
 - [ ] Build it: `/develop CI、Staging 发布与版本管理`
-  - [ ] 打通无秘密 PR 验证、迁移重放与对账、候选部署、公开 smoke、提升和执行记录，covers `AC-1`, `AC-3` 到 `AC-6`, `AC-8`, `AC-10`, `AC-14`
-  - [ ] 完成 migration 安全检查、分支保护、权限、并发、当前 HEAD 重跑、超时与安全恢复，covers `AC-2` 到 `AC-5`, `AC-9`, `AC-12`, `AC-13`
-  - [ ] 完成真实登录和 Todo smoke、限定范围的数据清理、稳定别名提升与恢复，covers `AC-7`, `AC-8`, `AC-10`, `AC-13`
+      code in `.github/workflows/`, `scripts/ci/`, `src/app/api/v1/staging-smoke/`, `e2e/staging-smoke.spec.ts`, `playwright.staging.config.ts`, `release-please-config.json`
+  - [x] 打通无秘密 PR 验证、迁移重放与对账、候选部署、公开 smoke、提升和执行记录，covers `AC-1`, `AC-3` 到 `AC-6`, `AC-8`, `AC-10`, `AC-14`
+  - [x] 完成 migration 安全检查、分支保护、权限、并发、当前 HEAD 重跑、超时与安全恢复，covers `AC-2` 到 `AC-5`, `AC-9`, `AC-12`, `AC-13`
+  - [x] 完成真实登录和 Todo smoke、限定范围的数据清理、稳定别名提升与恢复，covers `AC-7`, `AC-8`, `AC-10`, `AC-13`
   - [ ] 接入 Release Please、短期 GitHub App token 和精确 SHA 发版，covers `AC-2`, `AC-10` 到 `AC-13`
 - [ ] Verify it: `/check verify CI、Staging 发布与版本管理`
 - [ ] Test it: `/test CI、Staging 发布与版本管理`

@@ -5,16 +5,51 @@ on:
   push:
     branches: [master]
 
-permissions:
-  contents: read
+permissions: {}
 
 jobs:
+  pull-request-policy:
+    name: Pull request policy
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      contents: read
+    steps:
+      - name: Require a Conventional Commit pull request title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: >-
+          node -e "const title=process.env.PR_TITLE??'';
+          const ok=/^(feat|fix|deps|refactor|perf|test|docs|style|chore|build|ci)(\([a-z0-9._/-]+\))?!?: .+/.test(title);
+          if(!ok){console.error('PR title must use Conventional Commits.');process.exit(1)}"
+
   verify:
+    name: Verify
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: feline_ci_verify
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d feline_ci_verify"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22.21.1
       - name: Enable locked pnpm
@@ -24,6 +59,17 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm prisma:validate
       - run: pnpm prisma:generate
+      - name: Reject changed migration history and unsafe added SQL
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: pnpm ci:migrations verify-pr "$PR_BASE_SHA"
+      - name: Replay PostgreSQL migrations from an empty database
+        env:
+          POSTGRES_MIGRATION_URL: postgresql://postgres@127.0.0.1:5432/feline_ci_verify
+        run: |
+          pnpm exec prisma migrate deploy --config ./prisma.postgres.config.ts
+          pnpm ci:migrations verify-replay
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test

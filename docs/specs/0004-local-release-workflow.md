@@ -1,7 +1,7 @@
 # 0004. Local release workflow
 
 **Date**: 2026-08-30
-**Status**: Proposed
+**Status**: Superseded by [0010](0010-ci-staging-release-version/index.md)
 
 ## Summary
 

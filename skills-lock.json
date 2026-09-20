@@ -91,11 +91,23 @@
       "skillPath": "skills/.curated/react-hook-form/SKILL.md",
       "computedHash": "c32b9536b64b2bbfb26ecadac5caf9ac85697f319edffe6f77c9ecd00db51d14"
     },
+    "release-please": {
+      "source": "bmad-labs/skills",
+      "sourceType": "github",
+      "skillPath": "skills/release-please/SKILL.md",
+      "computedHash": "673dee55683e087b76153e409c6613cdff7d9842efed77b152ba27de0fb2d8dc"
+    },
     "scope": {
       "source": "jsmastery-pro/skills",
       "sourceType": "github",
       "skillPath": "skills/scope/SKILL.md",
       "computedHash": "737c19451b3d0e08edf9560b195a864d1a4006e4f70760339ddc3b2d9b6b6447"
+    },
+    "supabase-postgres-best-practices": {
+      "source": "supabase/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/supabase-postgres-best-practices/SKILL.md",
+      "computedHash": "128fac78002d916c8ca908245d398e634f540d8bcf20915b2b2359aeb18eba59"
     },
     "sync": {
       "source": "jsmastery-pro/skills",

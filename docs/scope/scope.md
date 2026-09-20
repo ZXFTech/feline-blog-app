@@ -31,7 +31,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 18  | NeuButton 样式代码审查   | Maintenance | planned     |
 | 19  | Commit lint 流程性能优化 | Maintenance | done        |
 | 20  | 番茄钟按日布局与历史浏览 | Maintenance | done        |
-| 21  | 本地发布流程             | Maintenance | in-progress |
+| 21  | CI、Staging 发布与版本管理 | Maintenance | in-progress |
 | 22  | 接口安全与健壮性修复     | Maintenance | done        |
 | 23  | 番茄钟全局响应式状态     | Maintenance | done        |
 | 24  | newTheme 组件与样式迁移 | Maintenance | done |
@@ -227,19 +227,20 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 - [x] Verify it: `/check verify 番茄钟按日布局与历史浏览`
 - [x] Test it: `/test 番茄钟按日布局与历史浏览`
 
-### 21. 本地发布流程 · in-progress
+### 21. CI、Staging 发布与版本管理 · in-progress
 
-提供版本管理、changelog 生成和发布入口，区分本地开发与生产数据库环境，并兼容后续远程发布场景。
-**Done when:** 发布脚本可以读取当前版本、生成 changelog、构建生产包、切换数据库环境并部署。
+建立可重复的持续集成、隔离的 staging 发布流程和可追踪的版本管理，让每次候选版本先通过完整质量检查，再安全发布到已指定的 staging 资源。
+**Done when:** 拉取请求和主分支变更执行一致的质量检查；通过检查的候选版本按受控顺序完成 staging 数据库迁移和应用发布；版本、changelog、提交、标签与部署记录可以相互追踪；失败不会留下无法识别的半发布状态，并有明确的重试或回滚入口。
 
-- [x] Design it (spec): `/architect 本地发布流程`
-      spec [0004](../specs/0004-local-release-workflow.md)
-- [ ] Build it: `/develop 本地发布流程`
-  - [ ] 实现 bin/release.ts 主脚本（DRY_RUN、版本读取、standard-version patch 递增、conventional-changelog 生成、Prisma generate、dotenv build、Vercel deploy、git commit/tag），满足 AC-1 到 AC-7
-  - [ ] 实现进度条和统计摘要（单行动态刷新、performance.now() 计时、内存与产物大小统计），满足 AC-8
-  - [ ] 安装 standard-version 和 conventional-changelog，配置 package.json release 命令，满足 entry point
-- [ ] Verify it: `/check verify 本地发布流程`
-- [ ] Test it: `/test 本地发布流程`
+- [x] Revise design (spec): `/architect CI、Staging 发布与版本管理`
+      spec [0010](../specs/0010-ci-staging-release-version/index.md)
+- [ ] Build it: `/develop CI、Staging 发布与版本管理`
+  - [ ] 打通无秘密 PR 验证、迁移重放与对账、候选部署、公开 smoke、提升和执行记录，covers `AC-1`, `AC-3` 到 `AC-6`, `AC-8`, `AC-10`, `AC-14`
+  - [ ] 完成 migration 安全检查、分支保护、权限、并发、当前 HEAD 重跑、超时与安全恢复，covers `AC-2` 到 `AC-5`, `AC-9`, `AC-12`, `AC-13`
+  - [ ] 完成真实登录和 Todo smoke、限定范围的数据清理、稳定别名提升与恢复，covers `AC-7`, `AC-8`, `AC-10`, `AC-13`
+  - [ ] 接入 Release Please、短期 GitHub App token 和精确 SHA 发版，covers `AC-2`, `AC-10` 到 `AC-13`
+- [ ] Verify it: `/check verify CI、Staging 发布与版本管理`
+- [ ] Test it: `/test CI、Staging 发布与版本管理`
 
 ### 22. 接口安全与健壮性修复 · done
 

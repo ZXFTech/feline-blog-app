@@ -1,0 +1,151 @@
+name: Release bookkeeping
+
+on:
+  workflow_dispatch:
+    inputs:
+      operation:
+        description: Release operation to retry
+        required: true
+        type: choice
+        options: [maintain, finalize]
+      candidate_sha:
+        description: Verified staging full commit SHA
+        required: true
+        type: string
+      source_run_id:
+        description: Source staging run ID
+        required: true
+        type: string
+      attempt:
+        description: Source staging run attempt
+        required: true
+        type: string
+
+permissions: {}
+
+jobs:
+  trust-record:
+    name: Trust staging record
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    environment: staging
+    permissions:
+      contents: read
+      deployments: read
+    outputs:
+      candidate-sha: ${{ steps.validate.outputs.candidate-sha }}
+    steps:
+      - id: validate
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          CANDIDATE_SHA: ${{ inputs.candidate_sha }}
+          SOURCE_RUN_ID: ${{ inputs.source_run_id }}
+          SOURCE_ATTEMPT: ${{ inputs.attempt }}
+        with:
+          script: |
+            const sha = process.env.CANDIDATE_SHA.toLowerCase();
+            if (!/^[0-9a-f]{40}$/.test(sha) || !/^[1-9][0-9]*$/.test(process.env.SOURCE_RUN_ID) ||
+                !/^[1-9][0-9]*$/.test(process.env.SOURCE_ATTEMPT)) {
+              core.setFailed('Release retry inputs are invalid.');
+              return;
+            }
+            const recordKey = `${sha}:${process.env.SOURCE_RUN_ID}:${process.env.SOURCE_ATTEMPT}`;
+            const { data: deployments } = await github.rest.repos.listDeployments({
+              owner: context.repo.owner, repo: context.repo.repo, sha, environment: 'staging', per_page: 100,
+            });
+            const matches = deployments.filter((deployment) => {
+              const payload = typeof deployment.payload === 'string'
+                ? JSON.parse(deployment.payload || '{}') : deployment.payload;
+              return payload?.schemaVersion === 1 && payload?.recordKey === recordKey;
+            });
+            if (matches.length !== 1) {
+              core.setFailed('Expected one schema-compatible staging deployment record.');
+              return;
+            }
+            const { data: statuses } = await github.rest.repos.listDeploymentStatuses({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: matches[0].id, per_page: 100,
+            });
+            if (!statuses.some((status) => status.state === 'success' && status.description === 'staging:verified')) {
+              core.setFailed('Staging record is not successfully verified.');
+              return;
+            }
+            core.setOutput('candidate-sha', sha);
+
+  maintain:
+    name: Retry Release Please maintenance
+    needs: trust-record
+    if: inputs.operation == 'maintain'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.trust-record.outputs.candidate-sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - id: head
+        name: Confirm candidate is still current master
+        env:
+          CANDIDATE_SHA: ${{ needs.trust-record.outputs.candidate-sha }}
+        run: |
+          git fetch --quiet origin master
+          if [ "$(git rev-parse origin/master)" = "$CANDIDATE_SHA" ]; then
+            echo 'current=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'current=false' >> "$GITHUB_OUTPUT"
+            echo 'Release maintenance deferred because master advanced.'
+          fi
+      - id: app-token
+        if: steps.head.outputs.current == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
+        if: steps.head.outputs.current == 'true'
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          target-branch: master
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - name: Recheck master after release mutation
+        if: steps.head.outputs.current == 'true'
+        env:
+          CANDIDATE_SHA: ${{ needs.trust-record.outputs.candidate-sha }}
+        run: |
+          git fetch --quiet origin master
+          if [ "$(git rev-parse origin/master)" != "$CANDIDATE_SHA" ]; then
+            echo 'Release maintenance deferred because master advanced.'
+          fi
+
+  finalize:
+    name: Retry exact SHA finalization
+    needs: trust-record
+    if: inputs.operation == 'finalize'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: read
+    env:
+      CANDIDATE_SHA: ${{ needs.trust-record.outputs.candidate-sha }}
+      RELEASE_APP_LOGIN: ${{ vars.RELEASE_APP_LOGIN }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.trust-record.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.21.1
+      - run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+          pnpm install --frozen-lockfile
+          pnpm ci:release finalize

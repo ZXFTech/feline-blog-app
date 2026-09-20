@@ -10,6 +10,11 @@ import { DatabaseToolError } from "./errors";
 import { localMigrationFiles, quoteIdentifier } from "./local";
 import { runPrisma } from "./migrate";
 import { classifyStagingTarget, type RedactedTarget } from "./target";
+import {
+  assertSafeMigrationSql,
+  reconcileMigrationHistory,
+  type MigrationDecision,
+} from "../../ci/staging-core";
 
 function quoteLiteral(value: string): string {
   return `'${value.replaceAll("'", "''")}'`;
@@ -151,6 +156,50 @@ export async function stagingStatus(): Promise<StagingStatus> {
   return status;
 }
 
+export async function reconcileStagingMigrations(): Promise<MigrationDecision> {
+  const values = await stagingValues();
+  const files = await localMigrationFiles();
+  const migration = await stagingClient(values, "POSTGRES_MIGRATION_URL", targets.migratorRole);
+  try {
+    await migration.query("SET lock_timeout = '5s'");
+    await migration.query("SET statement_timeout = '120s'");
+    const history = await migration.query<{
+      migration_name: string;
+      checksum: string;
+      finished_at: Date | null;
+      rolled_back_at: Date | null;
+    }>(
+      "SELECT migration_name, checksum, finished_at, rolled_back_at FROM _prisma_migrations ORDER BY started_at, id"
+    );
+    const decision = reconcileMigrationHistory(
+      files,
+      history.rows.map((row) => ({
+        migrationName: row.migration_name,
+        checksum: row.checksum,
+        finishedAt: row.finished_at,
+        rolledBackAt: row.rolled_back_at,
+      }))
+    );
+    for (const pending of decision.pending) {
+      const sql = await readFile(
+        path.join(
+          repositoryRoot,
+          "prisma",
+          "postgres",
+          "migrations",
+          pending.name,
+          "migration.sql"
+        ),
+        "utf8"
+      );
+      assertSafeMigrationSql(sql, pending.name);
+    }
+    return decision;
+  } finally {
+    await migration.end();
+  }
+}
+
 async function assertExporterSafety(client: Client): Promise<void> {
   const unsafe = await client.query<{
     rls_tables: number;
@@ -278,11 +327,7 @@ export async function setupStagingExporter(rotate: boolean): Promise<void> {
       );
       await admin.query("GRANT USAGE ON SCHEMA public TO app_exporter");
       await admin.query("REVOKE CREATE ON SCHEMA public FROM app_exporter");
-      const migrator = await stagingClient(
-        values,
-        "POSTGRES_MIGRATION_URL",
-        targets.migratorRole
-      );
+      const migrator = await stagingClient(values, "POSTGRES_MIGRATION_URL", targets.migratorRole);
       try {
         await grantExporterReadAccess(migrator);
       } finally {

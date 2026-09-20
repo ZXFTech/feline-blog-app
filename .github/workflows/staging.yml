@@ -1,0 +1,1017 @@
+name: Staging
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      candidate_sha:
+        description: Current master full commit SHA
+        required: true
+        type: string
+
+permissions: {}
+
+concurrency:
+  group: feline-blog-staging
+  cancel-in-progress: false
+
+env:
+  NODE_VERSION: 22.21.1
+  PNPM_VERSION: 10.28.1
+
+jobs:
+  verify:
+    name: Verify candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    services:
+      postgres:
+        image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: feline_ci_verify
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres -d feline_ci_verify"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Enable locked pnpm
+        run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma:validate
+      - run: pnpm prisma:generate
+      - name: Replay migrations
+        env:
+          POSTGRES_MIGRATION_URL: postgresql://postgres@127.0.0.1:5432/feline_ci_verify
+        run: |
+          pnpm exec prisma migrate deploy --config ./prisma.postgres.config.ts
+          pnpm ci:migrations verify-replay
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+
+  candidate:
+    name: Select current master
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      candidate-sha: ${{ steps.select.outputs.candidate-sha }}
+      current: ${{ steps.select.outputs.current }}
+      record-key: ${{ steps.select.outputs.record-key }}
+      deployment-id: ${{ steps.deployment.outputs.result }}
+      started-at-ms: ${{ steps.select.outputs.started-at-ms }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select candidate after acquiring the staging lock
+        id: select
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          AUTOMATIC_SHA: ${{ github.sha }}
+          MANUAL_SHA: ${{ inputs.candidate_sha }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+          WORKFLOW_REF: ${{ github.ref }}
+        run: |
+          git fetch --quiet origin master
+          head_sha=$(git rev-parse origin/master)
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            if [ "$WORKFLOW_REF" != "refs/heads/master" ]; then
+              echo "Manual staging must use workflow code from master." >&2
+              exit 1
+            fi
+            candidate_sha="$MANUAL_SHA"
+          else
+            candidate_sha="$AUTOMATIC_SHA"
+          fi
+          if ! printf '%s' "$candidate_sha" | grep -Eq '^[0-9a-f]{40}$'; then
+            echo "Manual candidate must be a full commit SHA." >&2
+            exit 1
+          fi
+          current=false
+          if [ "$candidate_sha" = "$head_sha" ]; then current=true; fi
+          echo "candidate-sha=$candidate_sha" >> "$GITHUB_OUTPUT"
+          echo "current=$current" >> "$GITHUB_OUTPUT"
+          echo "record-key=$candidate_sha:$RUN_ID:$RUN_ATTEMPT" >> "$GITHUB_OUTPUT"
+          echo "started-at-ms=$(date +%s000)" >> "$GITHUB_OUTPUT"
+      - name: Stop superseded candidate before remote access
+        if: steps.select.outputs.current != 'true'
+        run: echo "Candidate is superseded by the current master HEAD."
+      - name: Check manual actor permission
+        if: steps.select.outputs.current == 'true' && github.event_name == 'workflow_dispatch'
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          ACTOR: ${{ github.actor }}
+        with:
+          script: |
+            const { data } = await github.rest.repos.getCollaboratorPermissionLevel({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              username: process.env.ACTOR,
+            });
+            if (!['admin', 'maintain', 'write'].includes(data.permission)) {
+              core.setFailed('Manual staging requires repository write permission.');
+            }
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        if: steps.select.outputs.current == 'true'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Enable pnpm and initialize checkpoint
+        if: steps.select.outputs.current == 'true'
+        env:
+          CANDIDATE_SHA: ${{ steps.select.outputs.candidate-sha }}
+        run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm ci:checkpoint init checkpoint.json
+          pnpm ci:checkpoint phase checkpoint.json verify succeeded
+          pnpm ci:checkpoint phase checkpoint.json head-check succeeded
+          pnpm ci:checkpoint phase checkpoint.json checkpoint succeeded
+      - name: Create staging deployment record
+        if: steps.select.outputs.current == 'true'
+        id: deployment
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        env:
+          CANDIDATE_SHA: ${{ steps.select.outputs.candidate-sha }}
+          RECORD_KEY: ${{ steps.select.outputs.record-key }}
+          RUN_ID: ${{ github.run_id }}
+          RUN_ATTEMPT: ${{ github.run_attempt }}
+        with:
+          result-encoding: string
+          script: |
+            const { data } = await github.rest.repos.createDeployment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              ref: process.env.CANDIDATE_SHA,
+              environment: 'staging',
+              auto_merge: false,
+              required_contexts: [],
+              transient_environment: false,
+              production_environment: false,
+              description: 'Feline blog staging candidate',
+              payload: {
+                schemaVersion: 1,
+                recordKey: process.env.RECORD_KEY,
+                runId: process.env.RUN_ID,
+                attempt: process.env.RUN_ATTEMPT,
+              },
+            });
+            return String(data.id);
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: steps.select.outputs.current == 'true'
+        with:
+          name: checkpoint-selected
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  migrate:
+    name: Reconcile and migrate staging
+    needs: candidate
+    if: needs.candidate.outputs.current == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+      DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
+      POSTGRES_MIGRATION_URL: ${{ secrets.POSTGRES_MIGRATION_URL }}
+      POSTGRES_SSL_CA: ${{ secrets.POSTGRES_SSL_CA }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-selected
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+      - name: Create ephemeral staging database configuration
+        run: |
+          umask 077
+          printf '%s\n' \
+            'POSTGRES_ENVIRONMENT=staging' \
+            "POSTGRES_MIGRATION_URL=$POSTGRES_MIGRATION_URL" \
+            "POSTGRES_SSL_CA=$POSTGRES_SSL_CA" > .env.staging
+      - name: Record migration intent
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'intent:migrate', auto_inactive: false,
+            });
+      - name: Reconcile migration ledger and guard pending SQL
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json migration-reconcile running
+          pnpm ci:migrations reconcile-staging > migration-decision.json
+          pnpm ci:checkpoint phase checkpoint.json migration-reconcile succeeded
+      - name: Apply committed migrations
+        env:
+          STAGING_MIGRATION_ALLOW_WRITE: "true"
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json migrate running
+          pnpm db:staging:deploy
+          pnpm ci:migrations reconcile-staging > migration-result.json
+          pnpm ci:checkpoint phase checkpoint.json migrate succeeded
+      - name: Record migration result
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'result:migrate:succeeded', auto_inactive: false,
+            });
+      - name: Record safe migration failure
+        if: failure()
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json migration-reconcile failed MIGRATION_FAILED || true
+          pnpm ci:checkpoint phase checkpoint.json migrate failed MIGRATION_FAILED || true
+      - name: Record failed migration deployment status
+        if: failure()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
+              description: 'result:migrate:failed', auto_inactive: false,
+            });
+      - name: Remove ephemeral database files
+        if: always()
+        run: rm -f .env.staging
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: success()
+        with:
+          name: checkpoint-migrated
+          path: |
+            checkpoint.json
+            migration-decision.json
+            migration-result.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: checkpoint-migration-failed
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  deploy:
+    name: Deploy staged Production candidate
+    needs: [candidate, migrate]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: staging
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      candidate-url: ${{ steps.deploy.outputs.candidate-url }}
+      candidate-id: ${{ steps.inspect.outputs.candidate-id }}
+      previous-id: ${{ steps.previous.outputs.previous-id }}
+      previous-sha: ${{ steps.previous.outputs.previous-sha }}
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+      DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
+      STAGING_RECORD_KEY: ${{ needs.candidate.outputs.record-key }}
+      STAGING_RUN_STARTED_AT_MS: ${{ needs.candidate.outputs.started-at-ms }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_NAME: feline-blog-staging
+      STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-migrated
+      - name: Enable pnpm
+        run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+      - name: Capture and validate current stable deployment
+        id: previous
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json capture-previous running
+          pnpm ci:vercel inspect "$STAGING_BASE_URL" > previous.json
+          previous_id=$(node -p "JSON.parse(require('fs').readFileSync('previous.json','utf8')).deploymentId")
+          previous_sha=$(node -p "JSON.parse(require('fs').readFileSync('previous.json','utf8')).commitSha")
+          echo "previous-id=$previous_id" >> "$GITHUB_OUTPUT"
+          echo "previous-sha=$previous_sha" >> "$GITHUB_OUTPUT"
+          pnpm ci:checkpoint phase checkpoint.json capture-previous succeeded
+      - name: Create clean candidate archive
+        run: |
+          upload="$RUNNER_TEMP/feline-upload"
+          mkdir -p "$upload"
+          git archive "$CANDIDATE_SHA" | tar -x -C "$upload"
+          if find "$upload" -type f \( -name '.env.staging' -o -name 'root.crt' -o -path '*/.vercel/*' \) | grep -q .; then
+            echo "Upload archive contains forbidden local files." >&2
+            exit 1
+          fi
+          echo "UPLOAD_DIR=$upload" >> "$GITHUB_ENV"
+      - name: Record deploy intent
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'intent:deploy', auto_inactive: false,
+            });
+      - name: Deploy without assigning the stable domain
+        id: deploy
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json deploy running
+          candidate_url=$(pnpm exec vercel deploy "$UPLOAD_DIR" --prod --skip-domain --yes \
+            --meta "githubCommitSha=$CANDIDATE_SHA" --meta 'githubCommitRef=master' \
+            --meta "felineRunId=$GITHUB_RUN_ID" --meta "felineRunAttempt=$GITHUB_RUN_ATTEMPT" \
+            --meta "felineRecordKey=$STAGING_RECORD_KEY")
+          node -e "const u=new URL(process.argv[1]);if(u.protocol!=='https:')process.exit(1)" "$candidate_url"
+          echo "candidate-url=$candidate_url" >> "$GITHUB_OUTPUT"
+      - name: Validate exact candidate identity
+        id: inspect
+        env:
+          CANDIDATE_URL: ${{ steps.deploy.outputs.candidate-url }}
+        run: |
+          pnpm ci:vercel inspect "$CANDIDATE_URL" > candidate.json
+          candidate_id=$(node -p "JSON.parse(require('fs').readFileSync('candidate.json','utf8')).deploymentId")
+          echo "candidate-id=$candidate_id" >> "$GITHUB_OUTPUT"
+          pnpm ci:checkpoint phase checkpoint.json deploy succeeded
+      - name: Record deploy result
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'result:deploy:succeeded', auto_inactive: false,
+            });
+      - name: Record safe deployment failure
+        if: failure()
+        run: pnpm ci:checkpoint phase checkpoint.json deploy failed DEPLOY_TIMEOUT || true
+      - name: Record failed deployment status
+        if: failure()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
+              description: 'result:deploy:failed', auto_inactive: false,
+            });
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: success()
+        with:
+          name: checkpoint-deployed
+          path: |
+            checkpoint.json
+            previous.json
+            candidate.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: checkpoint-deploy-failed
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  candidate-smoke:
+    name: Candidate public smoke
+    needs: [candidate, deploy]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      STAGING_SMOKE_ORIGIN: ${{ needs.deploy.outputs.candidate-url }}
+      STAGING_SMOKE_MODE: public
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-deployed
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - id: oidc
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          result-encoding: string
+          script: |
+            let token = await core.getIDToken();
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+            if (payload.exp * 1000 - Date.now() < 90000) token = await core.getIDToken();
+            return token;
+      - env:
+          VERCEL_OIDC_TOKEN: ${{ steps.oidc.outputs.result }}
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json candidate-public-smoke running
+          timeout 120s pnpm test:e2e:staging
+          pnpm ci:checkpoint phase checkpoint.json candidate-public-smoke succeeded
+      - if: failure()
+        run: pnpm ci:checkpoint phase checkpoint.json candidate-public-smoke failed SMOKE_FAILED || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: success()
+        with:
+          name: checkpoint-candidate-public
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: checkpoint-candidate-public-failed
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  candidate-auth-smoke:
+    name: Candidate login and Todo smoke
+    needs: [candidate, deploy, candidate-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      STAGING_SMOKE_ORIGIN: ${{ needs.deploy.outputs.candidate-url }}
+      STAGING_SMOKE_MODE: full
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+      E2E_USER_EMAIL: ${{ secrets.E2E_USER_EMAIL }}
+      E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
+      E2E_USER_ID: ${{ vars.E2E_USER_ID }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-candidate-public
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - id: oidc
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          result-encoding: string
+          script: |
+            let token = await core.getIDToken();
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+            if (payload.exp * 1000 - Date.now() < 90000) token = await core.getIDToken();
+            return token;
+      - env:
+          VERCEL_OIDC_TOKEN: ${{ steps.oidc.outputs.result }}
+        run: |
+          prefix_short="e2e-staging-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT-$(printf '%s' "$CANDIDATE_SHA" | cut -c1-7)"
+          export STAGING_SMOKE_PREFIX="$prefix_short"
+          pnpm ci:checkpoint phase checkpoint.json candidate-auth-smoke running
+          pnpm ci:checkpoint phase checkpoint.json candidate-cleanup running
+          timeout 300s pnpm test:e2e:staging
+          pnpm ci:checkpoint phase checkpoint.json candidate-auth-smoke succeeded
+          pnpm ci:checkpoint phase checkpoint.json candidate-cleanup succeeded
+      - if: failure()
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json candidate-auth-smoke failed SMOKE_FAILED || true
+          pnpm ci:checkpoint phase checkpoint.json candidate-cleanup failed CLEANUP_FAILED || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: success()
+        with:
+          name: checkpoint-candidate-auth
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: checkpoint-candidate-auth-failed
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  promote:
+    name: Promote exact candidate
+    needs: [candidate, deploy, candidate-auth-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: staging
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_NAME: feline-blog-staging
+      STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      CANDIDATE_URL: ${{ needs.deploy.outputs.candidate-url }}
+      CANDIDATE_ID: ${{ needs.deploy.outputs.candidate-id }}
+      PREVIOUS_ID: ${{ needs.deploy.outputs.previous-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-candidate-auth
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+      - name: Confirm alias has not changed
+        run: |
+          current=$(pnpm ci:vercel inspect "$STAGING_BASE_URL")
+          current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+          test "$current_id" = "$PREVIOUS_ID"
+      - name: Record promote intent
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'intent:promote', auto_inactive: false,
+            });
+      - name: Promote without rebuild
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json promote running
+          timeout 180s pnpm exec vercel promote "$CANDIDATE_URL" --yes
+          current=$(pnpm ci:vercel inspect "$STAGING_BASE_URL")
+          current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+          test "$current_id" = "$CANDIDATE_ID"
+          pnpm ci:checkpoint phase checkpoint.json promote succeeded
+      - name: Record promote result
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'result:promote:succeeded', auto_inactive: false,
+            });
+      - name: Record safe promotion failure
+        if: failure()
+        run: pnpm ci:checkpoint phase checkpoint.json promote failed ALIAS_CHANGED || true
+      - name: Record failed promotion status
+        if: failure()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
+              description: 'result:promote:failed', auto_inactive: false,
+            });
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: success()
+        with:
+          name: checkpoint-promoted
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: checkpoint-promote-failed
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  stable-smoke:
+    name: Stable public smoke
+    needs: [candidate, deploy, promote]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      STAGING_SMOKE_ORIGIN: ${{ vars.STAGING_BASE_URL }}
+      STAGING_SMOKE_MODE: public
+      EXPECTED_DEPLOYMENT_ID: ${{ needs.deploy.outputs.candidate-id }}
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_NAME: feline-blog-staging
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-promoted
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Verify stable alias identity before HTTP smoke
+        run: |
+          stable=$(pnpm ci:vercel inspect "$STAGING_SMOKE_ORIGIN")
+          deployment_id=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+          commit_sha=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).commitSha))")
+          test "$deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
+          test "$commit_sha" = "$CANDIDATE_SHA"
+      - id: oidc
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          result-encoding: string
+          script: |
+            let token = await core.getIDToken();
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+            if (payload.exp * 1000 - Date.now() < 90000) token = await core.getIDToken();
+            return token;
+      - env:
+          VERCEL_OIDC_TOKEN: ${{ steps.oidc.outputs.result }}
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json stable-public-smoke running
+          timeout 120s pnpm test:e2e:staging
+          pnpm ci:checkpoint phase checkpoint.json stable-public-smoke succeeded
+      - if: failure()
+        run: pnpm ci:checkpoint phase checkpoint.json stable-public-smoke failed SMOKE_FAILED || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: success()
+        with:
+          name: checkpoint-stable
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: failure()
+        with:
+          name: checkpoint-stable-failed
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  restore:
+    name: Restore previous stable deployment
+    needs: [candidate, deploy, promote, stable-smoke]
+    if: always() && needs.deploy.result == 'success' && (needs.promote.result == 'failure' || needs.stable-smoke.result == 'failure')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    environment: staging
+    permissions:
+      contents: read
+      deployments: write
+    outputs:
+      restored: ${{ steps.restore.outputs.restored }}
+    env:
+      DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_NAME: feline-blog-staging
+      STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      CANDIDATE_ID: ${{ needs.deploy.outputs.candidate-id }}
+      PREVIOUS_ID: ${{ needs.deploy.outputs.previous-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-candidate-auth
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+      - name: Record restore intent
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'in_progress',
+              description: 'intent:restore', auto_inactive: false,
+            });
+      - name: Restore only if the alias still points to this candidate
+        id: restore
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json restore running
+          current=$(pnpm ci:vercel inspect "$STAGING_BASE_URL")
+          current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+          if [ "$current_id" = "$PREVIOUS_ID" ]; then
+            echo 'restored=false' >> "$GITHUB_OUTPUT"
+            pnpm ci:checkpoint phase checkpoint.json restore succeeded
+            exit 0
+          fi
+          if [ "$current_id" != "$CANDIDATE_ID" ]; then
+            echo 'Stable alias changed outside this run.' >&2
+            exit 1
+          fi
+          timeout 120s pnpm exec vercel rollback "$PREVIOUS_ID" --yes
+          pnpm ci:checkpoint phase checkpoint.json restore succeeded
+          echo 'restored=true' >> "$GITHUB_OUTPUT"
+      - name: Record restore result
+        if: success()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
+              description: 'result:restore:succeeded', auto_inactive: false,
+            });
+      - name: Record safe restore failure
+        if: failure()
+        run: pnpm ci:checkpoint phase checkpoint.json restore failed RESTORE_FAILED || true
+      - name: Record failed restore result
+        if: failure()
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
+              description: 'result:restore:failed', auto_inactive: false,
+            });
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: checkpoint-restored
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  recovery-smoke:
+    name: Recovery public smoke
+    needs: [candidate, deploy, restore]
+    if: always() && needs.restore.result == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      STAGING_SMOKE_ORIGIN: ${{ vars.STAGING_BASE_URL }}
+      STAGING_SMOKE_MODE: public
+      EXPECTED_DEPLOYMENT_ID: ${{ needs.deploy.outputs.previous-id }}
+      EXPECTED_COMMIT_SHA: ${{ needs.deploy.outputs.previous-sha }}
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_NAME: feline-blog-staging
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-restored
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm exec playwright install --with-deps chromium
+      - name: Verify restored alias identity before HTTP smoke
+        run: |
+          stable=$(pnpm ci:vercel inspect "$STAGING_SMOKE_ORIGIN")
+          deployment_id=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+          commit_sha=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).commitSha))")
+          test "$deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
+          test "$commit_sha" = "$EXPECTED_COMMIT_SHA"
+      - id: oidc
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          result-encoding: string
+          script: |
+            let token = await core.getIDToken();
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64url').toString('utf8'));
+            if (payload.exp * 1000 - Date.now() < 90000) token = await core.getIDToken();
+            return token;
+      - env:
+          VERCEL_OIDC_TOKEN: ${{ steps.oidc.outputs.result }}
+        run: |
+          pnpm ci:checkpoint phase checkpoint.json recovery-public-smoke running
+          timeout 120s pnpm test:e2e:staging
+          pnpm ci:checkpoint phase checkpoint.json recovery-public-smoke succeeded
+      - if: failure()
+        run: pnpm ci:checkpoint phase checkpoint.json recovery-public-smoke failed RESTORE_FAILED || true
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        if: always()
+        with:
+          name: checkpoint-recovery
+          path: checkpoint.json
+          retention-days: 30
+          if-no-files-found: error
+
+  complete:
+    name: Record successful staging
+    needs: [candidate, stable-smoke]
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      deployments: write
+    env:
+      DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: checkpoint-stable
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm ci:checkpoint summary checkpoint.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        with:
+          script: |
+            await github.rest.repos.createDeploymentStatus({
+              owner: context.repo.owner, repo: context.repo.repo,
+              deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'success',
+              environment: 'staging', description: 'staging:verified', auto_inactive: false,
+            });
+
+  release-maintenance:
+    name: Maintain Release Please pull request
+    needs: [candidate, complete]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    outputs:
+      head-stable: ${{ steps.after.outputs.head-stable }}
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Confirm current HEAD before release mutation
+        run: |
+          git fetch --quiet origin master
+          test "$(git rev-parse origin/master)" = "$CANDIDATE_SHA"
+      - id: app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
+        with:
+          app-id: ${{ vars.RELEASE_APP_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+      - uses: googleapis/release-please-action@5c625bfb5d1ff62eadeeb3772007f7f66fdcf071 # v4
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          target-branch: master
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+      - name: Confirm current HEAD after release mutation
+        id: after
+        run: |
+          git fetch --quiet origin master
+          if [ "$(git rev-parse origin/master)" = "$CANDIDATE_SHA" ]; then
+            echo 'head-stable=true' >> "$GITHUB_OUTPUT"
+          else
+            echo 'head-stable=false' >> "$GITHUB_OUTPUT"
+            echo 'Release maintenance deferred because master advanced.'
+          fi
+
+  release-detect:
+    name: Detect trusted Release Please merge
+    needs: [candidate, complete]
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      eligible: ${{ steps.detect.outputs.eligible }}
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+      RELEASE_APP_LOGIN: ${{ vars.RELEASE_APP_LOGIN }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - id: detect
+        run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          eligible=$(pnpm --silent ci:release eligible)
+          echo "eligible=$eligible" >> "$GITHUB_OUTPUT"
+
+  release-finalize:
+    name: Finalize exact SHA GitHub Release
+    needs: [candidate, complete, release-detect]
+    if: needs.release-detect.outputs.eligible == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+      pull-requests: read
+    env:
+      CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
+      RELEASE_APP_LOGIN: ${{ vars.RELEASE_APP_LOGIN }}
+      GITHUB_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ needs.candidate.outputs.candidate-sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - run: |
+          corepack enable
+          corepack prepare "pnpm@$PNPM_VERSION" --activate
+          pnpm install --frozen-lockfile
+          pnpm ci:release finalize

@@ -2,6 +2,8 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { repositoryRoot } from "../database/local-postgres/config";
+import { serializeStagingEnvironment } from "./write-staging-environment";
+import dotenv from "dotenv";
 
 async function text(relativePath: string): Promise<string> {
   return readFile(path.join(repositoryRoot, relativePath), "utf8");
@@ -44,6 +46,30 @@ describe("CI and staging workflow contract", () => {
     expect(workflow).toContain("--prod --skip-domain");
     expect(workflow).toContain("vercel promote");
     expect(workflow).toContain("vercel rollback");
+  });
+
+  it("preserves a multiline staging CA in the ephemeral dotenv file", async () => {
+    const certificate = [
+      "-----BEGIN CERTIFICATE-----",
+      "test+/certificate=value",
+      "-----END CERTIFICATE-----",
+    ].join("\n");
+    const serialized = serializeStagingEnvironment({
+      POSTGRES_MIGRATION_URL:
+        "postgresql://app_migrator:secret@example.test/postgres?sslmode=verify-full",
+      POSTGRES_SSL_CA: certificate,
+    });
+
+    expect(dotenv.parse(serialized)).toEqual({
+      POSTGRES_ENVIRONMENT: "staging",
+      POSTGRES_MIGRATION_URL:
+        "postgresql://app_migrator:secret@example.test/postgres?sslmode=verify-full",
+      POSTGRES_SSL_CA: certificate,
+    });
+
+    const workflow = await text(".github/workflows/staging.yml");
+    expect(workflow).toContain("pnpm exec tsx ./scripts/ci/write-staging-environment.ts");
+    expect(workflow).not.toContain('"POSTGRES_SSL_CA=$POSTGRES_SSL_CA"');
   });
 
   it("grants OIDC only to the four exact-origin smoke jobs", async () => {

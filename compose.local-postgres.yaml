@@ -1,0 +1,32 @@
+name: feline-blog-local
+
+services:
+  postgres:
+    image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: local_admin
+      POSTGRES_PASSWORD: ${POSTGRES_ADMIN_PASSWORD:?local admin password is required}
+      POSTGRES_DB: postgres
+    ports:
+      - "127.0.0.1:${POSTGRES_LOCAL_PORT:-54329}:5432"
+    volumes:
+      - feline_blog_postgres_data:/var/lib/postgresql/data
+    labels:
+      com.feline-blog.owner: feline-blog-app
+      com.feline-blog.purpose: local-postgres
+      com.feline-blog.compose-project: feline-blog-local
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U local_admin -d postgres"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+      start_period: 5s
+
+volumes:
+  feline_blog_postgres_data:
+    name: feline_blog_postgres_data
+    labels:
+      com.feline-blog.owner: feline-blog-app
+      com.feline-blog.purpose: local-postgres
+      com.feline-blog.compose-project: feline-blog-local

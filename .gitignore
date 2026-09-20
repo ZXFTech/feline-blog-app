@@ -39,6 +39,12 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 !.env.example
+!.env.development.example
+!.env.shadow.example
+!.env.staging.example
+/.feline-blog/
+*.pgdump
+*.pgpass
 
 # vercel
 .vercel

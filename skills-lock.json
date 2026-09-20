@@ -31,17 +31,53 @@
       "skillPath": "skills/develop/SKILL.md",
       "computedHash": "151812557fd511f80196653d0dae0efc878558cc96e962857f2710ed98789573"
     },
+    "docker-compose-orchestration": {
+      "source": "manutej/luxor-claude-marketplace",
+      "sourceType": "github",
+      "skillPath": "plugins/luxor-devops-suite/skills/docker-compose-orchestration/SKILL.md",
+      "computedHash": "01831d0723a2ac491e233bd9bfdffdac8c0ae5500f140a3ca0382ac5f4a26159"
+    },
     "document": {
       "source": "jsmastery-pro/skills",
       "sourceType": "github",
       "skillPath": "skills/document/SKILL.md",
       "computedHash": "a47c5d29a1263d987c2fa05dbc993a5276aaf6c4ddc54fbd329463a5f3a1aa77"
     },
+    "infra-postgres": {
+      "source": "clickhouse/agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/infra-postgres/SKILL.md",
+      "computedHash": "f1b7ee1635fd68ef0d66dc70499ac14e3f2bf894dbf969ae0ed2764b32449d8d"
+    },
     "migrate-radix-to-base": {
       "source": "shadcn-ui/ui",
       "sourceType": "github",
       "skillPath": "skills/migrate-radix-to-base/SKILL.md",
       "computedHash": "4fdc31bf287f674ba6bf91a648120f7b34cd7ef370f998f2cc116fed067789c5"
+    },
+    "prisma-cli-migrate-deploy": {
+      "source": "prisma/cursor-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-cli-migrate-deploy/SKILL.md",
+      "computedHash": "7befa2c333228883c158282ec7804ea58ecc332c970fd610601664f9e5c0c48f"
+    },
+    "prisma-cli-migrate-dev": {
+      "source": "prisma/cursor-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-cli-migrate-dev/SKILL.md",
+      "computedHash": "ad1a434c85bb2e5925dd0964e3798d093128e69f3be7bbf4b6f3ab67f5600e21"
+    },
+    "prisma-cli-migrate-status": {
+      "source": "prisma/cursor-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-cli-migrate-status/SKILL.md",
+      "computedHash": "d17285596d2b55c007a11ccc8d8261e88c91343da335cb3d540f7d7cc696e4e3"
+    },
+    "prisma-database-setup-postgresql": {
+      "source": "prisma/cursor-plugin",
+      "sourceType": "github",
+      "skillPath": "skills/prisma-database-setup-postgresql/SKILL.md",
+      "computedHash": "a344d28c1d94a97b8ed9837899f563bebb749fa75d2b6caf6d4a9dc4f0ed2d0d"
     },
     "prisma-orm-v7-skills": {
       "source": "gocallum/nextjs16-agent-skills",

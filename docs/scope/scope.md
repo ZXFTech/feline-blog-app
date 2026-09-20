@@ -37,7 +37,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 24  | newTheme 组件与样式迁移 | Maintenance | done |
 | 25  | Checklist 功能完善与交互验收 | Maintenance | planned     |
 | 26  | Album 组件展示中心 | Maintenance | done |
-| 27  | 本地 PostgreSQL 开发与迁移隔离 | Maintenance | planned |
+| 27  | 本地 PostgreSQL 开发与迁移隔离 | Maintenance | in-progress |
 
 ## Current product
 
@@ -313,12 +313,22 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 - [x] Verify it: `/check verify Album 组件展示中心`
 - [x] Test it: `/test Album 组件展示中心`
 
-### 27. 本地 PostgreSQL 开发与迁移隔离 · needs a decision
+### 27. 本地 PostgreSQL 开发与迁移隔离 · in-progress
 
 把本地开发、Prisma 迁移校验和 Supabase staging 的连接配置分开，让日常开发和可清空重建的校验操作不再触碰远程 staging 数据。
-**Done when:** 本地开发默认使用 `feline_blog_dev`，Prisma 迁移校验和允许清空重建的操作默认使用 `feline_blog_shadow`，两者分别从 `.env.develop` 和 `.env.shadow` 读取配置，Supabase `feline_blog_staging` 只从 `.env.staging` 读取配置，并且命令与保护检查可以证明三类环境不会误连或混用。
+**Done when:** 本地开发默认使用 `feline_blog_dev`，Prisma `migrate dev` 只使用 `feline_blog_shadow` 作为 shadow，允许清空重建的迁移重放只使用 `feline_blog_verify`；本地应用、迁移隔离和 Supabase staging 分别从 `.env.development`、`.env.shadow` 和 `.env.staging` 读取配置，并且命令与保护检查可以证明三类环境不会误连或混用。
 
-- [ ] Design it (spec): `/architect 本地 PostgreSQL 开发与迁移隔离`
+- [x] Design it (spec): `/architect 本地 PostgreSQL 开发与迁移隔离`
+      spec [0009](../specs/0009-local-postgres-isolation/index.md)
+- [x] Build it: `/develop 本地 PostgreSQL 开发与迁移隔离`
+      code in `compose.local-postgres.yaml`, `config/database-*.json`, `scripts/database/local-postgres/`, `src/db/postgres/config.ts`, `package.json`, `docs/database/`
+  - [x] 建立本地 Compose、角色权限、环境加载和本地 runtime，covers `AC-1`, `AC-2`, `AC-8`, `AC-10`
+  - [x] 隔离 Prisma dev、shadow 与 verify 迁移流程，covers `AC-3`
+  - [x] 实现 staging exporter、同快照导出和受验证恢复，covers `AC-4`, `AC-5`, `AC-7`, `AC-8`
+  - [x] 实现连接围栏、持久恢复状态机和 staging deploy 保护，covers `AC-4`, `AC-6`, `AC-7`, `AC-8`
+  - [x] 完成本地生命周期、旧命令映射、文档和测试，covers `AC-9`, `AC-10`, `AC-11`, `AC-12`
+- [x] Verify it: `/check verify 本地 PostgreSQL 开发与迁移隔离`
+- [x] Test it: `/test 本地 PostgreSQL 开发与迁移隔离`
 
 ## Deferred
 

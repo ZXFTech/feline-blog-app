@@ -17,7 +17,7 @@
 
 ## 当前运行与回退边界
 
-本地开发现在以 Supabase staging 为权威库。应用已经接受 PostgreSQL 写入，因此不能直接把业务入口切回迁移前的 MySQL 快照，否则会丢失新写入。若 staging 出现问题，应保持 PostgreSQL 权威并向前修复；任何回切都必须先设计并验证反向增量对账。
+日常本地开发现在以 `feline_blog_dev` 为本地权威库。Prisma shadow 工作只使用 `feline_blog_shadow`，从空库重放只使用 `feline_blog_verify`。Supabase staging 仍是远程 staging 环境的权威库，但本地应用不会隐式连接它。若 staging 出现问题，应保持 PostgreSQL 权威并向前修复；任何回切都必须先设计并验证反向增量对账。
 
 旧 MySQL、legacy schema/client 和迁移脚本暂时保留，用于审计与人工恢复准备。不得删除旧数据库、备份或凭证，也不得由普通业务代码访问它们。
 
@@ -29,4 +29,4 @@
 4. 在独立批准的生产切换窗口重新执行源数据快照、停写、导入、校验和应用切换；不得复用 staging 的“已验证”结论代替生产验证。
 5. 只有生产稳定期结束、恢复证据充分且再次获得授权后，才考虑移除 legacy 代码、配置和旧数据库。
 
-本轮新增授权仅覆盖 Vercel `feline-blog-staging` 的部署及其 Supabase staging runtime 配置；不授权 `feline-blog-production` 发布、`dbBackup.sh` 修改或任何数据库删除。
+本地生命周期命令只管理 Compose project `feline-blog-local` 和卷 `feline_blog_postgres_data`。它们不授权 `feline-blog-production` 发布、`dbBackup.sh` 修改或任何远程数据库删除。

@@ -43,15 +43,24 @@ export function buildPostgresPoolConfig(
 ): PoolConfig {
   const connectionString = assertPostgresUrl(environment.POSTGRES_DATABASE_URL);
   const sslCa = environment.POSTGRES_SSL_CA?.replace(/\\n/g, "\n");
-  if (!sslCa) {
-    throw new Error("POSTGRES_SSL_CA is required for PostgreSQL certificate verification.");
-  }
   const parsedUrl = new URL(connectionString);
+  const localHosts = new Set(["127.0.0.1", "localhost", "[::1]"]);
+  const isVerifiedLocal =
+    environment.POSTGRES_ENVIRONMENT === "local" &&
+    localHosts.has(parsedUrl.hostname) &&
+    parsedUrl.pathname === "/feline_blog_dev" &&
+    decodeURIComponent(parsedUrl.username) === "app_runtime";
   const hasUrlSslOptions = ["sslmode", "sslcert", "sslkey", "sslrootcert"].some((name) =>
     parsedUrl.searchParams.has(name)
   );
 
-  if (hasUrlSslOptions) {
+  if (isVerifiedLocal && hasUrlSslOptions) {
+    throw new Error("Local POSTGRES_DATABASE_URL must not contain SSL parameters.");
+  }
+  if (!isVerifiedLocal && !sslCa) {
+    throw new Error("POSTGRES_SSL_CA is required for PostgreSQL certificate verification.");
+  }
+  if (!isVerifiedLocal && hasUrlSslOptions) {
     throw new Error(
       "POSTGRES_SSL_CA cannot be combined with SSL parameters in POSTGRES_DATABASE_URL."
     );
@@ -75,6 +84,6 @@ export function buildPostgresPoolConfig(
       environment.POSTGRES_QUERY_TIMEOUT_MS,
       DEFAULT_QUERY_TIMEOUT_MS
     ),
-    ssl: { ca: sslCa, rejectUnauthorized: true },
+    ssl: isVerifiedLocal ? false : { ca: sslCa, rejectUnauthorized: true },
   };
 }

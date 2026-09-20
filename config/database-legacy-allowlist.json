@@ -8,6 +8,10 @@
   "postgresDriver": [
     "scripts/database/audit-postgres-connections.ts",
     "scripts/database/configure-postgres-roles.ts",
+    "scripts/database/local-postgres/docker-test.ts",
+    "scripts/database/local-postgres/local.ts",
+    "scripts/database/local-postgres/refresh.ts",
+    "scripts/database/local-postgres/staging.ts",
     "scripts/database/migrate-legacy-to-postgres.ts",
     "src/db/postgres/config.ts",
     "src/db/postgres/runtime.ts"

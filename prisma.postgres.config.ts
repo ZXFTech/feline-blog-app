@@ -1,4 +1,3 @@
-import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
 const migrationUrl = process.env.POSTGRES_MIGRATION_URL;

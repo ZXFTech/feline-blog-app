@@ -41,7 +41,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -81,7 +81,7 @@ jobs:
       deployment-id: ${{ steps.deployment.outputs.result }}
       started-at-ms: ${{ steps.select.outputs.started-at-ms }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0
           persist-credentials: false
@@ -204,7 +204,7 @@ jobs:
       POSTGRES_MIGRATION_URL: ${{ secrets.POSTGRES_MIGRATION_URL }}
       POSTGRES_SSL_CA: ${{ secrets.POSTGRES_SSL_CA }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -317,7 +317,7 @@ jobs:
       VERCEL_PROJECT_NAME: feline-blog-staging
       STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           fetch-depth: 0
@@ -434,7 +434,7 @@ jobs:
       STAGING_SMOKE_ORIGIN: ${{ needs.deploy.outputs.candidate-url }}
       STAGING_SMOKE_MODE: public
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -498,7 +498,7 @@ jobs:
       E2E_USER_PASSWORD: ${{ secrets.E2E_USER_PASSWORD }}
       E2E_USER_ID: ${{ vars.E2E_USER_ID }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -571,7 +571,7 @@ jobs:
       CANDIDATE_ID: ${{ needs.deploy.outputs.candidate-id }}
       PREVIOUS_ID: ${{ needs.deploy.outputs.previous-id }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -663,7 +663,7 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_PROJECT_NAME: feline-blog-staging
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -739,7 +739,7 @@ jobs:
       CANDIDATE_ID: ${{ needs.deploy.outputs.candidate-id }}
       PREVIOUS_ID: ${{ needs.deploy.outputs.previous-id }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -831,7 +831,7 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_PROJECT_NAME: feline-blog-staging
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -889,7 +889,7 @@ jobs:
     env:
       DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -925,7 +925,7 @@ jobs:
     env:
       CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           fetch-depth: 0
@@ -973,7 +973,7 @@ jobs:
       RELEASE_APP_LOGIN: ${{ vars.RELEASE_APP_LOGIN }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false
@@ -1002,7 +1002,7 @@ jobs:
       RELEASE_APP_LOGIN: ${{ vars.RELEASE_APP_LOGIN }}
       GITHUB_TOKEN: ${{ github.token }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ needs.candidate.outputs.candidate-sha }}
           persist-credentials: false

@@ -223,6 +223,8 @@ jobs:
         run: |
           umask 077
           pnpm exec tsx ./scripts/ci/write-staging-environment.ts
+      - name: Probe Supavisor Session Pooler migration path
+        run: pnpm db:staging:migration:probe
       - name: Record migration intent
         uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         with:

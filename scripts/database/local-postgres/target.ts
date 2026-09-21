@@ -97,6 +97,37 @@ export function classifyStagingTarget(
   };
 }
 
+export function classifyStagingMigrationTarget(
+  value: string,
+  environment = "staging"
+): RedactedTarget {
+  const url = parsedPostgresUrl(value, "staging migration URL");
+  const database = decodeURIComponent(url.pathname.slice(1));
+  const role = decodeURIComponent(url.username);
+  const expectedRole = `${targets.migratorRole}.${targets.stagingProjectRef}`;
+  if (
+    environment !== "staging" ||
+    url.hostname !== targets.stagingSessionPoolerHost ||
+    Number(url.port || 5432) !== targets.stagingSessionPoolerPort ||
+    database !== targets.stagingDatabase ||
+    role !== expectedRole ||
+    [...url.searchParams.keys()].length > 0
+  ) {
+    throw new DatabaseToolError(
+      "TARGET_REJECTED",
+      "The staging migration target is not allowlisted."
+    );
+  }
+  return {
+    targetClass: "staging",
+    redactedHost: targets.stagingSessionPoolerHost,
+    port: targets.stagingSessionPoolerPort,
+    database,
+    roleClass: targets.migratorRole,
+    tlsMode: "verify-full",
+  };
+}
+
 export function migrationChecksum(contents: Buffer | string): string {
   return createHash("sha256").update(contents).digest("hex");
 }

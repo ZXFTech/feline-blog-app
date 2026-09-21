@@ -16,6 +16,8 @@ export async function runCommand(
     inherit?: boolean;
     code?: DatabaseErrorCode;
     phase?: string;
+    signal?: AbortSignal;
+    killGracePeriodMillis?: number;
   } = {}
 ): Promise<CommandResult> {
   return await new Promise((resolve, reject) => {
@@ -27,6 +29,22 @@ export async function runCommand(
     });
     let stdout = "";
     let stderr = "";
+    let settled = false;
+    let killTimer: NodeJS.Timeout | undefined;
+    const cleanup = () => {
+      if (killTimer) clearTimeout(killTimer);
+      options.signal?.removeEventListener("abort", abortChild);
+    };
+    const abortChild = () => {
+      if (settled || child.exitCode !== null) return;
+      child.kill("SIGTERM");
+      killTimer = setTimeout(() => {
+        if (child.exitCode === null) child.kill("SIGKILL");
+      }, options.killGracePeriodMillis ?? 10_000);
+      killTimer.unref();
+    };
+    if (options.signal?.aborted) abortChild();
+    else options.signal?.addEventListener("abort", abortChild, { once: true });
     child.stdout?.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
     });
@@ -34,6 +52,9 @@ export async function runCommand(
       stderr += chunk.toString();
     });
     child.once("error", () => {
+      if (settled) return;
+      settled = true;
+      cleanup();
       reject(
         new DatabaseToolError(
           options.code || "DOCKER_UNAVAILABLE",
@@ -43,8 +64,19 @@ export async function runCommand(
       );
     });
     child.once("exit", (exitCode) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
       const result = { stdout, stderr, exitCode: exitCode ?? 1 };
-      if (result.exitCode !== 0) {
+      if (options.signal?.aborted) {
+        reject(
+          new DatabaseToolError(
+            options.code || "DOCKER_UNAVAILABLE",
+            `${command} was stopped because its controlling session was lost.`,
+            options.phase
+          )
+        );
+      } else if (result.exitCode !== 0) {
         reject(
           new DatabaseToolError(
             options.code || "DOCKER_UNAVAILABLE",

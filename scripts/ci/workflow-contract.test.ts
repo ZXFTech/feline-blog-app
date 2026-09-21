@@ -56,19 +56,27 @@ describe("CI and staging workflow contract", () => {
     ].join("\n");
     const serialized = serializeStagingEnvironment({
       POSTGRES_MIGRATION_URL:
-        "postgresql://app_migrator:secret@example.test/postgres?sslmode=verify-full",
+        "postgresql://app_migrator.project-ref:secret@example.test:5432/postgres",
       POSTGRES_SSL_CA: certificate,
     });
 
     expect(dotenv.parse(serialized)).toEqual({
       POSTGRES_ENVIRONMENT: "staging",
       POSTGRES_MIGRATION_URL:
-        "postgresql://app_migrator:secret@example.test/postgres?sslmode=verify-full",
+        "postgresql://app_migrator.project-ref:secret@example.test:5432/postgres",
       POSTGRES_SSL_CA: certificate,
     });
 
     const workflow = await text(".github/workflows/staging.yml");
     expect(workflow).toContain("pnpm exec tsx ./scripts/ci/write-staging-environment.ts");
+    expect(workflow).toContain("pnpm db:staging:migration:probe");
+    expect(workflow.indexOf("pnpm db:staging:migration:probe")).toBeLessThan(
+      workflow.indexOf("pnpm ci:migrations reconcile-staging")
+    );
+    expect(workflow).not.toContain("POSTGRES_ADMIN_URL");
+    expect(workflow).not.toContain("STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE");
+    expect(workflow).not.toContain("db:staging:migrator-timeouts:configure");
+    expect(workflow).not.toContain("db:staging:migrator-timeouts:rollback");
     expect(workflow).not.toContain('"POSTGRES_SSL_CA=$POSTGRES_SSL_CA"');
   });
 

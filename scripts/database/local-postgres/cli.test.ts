@@ -50,6 +50,17 @@ describe("database CLI rejection paths", () => {
     expect(result.stderr).not.toContain("unsupported argument");
   });
 
+  it.each(["staging-migrator-timeouts-configure", "staging-migrator-timeouts-rollback"])(
+    "covers: AC-14 keeps %s behind its process only write gate",
+    (command) => {
+      const result = runCli(command);
+
+      expect(result.status).toBe(1);
+      expect(result.stderr).toContain('"code":"TARGET_REJECTED"');
+      expect(result.stderr).toContain("STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE=true");
+    }
+  );
+
   it("covers: AC-6 rejects malformed recovery ids without relaying the input", () => {
     const marker = "recognizable-secret-operation-id";
     const result = runCli("local-recover", "--", "--operation", marker);

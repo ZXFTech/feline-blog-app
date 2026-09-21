@@ -16,6 +16,10 @@ export interface DatabaseTargets {
   migratorRole: string;
   adminRole: string;
   stagingProjectRef: string;
+  stagingSessionPoolerHost: string;
+  stagingSessionPoolerPort: number;
+  stagingMigrationLockTimeoutMs: number;
+  stagingMigrationStatementTimeoutMs: number;
   stagingDatabase: string;
   postgresImage: string;
   postgresMajor: number;

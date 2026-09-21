@@ -41,7 +41,7 @@ PostgreSQL schema 已包含全部业务模型。时间点使用 `timestamptz(3)`
 | --- | --- |
 | `DATABASE_URL`、`DATABASE_HOST/PORT/USER/PASSWORD/NAME` | 仅 legacy 检查和显式数据迁移源 |
 | `POSTGRES_DATABASE_URL` | 本地应用 runtime 或 staging runtime 连接，各文件互不合并 |
-| `POSTGRES_MIGRATION_URL` | 本地 dev migration 或 staging deploy 连接 |
+| `POSTGRES_MIGRATION_URL` | 本地 dev migration，或 staging 的 exact Supavisor Session Pooler migration 连接 |
 | `POSTGRES_SHADOW_DATABASE_URL` | 本地 `migrate dev` 的独立 shadow database |
 | `POSTGRES_VERIFY_DATABASE_URL` | 从空库重放全部迁移的本地 verify database |
 | `POSTGRES_ADMIN_URL` | 本地维护或显式 staging 角色配置连接 |
@@ -77,7 +77,12 @@ pnpm db:local:migrate -- --name <name>
 
 # staging 状态和受保护部署
 pnpm db:staging:status
+pnpm db:staging:migration:probe
 STAGING_MIGRATION_ALLOW_WRITE=true pnpm db:staging:deploy
+
+# 维护者显式配置或回滚 staging migrator timeout role defaults
+STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE=true pnpm db:staging:migrator-timeouts:configure
+STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE=true pnpm db:staging:migrator-timeouts:rollback
 
 # staging 只读数据刷新
 STAGING_DATA_COPY_ALLOW=true STAGING_DATA_COPY_TRUSTED_WORKSTATION=feline-blog-local-sensitive-copy pnpm db:local:refresh
@@ -105,6 +110,16 @@ Remove-Item Env:STAGING_DATA_COPY_TRUSTED_WORKSTATION
 $env:STAGING_MIGRATION_ALLOW_WRITE = "true"
 pnpm db:staging:deploy
 Remove-Item Env:STAGING_MIGRATION_ALLOW_WRITE
+
+# 一次性设置 app_migrator 的 lock_timeout=5s、statement_timeout=120s
+$env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE = "true"
+pnpm db:staging:migrator-timeouts:configure
+Remove-Item Env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE
+
+# 只在停止 staging migration 后，按本地 pre-state 精确回滚上述两个默认值
+$env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE = "true"
+pnpm db:staging:migrator-timeouts:rollback
+Remove-Item Env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE
 ```
 
 ## 标准开发流程
@@ -141,14 +156,30 @@ pnpm dev
 
 ### staging schema 部署
 
-staging 只接受 direct Supabase endpoint、`app_migrator`、严格 CA 校验和当前进程门禁。推荐先运行：
+CI migration 只接受 committed exact allowlist 中的 Supavisor Shared Pooler Session endpoint、端口 `5432`、database `postgres`、qualified username `app_migrator.<project-ref>`、零 URL query 参数和严格 CA 校验。`POSTGRES_ADMIN_URL` 继续使用 direct endpoint，只供本地维护者显式配置角色，不得进入 GitHub Environment。
+
+Supavisor 会忽略 PostgreSQL startup `options`，所以 Prisma URL 不负责设置 timeout。首次启用或修复配置漂移时，维护者先确认 `.env.staging` 同时包含 exact `POSTGRES_ADMIN_URL`、`POSTGRES_MIGRATION_URL` 和 `POSTGRES_SSL_CA`，再运行：
+
+```powershell
+$env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE = "true"
+pnpm db:staging:migrator-timeouts:configure
+Remove-Item Env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE
+pnpm db:staging:migration:probe
+```
+
+Configure 在 advisory lock 下保存修改前的 catalog 状态和 migrator effective timeout，使用一个 transaction 设置 `lock_timeout=5s` 与 `statement_timeout=120s`，然后通过新的 Session Pooler connections 验证。Pre-state 保存到被 Git 忽略的 `.feline-blog/staging-migrator-timeouts-prestate.json`。POSIX 使用 mode 0600，Windows 只允许当前用户与 SYSTEM 访问。该文件用于精确回滚，不要删除、提交或手工编辑。
+
+CI probe 会在 reconciliation 与任何 migration write 前验证两个连接的身份、effective timeout、advisory lock 和 Prisma `migrate status`。它不读取 `POSTGRES_ADMIN_URL`。推荐部署前运行：
 
 ```powershell
 pnpm db:staging:status
+pnpm db:staging:migration:probe
 pnpm db:staging:exporter:verify
 ```
 
-确认 migration state 为 current 或明确知道待部署内容后，再使用上面的 PowerShell 门禁执行 `db:staging:deploy`。该命令只运行 `prisma migrate deploy`。
+确认 migration state 为 current 或明确知道待部署内容后，再使用上面的 PowerShell 门禁执行 `db:staging:deploy`。该命令只运行 `prisma migrate deploy`。Timeout probe 不匹配时不得通过添加 URL `options`、session `SET` 或从 GitHub Actions 切换 direct endpoint 绕过。
+
+若需要撤销 timeout role defaults，先关闭或阻断 staging migration workflow，保留 PR Verify。确认 pre-state 文件仍属于 exact staging project、database 与 `app_migrator`，再运行上面的 rollback 命令。Rollback 只接受当前状态等于目标值或已记录原值，在一个 transaction 中对原本 absent 的条目执行 `RESET`，对原本 explicit 的条目恢复其原值，然后同时验证 catalog 与新的 migrator session effective milliseconds。成功后 pre-state 会改名为 timestamped `.rolled-back.json`；缺失、已消费、权限不安全或出现第三种状态都会停止，不猜测恢复值。
 
 ### 失败恢复
 

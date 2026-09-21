@@ -10,7 +10,10 @@ import { repositoryRoot, targets } from "./config";
 import { localDestroy, localDown, localSetup, localStatus, localUp } from "./local";
 import { localMigrate } from "./migrate";
 import {
+  configureStagingMigratorTimeouts,
   deployStaging,
+  probeStagingMigration,
+  rollbackStagingMigratorTimeouts,
   setupStagingExporter,
   stagingStatus,
   verifyStagingExporter,
@@ -84,9 +87,12 @@ async function main(): Promise<void> {
         ? ["STAGING_DATA_COPY_ALLOW", "STAGING_DATA_COPY_TRUSTED_WORKSTATION"]
         : command === "staging-deploy"
           ? ["STAGING_MIGRATION_ALLOW_WRITE"]
-          : command === "staging-exporter-setup"
-            ? ["STAGING_ROLE_SETUP_ALLOW_WRITE"]
-            : [];
+          : command === "staging-migrator-timeouts-configure" ||
+              command === "staging-migrator-timeouts-rollback"
+            ? ["STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE"]
+            : command === "staging-exporter-setup"
+              ? ["STAGING_ROLE_SETUP_ALLOW_WRITE"]
+              : [];
   if (command !== "dev") rejectInheritedProtectedEnvironment(process.env, allowedGates);
 
   switch (command) {
@@ -145,6 +151,18 @@ async function main(): Promise<void> {
     case "staging-status":
       requireOnlyFlags(args, ["--human"], "staging status");
       output(await stagingStatus(), args.includes("--human"));
+      break;
+    case "staging-migration-probe":
+      requireNoArguments(args, "staging migration probe");
+      output(await probeStagingMigration(), false);
+      break;
+    case "staging-migrator-timeouts-configure":
+      requireNoArguments(args, "staging migrator timeout configure");
+      output(await configureStagingMigratorTimeouts(), false);
+      break;
+    case "staging-migrator-timeouts-rollback":
+      requireNoArguments(args, "staging migrator timeout rollback");
+      output(await rollbackStagingMigratorTimeouts(), false);
       break;
     case "staging-deploy":
       if (args.length > 0)

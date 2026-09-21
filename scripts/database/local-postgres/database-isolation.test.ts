@@ -9,7 +9,12 @@ import {
 } from "./env";
 import { safeFailure, DatabaseToolError } from "./errors";
 import { parseMigrationName } from "./migrate";
-import { classifyLocalTarget, classifyStagingTarget, migrationChecksum } from "./target";
+import {
+  classifyLocalTarget,
+  classifyStagingMigrationTarget,
+  classifyStagingTarget,
+  migrationChecksum,
+} from "./target";
 import { isProtectedKey, repositoryRoot, targets } from "./config";
 import { normalizeForwardedArguments, parseRecoveryOperationId } from "./arguments";
 import { hostLockInspectionSummary } from "./lock";
@@ -50,7 +55,7 @@ describe("database environment isolation", () => {
     ).toThrow(DatabaseToolError);
   });
 
-  it("accepts only the direct allowlisted staging endpoint", () => {
+  it("keeps direct staging targets available to non-migration tooling", () => {
     const value = `postgresql://app_migrator:secret@db.${targets.stagingProjectRef}.supabase.co:5432/postgres`;
     expect(classifyStagingTarget(value, "app_migrator")).toMatchObject({
       targetClass: "staging",
@@ -58,12 +63,18 @@ describe("database environment isolation", () => {
       roleClass: "app_migrator",
       tlsMode: "verify-full",
     });
-    expect(() =>
-      classifyStagingTarget(
-        "postgresql://app_migrator:secret@aws-0-ap-northeast-1.pooler.supabase.com:5432/postgres",
-        "app_migrator"
-      )
-    ).toThrow(DatabaseToolError);
+  });
+
+  it("covers: AC-15 accepts only the exact qualified Session Pooler migration target", () => {
+    const value = `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@${targets.stagingSessionPoolerHost}:${targets.stagingSessionPoolerPort}/${targets.stagingDatabase}`;
+    expect(classifyStagingMigrationTarget(value)).toMatchObject({
+      targetClass: "staging",
+      redactedHost: targets.stagingSessionPoolerHost,
+      port: targets.stagingSessionPoolerPort,
+      database: targets.stagingDatabase,
+      roleClass: targets.migratorRole,
+      tlsMode: "verify-full",
+    });
   });
 
   it.each(["mysql://app_runtime:secret@127.0.0.1:54329/feline_blog_dev", "not-a-url"])(
@@ -81,6 +92,18 @@ describe("database environment isolation", () => {
     `postgresql://app_runtime:secret@db.${targets.stagingProjectRef}.supabase.co:5432/postgres`,
   ])("covers: AC-7 rejects a staging endpoint outside the exact allowlist", (url) => {
     expect(() => classifyStagingTarget(url, targets.migratorRole)).toThrow(DatabaseToolError);
+  });
+
+  it.each([
+    `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@db.${targets.stagingProjectRef}.supabase.co:5432/postgres`,
+    `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@${targets.stagingSessionPoolerHost}:6543/postgres`,
+    `postgresql://${targets.migratorRole}:secret@${targets.stagingSessionPoolerHost}:5432/postgres`,
+    `postgresql://${targets.migratorRole}.wrong-project:secret@${targets.stagingSessionPoolerHost}:5432/postgres`,
+    `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@another.pooler.supabase.com:5432/postgres`,
+    `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@${targets.stagingSessionPoolerHost}:5432/postgres?sslmode=verify-full`,
+    `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@${targets.stagingSessionPoolerHost}:5432/postgres?application_name=test`,
+  ])("covers: AC-15 rejects a staging migration target outside the exact allowlist", (url) => {
+    expect(() => classifyStagingMigrationTarget(url)).toThrow(DatabaseToolError);
   });
 
   it("recognizes protected prefixes and removes inherited values", () => {

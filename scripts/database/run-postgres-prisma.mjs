@@ -29,9 +29,8 @@ export function postgresUrlWithVerifiedTls(value, certificatePath, name) {
   if (url.port === "6543" || url.searchParams.get("pgbouncer") === "true") {
     throw new Error(`${name} must not use a transaction pooler for Prisma migrations.`);
   }
-  const sslParameters = ["sslmode", "sslcert", "sslkey", "sslrootcert"];
-  if (sslParameters.some((parameter) => url.searchParams.has(parameter))) {
-    throw new Error(`${name} must not contain SSL parameters; the Prisma wrapper supplies them.`);
+  if ([...url.searchParams.keys()].length > 0) {
+    throw new Error(`${name} must not contain query parameters; the Prisma wrapper supplies them.`);
   }
   url.searchParams.set("sslmode", "verify-full");
   url.searchParams.set("sslrootcert", certificatePath);
@@ -54,9 +53,8 @@ async function run() {
   }
 
   const migrationUrl = requireValue(process.env, "POSTGRES_MIGRATION_URL");
-  const shadowUrl = mode === "migrate-dev"
-    ? requireValue(process.env, "POSTGRES_SHADOW_DATABASE_URL")
-    : undefined;
+  const shadowUrl =
+    mode === "migrate-dev" ? requireValue(process.env, "POSTGRES_SHADOW_DATABASE_URL") : undefined;
   if (shadowUrl && databaseTarget(migrationUrl) === databaseTarget(shadowUrl)) {
     throw new Error("POSTGRES_SHADOW_DATABASE_URL must be a separate database target.");
   }

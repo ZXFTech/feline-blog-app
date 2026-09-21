@@ -46,4 +46,25 @@ describe("runCommand", () => {
       phase: "prisma",
     });
   });
+
+  it("covers: AC-15 terminates a child process when its controller aborts", async () => {
+    const controller = new AbortController();
+    const running = runCommand(
+      process.execPath,
+      ["-e", "process.on('SIGTERM',()=>{}); setInterval(()=>{},1000)"],
+      {
+        code: "MIGRATION_DRIFT",
+        phase: "prisma",
+        signal: controller.signal,
+        killGracePeriodMillis: 25,
+      }
+    );
+
+    setTimeout(() => controller.abort(), 25);
+
+    await expect(running).rejects.toMatchObject({
+      code: "MIGRATION_DRIFT",
+      phase: "prisma",
+    });
+  });
 });

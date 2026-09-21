@@ -30,7 +30,11 @@ export function parseMigrationName(args: readonly string[]): string {
   return normalized[1] as string;
 }
 
-async function runPrisma(args: readonly string[], environment: NodeJS.ProcessEnv): Promise<void> {
+async function runPrisma(
+  args: readonly string[],
+  environment: NodeJS.ProcessEnv,
+  options: { signal?: AbortSignal; killGracePeriodMillis?: number } = {}
+): Promise<void> {
   const pnpmEntrypoint = process.env.npm_execpath;
   if (!pnpmEntrypoint) {
     throw new DatabaseToolError("CONFIG_CONFLICT", "Run this command through pnpm.");
@@ -44,6 +48,8 @@ async function runPrisma(args: readonly string[], environment: NodeJS.ProcessEnv
       inherit: true,
       code: "MIGRATION_DRIFT",
       phase: "prisma",
+      signal: options.signal,
+      killGracePeriodMillis: options.killGracePeriodMillis,
     }
   );
 }

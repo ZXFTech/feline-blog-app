@@ -1,14 +1,23 @@
+import { EventEmitter } from "node:events";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { targets } from "./config";
 import { DatabaseToolError } from "./errors";
 import { localDestroy } from "./local";
 import { createInactivityTimeout, inventory, recoverOperation } from "./refresh";
 import {
+  applyDesiredMigratorTimeouts,
+  assertEffectiveMigrationTimeouts,
+  configureStagingMigratorTimeouts,
   assertExporterSafety,
   deployStaging,
   grantExporterReadAccess,
+  readRoleTimeoutCatalog,
+  restoreMigratorTimeouts,
+  rollbackStagingMigratorTimeouts,
   setupStagingExporter,
   stagingTls,
+  verifiedPrismaMigrationUrl,
+  withMonitoredStagingLock,
   withStagingLock,
 } from "./staging";
 
@@ -32,6 +41,7 @@ afterEach(() => {
   vi.useRealTimers();
   delete process.env.LOCAL_DATABASE_DESTROY_ALLOW;
   delete process.env.STAGING_MIGRATION_ALLOW_WRITE;
+  delete process.env.STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE;
   delete process.env.STAGING_ROLE_SETUP_ALLOW_WRITE;
 });
 
@@ -291,8 +301,113 @@ describe("database operation safety", () => {
     expect(queries.some((sql) => sql.includes("pg_advisory_unlock"))).toBe(true);
   });
 
+  it("covers: AC-15 derives only trusted Prisma TLS parameters", () => {
+    const raw = `postgresql://${targets.migratorRole}.${targets.stagingProjectRef}:secret@${targets.stagingSessionPoolerHost}:${targets.stagingSessionPoolerPort}/${targets.stagingDatabase}`;
+    const derived = new URL(verifiedPrismaMigrationUrl(raw, "C:/temp/root.crt"));
+
+    expect(derived.searchParams.get("sslmode")).toBe("verify-full");
+    expect(derived.searchParams.get("sslrootcert")).toBe("C:/temp/root.crt");
+    expect(derived.searchParams.has("options")).toBe(false);
+  });
+
+  it("covers: AC-15 aborts migration work when the advisory lock session is lost", async () => {
+    const emitter = new EventEmitter();
+    const queries: string[] = [];
+    const client = {
+      query: vi.fn(async (sql: string) => {
+        queries.push(sql);
+        if (sql.includes("pg_try_advisory_lock")) return { rows: [{ locked: true }] };
+        if (sql.includes("pg_backend_pid")) return { rows: [{ pid: 42 }] };
+        return { rows: [{ pg_advisory_unlock: true }] };
+      }),
+      once: emitter.once.bind(emitter),
+      off: emitter.off.bind(emitter),
+    } as unknown as Parameters<typeof withMonitoredStagingLock>[0];
+
+    await expect(
+      withMonitoredStagingLock(
+        client,
+        async (signal) => {
+          emitter.emit("error", new Error("connection lost"));
+          await new Promise<void>((resolve, reject) => {
+            if (signal.aborted) reject(new Error("aborted"));
+            else
+              signal.addEventListener("abort", () => reject(new Error("aborted")), { once: true });
+          });
+        },
+        1
+      )
+    ).rejects.toThrow("aborted");
+    expect(queries.some((sql) => sql.includes("pg_advisory_unlock"))).toBe(true);
+  });
+
+  it("covers: AC-14 rolls both desired role defaults back when either ALTER fails", async () => {
+    const statements: string[] = [];
+    const client = fakeClient((sql) => {
+      statements.push(sql);
+      if (sql.includes("SET statement_timeout")) throw new Error("simulated ALTER failure");
+      return { rows: [] };
+    });
+
+    await expect(applyDesiredMigratorTimeouts(client as never)).rejects.toThrow(
+      "simulated ALTER failure"
+    );
+    expect(statements[0]).toBe("BEGIN");
+    expect(statements).toContain("ROLLBACK");
+    expect(statements).not.toContain("COMMIT");
+  });
+
+  it("covers: AC-14 restores absent and explicit role defaults in one transaction", async () => {
+    const statements: string[] = [];
+    const client = fakeClient((sql) => {
+      statements.push(sql);
+      return { rows: [] };
+    });
+
+    await restoreMigratorTimeouts(client as never, {
+      lockTimeout: null,
+      statementTimeout: "45s",
+    });
+
+    expect(statements).toEqual([
+      "BEGIN",
+      'ALTER ROLE "app_migrator" RESET lock_timeout',
+      "ALTER ROLE \"app_migrator\" SET statement_timeout = '45s'",
+      "COMMIT",
+    ]);
+  });
+
+  it("covers: AC-15 compares effective timeouts numerically", async () => {
+    const client = fakeClient(() => ({
+      rows: [{ lock_timeout: "5000ms", statement_timeout: "2min" }],
+    }));
+
+    await expect(
+      assertEffectiveMigrationTimeouts(client as never, {
+        lockTimeoutMs: targets.stagingMigrationLockTimeoutMs,
+        statementTimeoutMs: targets.stagingMigrationStatementTimeoutMs,
+      })
+    ).resolves.toEqual({ lockTimeoutMs: 5_000, statementTimeoutMs: 120_000 });
+  });
+
+  it("covers: AC-14 rejects database-specific timeout overrides", async () => {
+    const client = fakeClient(() => ({
+      rows: [{ rolconfig: [], database_config: ["statement_timeout=1s"] }],
+    }));
+
+    await expect(readRoleTimeoutCatalog(client as never)).rejects.toMatchObject({
+      code: "CONFIG_CONFLICT",
+    });
+  });
+
   it("covers: AC-7 and AC-9 reject mutating entry points before external access", async () => {
     await expect(deployStaging()).rejects.toMatchObject({ code: "TARGET_REJECTED" });
+    await expect(configureStagingMigratorTimeouts()).rejects.toMatchObject({
+      code: "TARGET_REJECTED",
+    });
+    await expect(rollbackStagingMigratorTimeouts()).rejects.toMatchObject({
+      code: "TARGET_REJECTED",
+    });
     await expect(setupStagingExporter(true)).rejects.toMatchObject({ code: "TARGET_REJECTED" });
     await expect(
       localDestroy(`${targets.composeProject}:${targets.composeVolume}`)

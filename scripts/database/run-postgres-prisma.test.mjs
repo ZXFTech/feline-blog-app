@@ -13,6 +13,7 @@ describe("PostgreSQL Prisma TLS wrapper", () => {
 
     expect(result.searchParams.get("sslmode")).toBe("verify-full");
     expect(result.searchParams.get("sslrootcert")).toBe("C:/temp/root.crt");
+    expect(result.searchParams.has("options")).toBe(false);
   });
 
   it.each([
@@ -24,25 +25,24 @@ describe("PostgreSQL Prisma TLS wrapper", () => {
     ).toThrow("must not use a transaction pooler");
   });
 
-  it("rejects URL SSL settings that could override the trusted CA", () => {
-    expect(() =>
-      postgresUrlWithVerifiedTls(
-        "postgresql://role:secret@example.invalid:5432/postgres?sslmode=require",
-        "/tmp/root.crt",
-        "POSTGRES_MIGRATION_URL"
-      )
-    ).toThrow("must not contain SSL parameters");
-  });
+  it.each(["sslmode=require", "application_name=unsafe", "options=-c%20statement_timeout=0"])(
+    "rejects raw URL query settings that could override the wrapper: %s",
+    (query) => {
+      expect(() =>
+        postgresUrlWithVerifiedTls(
+          `postgresql://role:secret@example.invalid:5432/postgres?${query}`,
+          "/tmp/root.crt",
+          "POSTGRES_MIGRATION_URL"
+        )
+      ).toThrow("must not contain query parameters");
+    }
+  );
 
   it("distinguishes Supavisor projects even when the pooler host is shared", () => {
     expect(
-      databaseTarget(
-        "postgresql://role.project-a@aws-0-region.pooler.supabase.com:5432/postgres"
-      )
+      databaseTarget("postgresql://role.project-a@aws-0-region.pooler.supabase.com:5432/postgres")
     ).not.toBe(
-      databaseTarget(
-        "postgresql://role.project-b@aws-0-region.pooler.supabase.com:5432/postgres"
-      )
+      databaseTarget("postgresql://role.project-b@aws-0-region.pooler.supabase.com:5432/postgres")
     );
   });
 });

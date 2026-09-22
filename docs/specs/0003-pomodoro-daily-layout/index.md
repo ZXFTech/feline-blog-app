@@ -1,11 +1,12 @@
 # 0003. 番茄钟按日布局与历史浏览
 
 **Date**: 2026-08-30
+**Updated**: 2026-09-22
 **Status**: Accepted
 
 ## Summary
 
-番茄钟页面使用 `Content` 的自适应三段布局。历史按所选本地日期展示，日历控制所选日期，计时器继续保持现有内部布局和单一控制器。宽度不足时，两个侧栏先合并到右侧，再移动到主区下方，所有能力始终可访问。
+番茄钟页面使用 `Content` 的自适应三段布局。`Content` 主内容轨道在可用空间内增长，最大宽度为 `96rem`，需要较窄阅读宽度的页面由本地容器约束。宽度不足时，两个侧栏先合并到右侧，再移动到主区下方，所有能力始终可访问。
 
 ## Requirements
 
@@ -14,6 +15,7 @@
 1. 作为登录用户，我希望从日历选择日期并只查看当天记录，以便快速回顾某一天的专注与休息。
 2. 作为登录用户，我希望计时器保持页面视觉中心，同时历史和日期操作各有稳定区域。
 3. 作为不同窗口宽度下的用户，我希望日历、历史和计时操作始终可访问，而不是被布局断点隐藏。
+4. 作为使用宽屏工作页面的用户，我希望主内容能利用可用空间，以便清单等密集界面展示更多信息。
 
 **Acceptance criteria**:
 
@@ -30,14 +32,15 @@
 11. **AC-11**: 新操作面板位于日历之后，只包含“立即同步”和冲突处理。“立即同步”只强制处理当前用户的 pending 项，没有可重试项、离线或已有同步运行时禁用。多条冲突显示为列表，每项展示可换行的本地值与服务端值，采用按钮位于信息之后并右对齐。左栏历史行只展示冲突状态，不包含操作按钮。
 12. **AC-12**: 日期网格使用单一 Tab 停靠点。方向键移动日期，Home 和 End 移动到周首尾，Page Up 和 Page Down 翻月，Enter 和 Space 选择。相邻月选日后焦点落到新的选中日期，月份箭头和“回到今天”保留自身焦点。左栏日期、载入结果和错误通过礼貌级 live region 宣告。所有日期和操作按钮具备明确名称、可见焦点和至少 44 乘 44 的目标尺寸。颜色不单独承担状态含义。
 13. **AC-13**: `Content` 的新默认布局在所有现有调用页面中保持内容、交互与主题可用。番茄钟页面在常用桌面宽度、双列宽度和单列宽度下完成真实页面验证，并为日期筛选、受控日历、月份竞态、布局顺序和冲突操作提供可重复测试。
+14. **AC-14**: `Content` 主内容轨道使用现有 `--container-content` 变量作为最大宽度，变量值为 `96rem`。轨道在空间不足时收缩到可用宽度，不产生页面级横向滚动。1088px 和 1400px 继续只作为 `Content` 区域布局形态断点。清单详情、新建与编辑的项目网格容量由其布局容器 content box、`12rem` 最小轨道和固定 `gap-3` 自适应决定，活动列数还受项目数量限制；它使用 spec 0011 的 `auto-fit` 正方形卡片契约，不再复用 1088px 作为项目列数断点。需要较窄阅读宽度的页面必须使用本地容器限制，不得把全局主轨重新限制为 700px。
 
 ## Decision
 
-**Chosen option**: 扩展现有 `Content`，使用容器查询与受控日期状态完成原地调整
+**Chosen option**: 扩展现有 `Content`，使用 96rem 主轨上限、容器查询与受控日期状态完成原地调整
 
-保留现有月查询、计时控制器和记录模型。`Content` 的默认布局改为自适应网格，番茄钟页面使用一个客户端协调层把主区、日历、历史和操作面板接到同一份状态。
+保留现有月查询、计时控制器和记录模型。`Content` 的默认布局改为自适应网格，主内容轨道从固定 700px 改为最大 96rem。番茄钟页面使用一个客户端协调层把主区、日历、历史和操作面板接到同一份状态。
 
-**Implementation skills**: `typescript-react-patterns` (`asyrafhussin/agent-skills`, `.agents/skills/typescript-react-patterns/`)
+**Implementation skills**: `typescript-react-patterns` (`asyrafhussin/agent-skills`, `.agents/skills/typescript-react-patterns/`) · `tailwind-css` (`paulrberg/agent-skills`, `.agents/skills/tailwind-css/`)
 
 ## Feature design
 
@@ -57,15 +60,15 @@
 
 | Token                              | Value                                                         | Source                                              |
 | ---------------------------------- | ------------------------------------------------------------- | --------------------------------------------------- |
-| Main preferred width               | 700px                                                         | 现有 `Content` 主区宽度                             |
-| Left minimum width                 | 280px                                                         | 日期标题、状态和历史信息的最小可读宽度              |
-| Right minimum width                | 356px                                                         | 七个 44px 日期目标、六个 4px 间距和两侧 12px 内边距 |
+| Main maximum width                 | 96rem                                                         | `--container-content`                               |
+| Left rail width                    | 280px                                                         | 日期标题、状态和历史信息的固定宽度                  |
+| Right rail width                   | 356px                                                         | 七个 44px 日期目标、六个 4px 间距和两侧 12px 内边距 |
 | Region gap                         | 32px                                                          | 现有 `gap-8`                                        |
-| Three region threshold             | 1400px                                                        | 280 + 700 + 356 + 64                                |
-| Main plus rail threshold           | 1088px                                                        | 700 + 356 + 32                                      |
+| Three region threshold             | 1400px                                                        | 保留现有三段布局切换点                              |
+| Main plus rail threshold           | 1088px                                                        | 保留现有双段布局切换点                              |
 | Region block size, wide and double | 100dvh with existing top and bottom padding inside border box | 保持现有页面壳高度                                  |
 
-右栏在单列容器小于 356px 时保持 356px 的日历最小内容宽度，并只让日历包装层横向滚动，避免缩小 44px 操作目标。宽屏与双列时，主区和侧栏各自拥有纵向滚动。左栏标题与状态位于历史滚动容器之外。单列时 `.content-grid` 是页面纵向滚动拥有者，各区域使用自然高度，不再创建嵌套纵向滚动。
+主轨所有布局形态都使用 `minmax(0, var(--container-content))`，其中 `--container-content` 为 `96rem`。它是最大值，不是最小值。侧栏存在时，主轨宽度为 96rem 与扣除固定侧栏和 32px 间距后剩余宽度中的较小值。左栏固定 280px，右栏固定 356px。双段布局中同时存在两个侧栏时，右侧固定 356px 并纵向承载右栏和左栏。整组轨道在可用空间内水平居中。右栏在单列容器小于 356px 时保持 356px 的日历最小内容宽度，并只让日历包装层横向滚动，避免缩小 44px 操作目标。宽屏与双列时，主区和侧栏各自拥有纵向滚动。左栏标题与状态位于历史滚动容器之外。单列时 `.content-grid` 是页面纵向滚动拥有者，各区域使用自然高度，不再创建嵌套纵向滚动。
 
 | Available shape        | Visual grid                                     | Document order    |
 | ---------------------- | ----------------------------------------------- | ----------------- |
@@ -77,12 +80,30 @@
 
 | Present regions      | Wide or double layout                                    | Single layout     |
 | -------------------- | -------------------------------------------------------- | ----------------- |
-| Main only            | 700px 内居中                                             | 主区占满可用宽度  |
+| Main only            | 可用宽度内增长并在 96rem 内居中                          | 主区占满可用宽度  |
 | Main and right       | 主区加右侧 356px rail                                    | main, right       |
 | Main and left        | 主区加右侧 280px rail                                    | main, left        |
 | Main, right and left | 三栏时 left, main, right，双列时 main 加右侧 right, left | main, right, left |
 
 没有内容的区域不占网格。默认行为覆盖所有 `Content` 页面，因此实现必须逐页检查现有布局，而不是只检查番茄钟。
+
+### Page width ownership
+
+`Content` 只负责共享画布和主轨上限。页面本地容器按照以下映射承担内容宽度。
+
+| Page group | Local width rule |
+| ---------- | ---------------- |
+| 博客正文 | 正文阅读列保持最大 700px，目录继续位于右栏 |
+| 登录与注册 | 保持现有 25rem 表单宽度 |
+| 首页与 Contact | 保持现有内容自身尺寸和居中方式 |
+| 博客列表、Todo 与 Tag | 增加最大 700px 的本地内容容器，保持原视觉密度 |
+| 博客新建与编辑、Daily、Formatter | 使用可用主轨宽度，最大 96rem |
+| 清单列表、详情、新建与编辑 | 使用可用主轨宽度，最大 96rem |
+| 清单回收站 | 保持现有 56rem 上限 |
+| 清单载入与错误页面 | 与对应清单列表使用相同宽度规则 |
+| 番茄钟 | 保持现有卡片和三段布局尺寸规则 |
+
+清单项目容量只读取项目网格布局容器的 content box，并由 CSS 自动布局，不需要 JavaScript 计算或额外 `ResizeObserver`。该容器不包含页面祖先的 padding，并使用 spec 0011 定义的 `repeat(auto-fit, minmax(12rem, 1fr))` 与固定 `gap-3` 契约。实际活动列数还受项目数量限制。1088px 仍可改变 `Content` 的区域形态，但不直接指定项目列数。
 
 ### State model
 
@@ -119,7 +140,7 @@
 
 | Surface          | Inputs                                                                  | Outputs and rules                                                              |
 | ---------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
-| `Content`        | 现有 `children`, `leftSideBar`, `rightSideBar`, HTML div props          | API 保持兼容，默认使用新的容器布局与文档顺序                                   |
+| `Content`        | 现有 `children`, `leftSideBar`, `rightSideBar`, HTML div props          | API 保持兼容，主轨最大 96rem，默认使用容器布局与文档顺序                        |
 | Page coordinator | 当前认证用户与 `onRecordSettled`                                        | 创建一次 `usePomodoro`，拥有日期、月数据、请求身份和载入状态                   |
 | `Calendar`       | `selectedDateKey`, `visibleMonth`, `todayKey`, `recordDate`             | 通过 `onDateSelect` 和 `onVisibleMonthChange` 报告规范键值，不保留重复月份状态 |
 | Timer surface    | controller state and actions                                            | 保持现有布局和行为，不再次调用 `usePomodoro`                                   |
@@ -159,6 +180,7 @@
 7. 左栏不提供写操作。日历内部只保留日历自身的回到今天操作。
 8. 未登录时不发起历史读取，也不渲染私人工作区。
 9. 0001 的幂等、用户隔离、排序、离线和冲突语义保持有效。
+10. 页面局部宽度约束只限制该页面内容，不改变 `Content` 的 96rem 全局主轨上限。
 
 ### Merge and ordering
 
@@ -200,24 +222,25 @@
 ### Critical test scenarios
 
 1. 宽屏、双列和单列的区域顺序、缺失侧栏和滚动行为，verifies **AC-1**, **AC-2**, **AC-3**, **AC-13**
-2. 现有 `Content` 页面在四个主题和关键桌面宽度下保持内容与操作可用，verifies **AC-2**, **AC-13**
-3. 默认今天、月末翻月、同月选日、相邻月选日、单独翻月、回到今天和未来日期，verifies **AC-4**, **AC-5**, **AC-8**
-4. 所选日包含专注和休息，跨午夜记录按 `endAt` 归档，日历只标记完成专注，verifies **AC-6**
-5. 服务端记录与 pending、failed 和 conflict 本地项合并后再按日筛选，verifies **AC-6**, **AC-7**, **AC-9**
-6. 快速跨月、同月重复请求、用户切换产生迟到响应与读取失败，验证缓存身份和结果不会串写，verifies **AC-7**, **AC-9**
-7. 新结果、跨午夜和时区会话固定规则不抢走当前选择，verifies **AC-8**
-8. 未登录时只有登录提示且没有历史请求，登录和用户切换后数据严格隔离，verifies **AC-9**
-9. 计时器内部布局、设置与控制行为保持不变，且页面只有一个控制器实例，verifies **AC-10**
-10. 立即同步禁用条件、多个冲突项、冲突跨日、采用服务端记录和结算不闪退，verifies **AC-11**
-11. roving tabindex、方向键、周首尾、翻月、焦点恢复、live region 和最窄宽度目标尺寸，verifies **AC-12**
+2. 现有 `Content` 页面在 light、dark、sugar、warm 四个主题和 390px、1087px、1088px、1399px、1400px、1924px、2236px、2560px 容器宽度下保持内容与操作可用。390px 是移动验证样本。1924px 与 2236px 是根字号 16px 时单右栏和三段布局的主轨饱和点。根字号变化时仍按计算后的 96rem 封顶。博客正文保持 700px 阅读上限。清单详情、新建和编辑的项目卡片按项目网格 content box 自适应减列并保持正方形，1087 和 1088px 不再是项目列数断言，verifies **AC-2**, **AC-13**, **AC-14**
+3. 长链接、代码块、编辑器和宽卡片内容不能撑破主轨。载入、错误和正常页面之间的宽度规则保持一致，verifies **AC-13**, **AC-14**
+4. 默认今天、月末翻月、同月选日、相邻月选日、单独翻月、回到今天和未来日期，verifies **AC-4**, **AC-5**, **AC-8**
+5. 所选日包含专注和休息，跨午夜记录按 `endAt` 归档，日历只标记完成专注，verifies **AC-6**
+6. 服务端记录与 pending、failed 和 conflict 本地项合并后再按日筛选，verifies **AC-6**, **AC-7**, **AC-9**
+7. 快速跨月、同月重复请求、用户切换产生迟到响应与读取失败，验证缓存身份和结果不会串写，verifies **AC-7**, **AC-9**
+8. 新结果、跨午夜和时区会话固定规则不抢走当前选择，verifies **AC-8**
+9. 未登录时只有登录提示且没有历史请求，登录和用户切换后数据严格隔离，verifies **AC-9**
+10. 计时器内部布局、设置与控制行为保持不变，且页面只有一个控制器实例，verifies **AC-10**
+11. 立即同步禁用条件、多个冲突项、冲突跨日、采用服务端记录和结算不闪退，verifies **AC-11**
+12. roving tabindex、方向键、周首尾、翻月、焦点恢复、live region 和最窄宽度目标尺寸，verifies **AC-12**
 
 ## Build plan
 
 1. 建立第一条端到端路径。让页面协调层创建唯一控制器和受控日期状态，把现有计时器放入 `Content` 主区，把当天历史放入左栏，把受控日历放入右栏。继续用现有月查询与 outbox 合并，再按 `endAt` 本地日期筛选，satisfies **AC-4**, **AC-6**, **AC-9**, **AC-10**
-2. 完成 `Content` 的全局自适应网格。使用容器查询实现三栏、主区加右侧纵列和单列布局，调整文档顺序、空槽位、居中和滚动规则，并逐页修复真实回归，satisfies **AC-1**, **AC-2**, **AC-3**, **AC-13**
+2. 完成 `Content` 的全局自适应网格。把 `--container-content` 改为 `96rem` 并作为主轨单一来源。保留 1088px 与 1400px 的 `Content` 区域断点、区域顺序、空槽位、居中和滚动规则。为需要窄版的页面增加本地宽度约束，并让清单详情、新建和编辑把可用主轨交给 spec 0011 的自适应项目网格，satisfies **AC-1**, **AC-2**, **AC-3**, **AC-13**, **AC-14**
 3. 收口日历和月份状态。使用日期键和年月值让 `Calendar` 完全受控，支持相邻月份日期、独立翻月、动态今天、键盘网格，以及按用户与请求标识隔离的月数据，satisfies **AC-4**, **AC-5**, **AC-7**, **AC-8**, **AC-9**, **AC-12**
 4. 收口历史与操作边界。实现状态化合并、规范结算回调、固定时区格式化、按日状态和 live region。把立即同步与逐条冲突操作移入右栏操作面板，保持计时器内部布局不变，satisfies **AC-6**, **AC-7**, **AC-9**, **AC-10**, **AC-11**, **AC-12**
-5. 增加 `Content`、受控日历、日期筛选、月份竞态、操作面板和认证边界测试。运行 lint、build、Vitest、真实页面验证、`/check verify` 与 `/test`，satisfies **AC-1** through **AC-13**
+5. 增加 `Content`、受控日历、日期筛选、月份竞态、操作面板和认证边界测试。运行 lint、build、Vitest、真实页面验证、`/check verify` 与 `/test`，satisfies **AC-1** through **AC-14**
 
 ## Consequences
 
@@ -227,12 +250,14 @@
 2. 同月切换日期不增加网络请求，离线记录继续立即可见。
 3. 中等和窄窗口不再因侧栏隐藏而失去核心能力。
 4. 受控日历消除选中日期与可见月份漂移。
+5. 宽屏清单和其他密集工作页面可以利用更多水平空间。
 
 **Negative**:
 
 1. `Content` 默认行为改变会扩大到所有现有页面，需要完整回归验证。
 2. 月份内存数据和并发请求状态比当前单月数组更复杂。
 3. 宽屏视觉顺序与文档顺序不同，CSS 网格实现必须避免焦点和阅读顺序混乱。
+4. 没有页面级宽度约束的旧页面会首次扩张，需要逐页决定其内容密度和可读行宽。
 
 **Neutral**:
 
@@ -241,7 +266,7 @@
 
 ## Follow-up
 
-- [ ] 实现前记录 `Content` 当前全部生产调用页面，作为全局布局回归清单。
+- [x] 已记录 `Content` 当前全部生产调用页面，并把高风险页面加入全局布局回归范围。
 
 ## Rationale
 

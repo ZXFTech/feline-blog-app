@@ -43,7 +43,7 @@ const Todos = async ({ searchParams }: Props) => {
   });
 
   return (
-    <Content>
+    <Content className="mx-auto max-w-[700px]">
       <TodoList todoList={sortedList} />
     </Content>
   );

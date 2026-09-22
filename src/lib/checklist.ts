@@ -4,6 +4,8 @@ export interface ChecklistItem {
   done: boolean;
   /** 清单项详情描述（清单项卡片第三行展示） */
   detail?: string;
+  revision?: number;
+  createdOrder?: number;
 }
 
 export interface Checklist {
@@ -15,6 +17,7 @@ export interface Checklist {
   /** 有效期截止时间戳（用于倒计时） */
   expiresAt: number;
   items: ChecklistItem[];
+  revision?: number;
 }
 
 export function getProgress(list: Pick<Checklist, "items">) {
@@ -54,10 +57,10 @@ export function ratioColor(ratio: number): string {
 
 export interface Countdown {
   expired: boolean;
-  /** 展示文本，如 "> 1d" / "> 6h" / "45m" / "已过期" */
+  /** 展示文本，如 "> 1d" / "< 6h" / "45min" / "已过期" */
   label: string;
-  /** 是否在时间前展示红色感叹号（过期时为 false） */
-  showAlert: boolean;
+  /** 是否在时间前展示 danger 状态的“即将到期” */
+  urgent: boolean;
 }
 
 const MINUTE = 60_000;
@@ -67,20 +70,35 @@ const DAY = 24 * HOUR;
 /**
  * 倒计时格式化：仅展示最大单位。
  * - 已过期 → "已过期"（无感叹号）
- * - >= 1 天 → "> Nd"
- * - >= 1 小时 → "> Nh"
- * - < 1 小时 → "Nm"（无大于号）
- * 非过期状态时间前均带红色感叹号。
+ * - >= 1 天 → 整天为 "Nd"，否则 "> Nd"
+ * - >= 1 小时且 < 1 天 → 整小时为 "Nh"，否则 "< Nh"
+ * - < 1 小时 → "Nmin"，按分钟向上取整
+ * - < 10 分钟 → 在时间前展示 danger 状态的“即将到期”
  */
 export function getCountdown(expiresAt: number, now: number = Date.now()): Countdown {
   const diff = expiresAt - now;
-  if (diff <= 0) return { expired: true, label: "已过期", showAlert: false };
-  if (diff >= DAY)
-    return { expired: false, label: `> ${Math.floor(diff / DAY)}d`, showAlert: false };
-  if (diff >= HOUR)
-    return { expired: false, label: `> ${Math.floor(diff / HOUR)}h`, showAlert: false };
-  // 不足一小时才提示（红色感叹号）
-  return { expired: false, label: `${Math.max(1, Math.floor(diff / MINUTE))}m`, showAlert: true };
+  if (diff <= 0) return { expired: true, label: "已过期", urgent: false };
+  if (diff >= DAY) {
+    const days = diff / DAY;
+    return {
+      expired: false,
+      label: Number.isInteger(days) ? `${days}d` : `> ${Math.floor(days)}d`,
+      urgent: false,
+    };
+  }
+  if (diff >= HOUR) {
+    const hours = diff / HOUR;
+    return {
+      expired: false,
+      label: Number.isInteger(hours) ? `${hours}h` : `< ${Math.ceil(hours)}h`,
+      urgent: false,
+    };
+  }
+  return {
+    expired: false,
+    label: `${Math.max(1, Math.ceil(diff / MINUTE))}min`,
+    urgent: diff < 10 * MINUTE,
+  };
 }
 
 /** 截止日期格式化为 "YYYY-MM-DD HH:mm" */

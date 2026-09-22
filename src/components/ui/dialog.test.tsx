@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 
 describe("Dialog", () => {
-  it("matches the Todo modal mask and uses reduced content padding", () => {
+  it("defaults to the Album form surface", () => {
     render(
       <Dialog defaultOpen>
         <DialogContent>
@@ -14,7 +14,8 @@ describe("Dialog", () => {
     );
 
     expect(screen.getByRole("dialog", { name: "通用对话框" })).toHaveClass(
-      "p-[var(--spacing-panel-inset-comfortable)]"
+      "p-[var(--spacing-panel-inset-comfortable)]",
+      "shadow-neu-raised"
     );
 
     const backdrop = Array.from(document.querySelectorAll<HTMLElement>("div")).find(
@@ -23,5 +24,21 @@ describe("Dialog", () => {
         element.classList.contains("supports-backdrop-filter:backdrop-blur-xs")
     );
     expect(backdrop).toBeDefined();
+  });
+
+  it("uses the Album confirmation surface for display dialogs", () => {
+    render(
+      <Dialog defaultOpen>
+        <DialogContent variant="display">
+          <DialogTitle>展示对话框</DialogTitle>
+        </DialogContent>
+      </Dialog>
+    );
+
+    expect(screen.getByRole("dialog", { name: "展示对话框" })).toHaveClass(
+      "ring-1",
+      "ring-foreground/10",
+      "gap-6"
+    );
   });
 });

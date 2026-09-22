@@ -97,7 +97,7 @@
   --spacing-card-pad-sm: var(--spacing-panel-inset-compact);
 
   /* Layout tokens (product-specific, no Tailwind equivalent) */
-  --container-content: 700px;
+  --container-content: 96rem;
   --spacing-sidebar-left: 280px;
   --spacing-sidebar-right: 356px;
   --spacing-content-top: 5.5rem;
@@ -1067,10 +1067,18 @@ html[dir="rtl"],
   min-width: 0;
 }
 
+.checklist-item-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 12.5rem));
+  justify-content: center;
+  gap: calc(var(--spacing) * 3);
+  min-width: 12rem;
+}
+
 .content-grid {
   display: grid;
   grid-template-areas: "content";
-  grid-template-columns: minmax(0, 700px);
+  grid-template-columns: minmax(0, var(--container-content));
   justify-content: center;
   min-width: 0;
 }
@@ -1099,10 +1107,13 @@ html[dir="rtl"],
 }
 
 @container (min-width: 1088px) {
-  .content-grid[data-has-left="true"],
   .content-grid[data-has-right="true"] {
-    grid-template-columns: minmax(0, 700px) minmax(280px, 356px);
-    gap: 32px;
+    grid-template-columns: minmax(0, var(--container-content)) var(--spacing-sidebar-right);
+    gap: var(--spacing-content-gap);
+  }
+  .content-grid[data-has-left="true"]:not([data-has-right="true"]) {
+    grid-template-columns: minmax(0, var(--container-content)) var(--spacing-sidebar-left);
+    gap: var(--spacing-content-gap);
   }
   .content-grid[data-has-right="true"]:not([data-has-left="true"]) {
     grid-template-areas: "content right";
@@ -1133,7 +1144,9 @@ html[dir="rtl"],
 @container (min-width: 1400px) {
   .content-grid[data-has-left="true"][data-has-right="true"] {
     grid-template-areas: "left content right";
-    grid-template-columns: 280px minmax(0, 700px) 356px;
+    grid-template-columns:
+      var(--spacing-sidebar-left) minmax(0, var(--container-content))
+      var(--spacing-sidebar-right);
     grid-template-rows: 1fr;
   }
   .content-grid[data-has-left="true"][data-has-right="true"] .content {
@@ -1150,11 +1163,16 @@ html[dir="rtl"],
 @container (max-width: 1087px) {
   .content-grid[data-has-left="true"],
   .content-grid[data-has-right="true"] {
-    grid-template-columns: minmax(0, 700px);
-    gap: 32px;
+    grid-template-columns: minmax(0, var(--container-content));
+    gap: var(--spacing-content-gap);
   }
   .content-grid[data-has-right="true"]:not([data-has-left="true"]) {
     grid-template-areas: "content" "right";
+  }
+  .content-grid[data-right-first-on-compact="true"][data-has-right="true"]:not(
+      [data-has-left="true"]
+    ) {
+    grid-template-areas: "right" "content";
   }
   .content-grid[data-has-left="true"]:not([data-has-right="true"]) {
     grid-template-areas: "content" "left";
@@ -1173,6 +1191,13 @@ html[dir="rtl"],
   }
   .left-side-bar,
   .right-side-bar {
+    padding-top: 0;
+  }
+  .content-grid[data-right-first-on-compact="true"] .right-side-bar {
+    padding-top: calc(var(--spacing) * 22);
+    padding-bottom: 0;
+  }
+  .content-grid[data-right-first-on-compact="true"] .content {
     padding-top: 0;
   }
 }
@@ -1337,4 +1362,41 @@ html[dir="rtl"],
   50% {
     box-shadow: 0 0 40px 30px rgba(13, 255, 58, 0.7);
   }
+}
+
+/* Checklist pages own the viewport; only their item lists scroll. */
+.content.checklist-content {
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+}
+.checklist-form-fill .checklist-composer textarea {
+  height: 3.5rem;
+  resize: none;
+}
+.checklist-form-fill .checklist-composer label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.checklist-form-fill {
+  height: var(--checklist-form-height, 100%);
+  padding: var(--spacing-panel-inset-default);
+}
+.checklist-form-fill:not([data-short="false"]) {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.checklist-form-fill:not([data-short="false"]) [data-checklist-items] {
+  flex: none;
+}
+.checklist-form-fill:not([data-short="false"]) [data-testid="checklist-item-scroll"] {
+  flex: none;
+  height: var(--checklist-list-min-height, calc(12.5rem + 2 * var(--spacing-panel-inset-default)));
 }

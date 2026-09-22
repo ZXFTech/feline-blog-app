@@ -23,7 +23,7 @@ async function TagPage({ searchParams }: Props) {
   if (result.status !== "success") throw new Error(result.message);
   const { tags, max } = result.data;
   return (
-    <Content>
+    <Content className="mx-auto max-w-[700px]">
       <TagOperator />
       <TagShowCase tags={tags} max={max} />
     </Content>

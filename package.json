@@ -53,6 +53,8 @@
     "db:configure:postgres-roles": "tsx ./scripts/database/local-postgres/cli.ts legacy-role-setup",
     "db:verify:postgres-roles": "tsx ./scripts/database/local-postgres/cli.ts legacy-local-status --audit",
     "db:smoke:postgres": "tsx ./scripts/database/local-postgres/cli.ts legacy-smoke",
+    "db:checklists:reset:local": "dotenv -e .env.development -- tsx ./scripts/database/reset-checklists.ts",
+    "db:checklists:reset:staging": "dotenv -e .env.staging -- tsx ./scripts/database/reset-checklists.ts",
     "db:migrate:data:dry-run": "tsx ./scripts/database/local-postgres/legacy-migration.ts --dry-run",
     "db:migrate:data:apply": "tsx ./scripts/database/local-postgres/legacy-migration.ts --apply",
     "db:migrate:data:verify": "tsx ./scripts/database/local-postgres/legacy-migration.ts --verify-only",

@@ -59,5 +59,27 @@ describe("ChecklistCard", () => {
     expect(onEdit).toHaveBeenCalledWith(checklist);
     expect(onDelete).toHaveBeenCalledWith(checklist);
     expect(onOpenDetail).not.toHaveBeenCalled();
+    expect(screen.getByRole("button", { name: "删除清单" }).parentElement).toHaveClass(
+      "w-full",
+      "justify-between"
+    );
+    expect(screen.getByRole("button", { name: "删除清单" }).parentElement).not.toHaveAttribute(
+      "data-slot",
+      "button-group"
+    );
+  });
+
+  it("keeps list metadata on one line with the countdown after the title", () => {
+    const { container } = render(<ChecklistCard checklist={checklist} layout="list" size="md" />);
+    const title = screen.getByRole("heading", { name: "发布检查" });
+    const countdown = screen.getByText(/^(?:> \d+d|< \d+h)$/);
+    const status = screen.getByRole("img", { name: "未确认 0/1" });
+
+    expect(title.parentElement).toHaveClass("whitespace-nowrap");
+    expect(status).toHaveStyle({ width: "14px", height: "14px" });
+    expect(
+      title.compareDocumentPosition(countdown) & Node.DOCUMENT_POSITION_FOLLOWING
+    ).toBeTruthy();
+    expect(container.querySelector("p")).toHaveClass("whitespace-nowrap");
   });
 });

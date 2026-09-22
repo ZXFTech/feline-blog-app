@@ -1,6 +1,7 @@
 "use client";
 
 import { X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 import {
   Dialog,
@@ -24,20 +25,19 @@ export function ChecklistItemDetailDialog({
 }: ChecklistItemDetailDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent variant="display" className="max-w-md">
         <div className="flex items-start justify-between gap-4">
           <DialogTitle className="text-lg font-semibold">{item.label}</DialogTitle>
-          <DialogClose
-            className="inline-flex size-8 items-center justify-center rounded-md"
-            aria-label="关闭"
-          >
-            <X className="size-4" />
-          </DialogClose>
+          <Button size="icon" render={<DialogClose aria-label="关闭" />}>
+            <X />
+          </Button>
         </div>
         <DialogDescription className="mt-1 text-sm text-muted-foreground">
           状态：{item.done ? "已确认" : "未确认"}
         </DialogDescription>
-        <p className="mt-4 text-sm leading-6">{item.detail || "暂无详情"}</p>
+        {item.detail ? (
+          <p className="mt-4 whitespace-pre-wrap text-sm leading-6">{item.detail}</p>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

@@ -35,7 +35,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 22  | 接口安全与健壮性修复     | Maintenance | done        |
 | 23  | 番茄钟全局响应式状态     | Maintenance | done        |
 | 24  | newTheme 组件与样式迁移 | Maintenance | done |
-| 25  | Checklist 功能完善与交互验收 | Maintenance | planned     |
+| 25  | 确认清单核心闭环         | Slice 10    | in-progress |
 | 26  | Album 组件展示中心 | Maintenance | done |
 | 27  | 本地 PostgreSQL 开发与迁移隔离 | Maintenance | in-progress |
 
@@ -161,6 +161,31 @@ code in `src/app/todo/`, `src/components/Todo/`, `src/db/todoAction.ts`
 **Done when:** 你可以看到核心页面访问和四个正式功能的基本使用情况，服务端与客户端错误可追踪，采集内容与隐私说明一致。
 
 - [ ] Design it (spec): `/architect 使用统计与错误监控`
+
+## Slice 10: 确认清单核心闭环
+
+### 25. 确认清单核心闭环 · in-progress
+
+为日常重要事项提供有必填截止时间的确认清单，让你逐项确认准备内容，减少遗漏。复用已经迁入的清单组件，并把它们接入正式页面、账号数据和真实使用流程。（from spec 0007）
+**Done when:** 登录用户可以用固定新增器创建、查看和原子编辑至少包含一个详情项目的清单，项目允许重复内容并以最小边长 `12rem` 的自适应正方形卡片和编辑 Dialog 管理；按截止时间、过期状态、确认状态和规范搜索条件浏览虚拟化结果，在详情页筛选全部、已完成或未完成项目，并即时新增或批量删除当前可见项目；通过详情内容区域逐项确认，并用显式按钮查看只读详情或即时编辑；用户可以确认删除单个或一批清单，在服务端十秒撤销截止前撤销，从清单回收站恢复清单并在所属清单详情 Dialog 恢复项目；正式页面严格复用共享按钮和设计 token，并通过时间边界、未添加内容警告、按钮隔离、节流、键盘、Dialog 焦点、所有权、并发、迁移保护和定时清理验收。
+
+- [x] Design it (spec): `/architect 确认清单核心闭环`
+      spec [0011](../specs/0011-checklist-core-loop/index.md)
+      related layout spec [0003](../specs/0003-pomodoro-daily-layout/index.md)
+- [x] Build it: `/develop 确认清单核心闭环`（AC-33 至 AC-35 已同步，并通过开发阶段自检）
+  - [x] 打通 PostgreSQL 模型、用户所有权、创建、未过期列表、详情和项目确认的真实 tracer path，covers `AC-1`, `AC-6`, `AC-15`
+  - [x] 补齐前向迁移与约束、载荷指纹幂等、服务端本地时间解析、聚合事务、精确容器布局和共享表单控件，covers `AC-2`, `AC-3`, `AC-4`, `AC-5`, `AC-7`, `AC-16`, `AC-20`, `AC-21`, `AC-22`, `AC-24`, `AC-25`
+  - [x] 补齐筛选、规范搜索、签名实时游标、权威时间校准、剩余时间边界、显式详情和即时项目编辑，covers `AC-8`, `AC-9`, `AC-10`, `AC-11`, `AC-16`, `AC-19`, `AC-20`, `AC-26`, `AC-27`
+  - [x] 补齐服务端撤销截止、四种恢复 action、结果未知重读、清单与项目回收站和原子批量操作，covers `AC-12`, `AC-13`, `AC-14`, `AC-16`, `AC-23`
+  - [x] 补齐受保护的 60 秒 Cron、级联计数、迁移预检、reset 允许名单、数据库权限和完整验证覆盖，covers `AC-17`, `AC-18`
+  - [x] 完成早期固定 `gap-3`、最小边长 `12rem` 的自适应正方形网格与容量边界验证；当前尺寸及排序以 spec 0011 修订后的最大 `12.5rem`、整体居中和新增置顶为准，早期无上限铺满结果不作为当前验收证据，covers spec 0011 `AC-5`, `AC-19`, `AC-21`, `AC-25`
+  - [x] 详情页按批量模式显示卡片编辑和删除，表单保持常显；替换状态图标并同步 Album，covers `AC-28`, `AC-29`
+  - [x] 添加按钮独立右对齐一行、fieldset 内横排且各组纵排，落实 default 内边距、剩余高度及已确认的短屏表单内部滚动例外，covers `AC-30`, `AC-32`
+  - [x] 主题化小时／分钟选择框，完成嵌套浮层焦点、短屏可达性、真实保存刷新与时区回归，covers `AC-7`, `AC-31`, `AC-32`
+  - [x] 补齐详情筛选生命周期、有效完成状态、筛选移出后的焦点恢复、即时新增幂等契约和当前筛选项目批量删除撤销，covers `AC-33`, `AC-34`, `AC-35`
+      code in `prisma/postgres/`, `src/app/globals.css`, `src/app/blog/`, `src/app/checklists/`, `src/app/api/checklists/`, `src/app/api/cron/checklists/`, `src/app/tag/`, `src/app/todo/`, `src/components/Content/`, `src/components/Checklist/`, `src/db/checklistAction.ts`, `src/lib/checklists/`, `src/types/checklist.ts`
+- [ ] Verify it: `/check verify 确认清单核心闭环`
+- [ ] Test it: `/test 确认清单核心闭环`
 
 ## Maintenance
 
@@ -292,13 +317,6 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
   - [x] 删除旧组件与 `newTheme` 文件夹，完成全量静态检查、构建和组件测试；真实浏览器矩阵由 `/check verify` 接续，covers `AC-1`, `AC-11`, `AC-12`, `AC-13`, `AC-14`
 - [x] Verify it: `/check verify newTheme 组件与样式迁移`
 - [x] Test it: `/test newTheme 组件与样式迁移`
-
-### 25. Checklist 功能完善与交互验收 · needs a decision
-
-为已经迁入的 Checklist 组件建立正式业务入口，并在真实使用流程中完成交互验收。（from spec 0007）
-**Done when:** 正式 Checklist 入口可以使用，并在真实浏览器中验证卡片短按与键盘操作、500ms 长按、取消、600ms 节流，以及 Dialog 的焦点约束、Tab、Escape、遮罩关闭、背景隔离和焦点返回。
-
-- [ ] Design it (spec): `/architect Checklist 功能完善与交互验收`
 
 ### 26. Album 组件展示中心 · done
 

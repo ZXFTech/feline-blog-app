@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   description: "道阻且长,行则将至。",
 };
 
-const routeList = ["home", "blog", "album", "contact", "todo"];
+const publicRoutes = ["home", "blog", "album", "contact", "todo"];
 
 export default async function RootLayout({
   children,
@@ -25,6 +25,7 @@ export default async function RootLayout({
 }>) {
   const pathname = (await headers()).get("x-feline-pathname");
   const currentUser = pathname === "/album" ? null : await getCurrentUser();
+  const routeList = currentUser ? [...publicRoutes, "checklists"] : publicRoutes;
   const initialUser = currentUser
     ? {
         id: currentUser.id,

@@ -13,6 +13,34 @@ import {
 
 export type EnvironmentValues = Record<string, string>;
 
+const environmentAssignment = /^\s*(?:export\s+)?([A-Za-z_][A-Za-z0-9_]*)\s*=/;
+const preservedLegacyDatabaseKeys = new Set(["DATABASE_URL"]);
+
+function serializeEnvironment(values: EnvironmentValues, newline = "\n"): string {
+  return Object.entries(values)
+    .map(([key, value]) => `${key}=${value}`)
+    .join(newline);
+}
+
+export function mergeLocalDevelopmentEnvironment(
+  currentContents: string,
+  databaseValues: EnvironmentValues
+): string {
+  const newline = currentContents.includes("\r\n") ? "\r\n" : "\n";
+  const generatedKeys = new Set(Object.keys(databaseValues));
+  const retainedLines = currentContents.split(/\r?\n/).filter((line) => {
+    const key = line.match(environmentAssignment)?.[1];
+    if (!key) return true;
+    if (generatedKeys.has(key)) return false;
+    return preservedLegacyDatabaseKeys.has(key) || !isProtectedKey(key);
+  });
+  const retainedContents = retainedLines.join(newline).replace(/^(?:\r?\n)+/, "");
+  const databaseContents = serializeEnvironment(databaseValues, newline);
+  return retainedContents
+    ? `${databaseContents}${newline}${retainedContents}`
+    : `${databaseContents}${newline}`;
+}
+
 const processOnlyGates = new Set([
   "STAGING_DATA_COPY_ALLOW",
   "STAGING_DATA_COPY_TRUSTED_WORKSTATION",
@@ -193,7 +221,7 @@ export async function ensureLocalConfiguration(): Promise<LocalCredentials> {
     ),
     POSTGRES_COMPOSE_PROJECT: targets.composeProject,
   };
-  await writeEnvironmentFile(".env.development", development, ["JWT_SECRET", "DATABASE_URL"]);
+  await writeEnvironmentFile(".env.development", development, true);
   await writeEnvironmentFile(".env.shadow", shadow);
   return credentials;
 }
@@ -249,10 +277,10 @@ async function migrateStagingConfigurationIfNeeded(): Promise<void> {
 async function writeEnvironmentFile(
   relativePath: string,
   values: EnvironmentValues,
-  preserveKeys: readonly string[] = []
+  preserveApplicationEntries = false
 ): Promise<void> {
   const filePath = path.join(repositoryRoot, relativePath);
-  let preserved: EnvironmentValues = {};
+  let output = `${serializeEnvironment(values)}\n`;
   if (await exists(filePath)) {
     const currentContents = await readFile(filePath);
     const current = dotenv.parse(currentContents);
@@ -269,18 +297,11 @@ async function writeEnvironmentFile(
         );
       }
     }
-    preserved = Object.fromEntries(
-      preserveKeys.flatMap((key) => (current[key] ? [[key, current[key]]] : []))
-    );
+    if (preserveApplicationEntries) {
+      output = mergeLocalDevelopmentEnvironment(currentContents.toString("utf8"), values);
+    }
   }
-  const output = { ...values, ...preserved };
-  await writeFile(
-    filePath,
-    Object.entries(output)
-      .map(([key, value]) => `${key}=${value}`)
-      .join("\n") + "\n",
-    { encoding: "utf8", mode: 0o600 }
-  );
+  await writeFile(filePath, output, { encoding: "utf8", mode: 0o600 });
 }
 
 export function requireValue(

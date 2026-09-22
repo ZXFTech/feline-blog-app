@@ -54,6 +54,7 @@ const Blog = async ({ params }: Props) => {
 
   return (
     <Content
+      className="mx-auto max-w-[700px]"
       rightSideBar={
         <div>
           <PermissionAccess>

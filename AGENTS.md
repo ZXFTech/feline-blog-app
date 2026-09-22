@@ -44,6 +44,7 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md`.
 - 请用 `requireAuth`、`hasTodoRoles` 或 `hasBlogRoles` 保护写操作，并沿用 `token` HttpOnly Cookie 的 JWT 认证流程。
 - 请不要编辑 `generated/prisma-postgres` 或 `generated/prisma`，修改模式后重新生成客户端。
 - 请复用 `src/components/ui` 中的基础组件、`NeuSurface`、`NeuPanel`、`cn` 和主题变量，不要另建平行的组件体系。
+- 所有内容容器在未显式指定内边距时，默认使用 `default`（`--spacing-panel-inset-default`），为内部组件阴影保留空间；优先使用默认密度的 `NeuPanel`，普通容器使用对应 padding token。无内边距或其他密度必须在调用处显式指定，并检查滚动、裁剪边界不会截断内部阴影。
 - 请把本地配置放在被忽略的环境文件中，不要提交或复制密钥。
 - 提交前请运行 lint、build、Vitest 和需要安全测试账号环境变量的 Playwright；Husky 的推送脚本仍含旧工作区路径，不要把它当作完整验证。
 

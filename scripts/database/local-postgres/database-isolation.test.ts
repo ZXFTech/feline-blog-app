@@ -3,6 +3,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   cleanChildEnvironment,
+  mergeLocalDevelopmentEnvironment,
   readEnvironmentFile,
   rejectInheritedProtectedEnvironment,
   requireValue,
@@ -130,6 +131,51 @@ describe("database environment isolation", () => {
     expect(child.POSTGRES_DATABASE_URL).toBe("explicit-local");
     expect(child.POSTGRES_MIGRATION_URL).toBe("explicit-migration");
     expect(child.POSTGRES_ENVIRONMENT).toBe("local");
+  });
+
+  it("rewrites only database owned entries in the local development environment", () => {
+    const current = [
+      "# Application configuration",
+      "JWT_SECRET=jwt-secret",
+      "CHECKLIST_CURSOR_SECRET=cursor-secret",
+      "CRON_SECRET=cron-secret",
+      "FUTURE_APP_SETTING=future-value",
+      "DATABASE_URL=mysql://legacy-user:legacy-password@127.0.0.1/legacy",
+      "POSTGRES_ENVIRONMENT=staging",
+      "POSTGRES_DATABASE_URL=postgresql://stale-runtime",
+      "POSTGRES_ADMIN_URL=postgresql://stale-admin",
+      "PGHOST=stale-host",
+      "",
+    ].join("\n");
+
+    const merged = mergeLocalDevelopmentEnvironment(current, {
+      POSTGRES_ENVIRONMENT: "local",
+      POSTGRES_DATABASE_URL: "postgresql://local-runtime",
+      POSTGRES_MIGRATION_URL: "postgresql://local-migrator",
+    });
+    const parsed = Object.fromEntries(
+      merged
+        .split(/\r?\n/)
+        .filter((line) => /^[A-Z_][A-Z0-9_]*=/.test(line))
+        .map((line) => {
+          const separator = line.indexOf("=");
+          return [line.slice(0, separator), line.slice(separator + 1)];
+        })
+    );
+
+    expect(merged).toContain("# Application configuration");
+    expect(parsed).toMatchObject({
+      JWT_SECRET: "jwt-secret",
+      CHECKLIST_CURSOR_SECRET: "cursor-secret",
+      CRON_SECRET: "cron-secret",
+      FUTURE_APP_SETTING: "future-value",
+      DATABASE_URL: "mysql://legacy-user:legacy-password@127.0.0.1/legacy",
+      POSTGRES_ENVIRONMENT: "local",
+      POSTGRES_DATABASE_URL: "postgresql://local-runtime",
+      POSTGRES_MIGRATION_URL: "postgresql://local-migrator",
+    });
+    expect(parsed).not.toHaveProperty("POSTGRES_ADMIN_URL");
+    expect(parsed).not.toHaveProperty("PGHOST");
   });
 
   it("covers: AC-10 rejects a persisted process only write gate", async () => {

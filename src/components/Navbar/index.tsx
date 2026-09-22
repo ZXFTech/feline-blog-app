@@ -44,7 +44,7 @@ const Navbar: FC<NavbarProps> = ({ routeList }) => {
                   prefetch={prefetch}
                 >
                   <span className="block px-4 py-1 mx-2 my-1 font-medium rounded-md navbar-link text-foreground!">
-                    {route.toUpperCase()}
+                    {route === "checklists" ? "清单" : route.toUpperCase()}
                   </span>
                 </Link>
               </li>

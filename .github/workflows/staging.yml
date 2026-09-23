@@ -340,7 +340,7 @@ jobs:
         id: previous
         run: |
           pnpm ci:checkpoint phase checkpoint.json capture-previous running
-          pnpm ci:vercel inspect "$STAGING_BASE_URL" > previous.json
+          pnpm --silent ci:vercel inspect "$STAGING_BASE_URL" > previous.json
           previous_id=$(node -p "JSON.parse(require('fs').readFileSync('previous.json','utf8')).deploymentId")
           previous_sha=$(node -p "JSON.parse(require('fs').readFileSync('previous.json','utf8')).commitSha")
           echo "previous-id=$previous_id" >> "$GITHUB_OUTPUT"
@@ -380,7 +380,7 @@ jobs:
         env:
           CANDIDATE_URL: ${{ steps.deploy.outputs.candidate-url }}
         run: |
-          pnpm ci:vercel inspect "$CANDIDATE_URL" > candidate.json
+          pnpm --silent ci:vercel inspect "$CANDIDATE_URL" > candidate.json
           candidate_id=$(node -p "JSON.parse(require('fs').readFileSync('candidate.json','utf8')).deploymentId")
           echo "candidate-id=$candidate_id" >> "$GITHUB_OUTPUT"
           pnpm ci:checkpoint phase checkpoint.json deploy succeeded
@@ -592,7 +592,7 @@ jobs:
           pnpm install --frozen-lockfile
       - name: Confirm alias has not changed
         run: |
-          current=$(pnpm ci:vercel inspect "$STAGING_BASE_URL")
+          current=$(pnpm --silent ci:vercel inspect "$STAGING_BASE_URL")
           current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
           test "$current_id" = "$PREVIOUS_ID"
       - name: Record promote intent
@@ -608,7 +608,7 @@ jobs:
         run: |
           pnpm ci:checkpoint phase checkpoint.json promote running
           timeout 180s pnpm exec vercel promote "$CANDIDATE_URL" --yes
-          current=$(pnpm ci:vercel inspect "$STAGING_BASE_URL")
+          current=$(pnpm --silent ci:vercel inspect "$STAGING_BASE_URL")
           current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
           test "$current_id" = "$CANDIDATE_ID"
           pnpm ci:checkpoint phase checkpoint.json promote succeeded
@@ -685,7 +685,7 @@ jobs:
           pnpm exec playwright install --with-deps chromium
       - name: Verify stable alias identity before HTTP smoke
         run: |
-          stable=$(pnpm ci:vercel inspect "$STAGING_SMOKE_ORIGIN")
+          stable=$(pnpm --silent ci:vercel inspect "$STAGING_SMOKE_ORIGIN")
           deployment_id=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
           commit_sha=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).commitSha))")
           test "$deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
@@ -773,7 +773,7 @@ jobs:
         id: restore
         run: |
           pnpm ci:checkpoint phase checkpoint.json restore running
-          current=$(pnpm ci:vercel inspect "$STAGING_BASE_URL")
+          current=$(pnpm --silent ci:vercel inspect "$STAGING_BASE_URL")
           current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
           if [ "$current_id" = "$PREVIOUS_ID" ]; then
             echo 'restored=false' >> "$GITHUB_OUTPUT"
@@ -857,7 +857,7 @@ jobs:
           pnpm exec playwright install --with-deps chromium
       - name: Verify restored alias identity before HTTP smoke
         run: |
-          stable=$(pnpm ci:vercel inspect "$STAGING_SMOKE_ORIGIN")
+          stable=$(pnpm --silent ci:vercel inspect "$STAGING_SMOKE_ORIGIN")
           deployment_id=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
           commit_sha=$(printf '%s' "$stable" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).commitSha))")
           test "$deployment_id" = "$EXPECTED_DEPLOYMENT_ID"

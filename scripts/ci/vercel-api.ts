@@ -37,6 +37,8 @@ export interface VercelBaseline {
   commitSha: string;
 }
 
+export type VercelRequestFn = (url: URL, init: RequestInit) => Promise<Response>;
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required.`);
@@ -67,16 +69,66 @@ export function baselineIdentityFromEnvironment(
   return { deploymentId, commitSha: assertFullSha(commitSha) };
 }
 
-async function vercelRequest<T>(target: VercelTarget, pathname: string): Promise<T> {
+async function vercelRequest<T>(
+  target: VercelTarget,
+  pathname: string,
+  init: RequestInit = {},
+  request: VercelRequestFn = fetch
+): Promise<T> {
   const url = new URL(pathname, "https://api.vercel.com");
   url.searchParams.set("teamId", target.teamId);
-  const response = await fetch(url, {
-    headers: { Authorization: `Bearer ${target.token}` },
+  const headers = new Headers(init.headers);
+  headers.set("Authorization", `Bearer ${target.token}`);
+  const response = await request(url, {
+    ...init,
+    headers,
     redirect: "error",
     signal: AbortSignal.timeout(30_000),
   });
   if (!response.ok) throw new Error(`Vercel request failed with status ${response.status}.`);
-  return (await response.json()) as T;
+  const body = await response.text();
+  return (body ? JSON.parse(body) : undefined) as T;
+}
+
+function validatedDeploymentId(value: string): string {
+  if (!/^dpl_[A-Za-z0-9]+$/.test(value)) {
+    throw new Error("Vercel deployment ID is invalid.");
+  }
+  return value;
+}
+
+export async function promoteDeployment(
+  target: VercelTarget,
+  candidateId: string,
+  request: VercelRequestFn = fetch
+): Promise<void> {
+  await vercelRequest<void>(
+    target,
+    `/v10/projects/${encodeURIComponent(target.projectId)}/promote/${encodeURIComponent(validatedDeploymentId(candidateId))}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    },
+    request
+  );
+}
+
+export async function rollbackDeployment(
+  target: VercelTarget,
+  deploymentId: string,
+  request: VercelRequestFn = fetch
+): Promise<void> {
+  await vercelRequest<void>(
+    target,
+    `/v1/projects/${encodeURIComponent(target.projectId)}/rollback/${encodeURIComponent(validatedDeploymentId(deploymentId))}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: "{}",
+    },
+    request
+  );
 }
 
 export async function getDeployment(
@@ -188,6 +240,14 @@ async function main(): Promise<void> {
     process.stdout.write(`${JSON.stringify(identity)}\n`);
     return;
   }
+  if (command === "promote" && value) {
+    await promoteDeployment(target, value);
+    return;
+  }
+  if (command === "rollback" && value) {
+    await rollbackDeployment(target, value);
+    return;
+  }
   if (command === "reconcile") {
     const candidateSha = required("CANDIDATE_SHA");
     const runId = required("GITHUB_RUN_ID");
@@ -207,7 +267,9 @@ async function main(): Promise<void> {
     );
     return;
   }
-  throw new Error("Use vercel-api inspect <id-or-url> or reconcile.");
+  throw new Error(
+    "Use vercel-api inspect <id-or-url>, promote <deployment-id>, rollback <deployment-id>, or reconcile."
+  );
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

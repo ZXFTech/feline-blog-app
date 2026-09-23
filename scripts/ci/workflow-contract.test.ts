@@ -44,8 +44,10 @@ describe("CI and staging workflow contract", () => {
     expect(workflow).toContain('"refs/heads/master"');
     expect(workflow).toContain("git rev-parse origin/master");
     expect(workflow).toContain("--prod --skip-domain");
-    expect(workflow).toContain('vercel promote "$CANDIDATE_URL" --yes --scope "$VERCEL_ORG_ID"');
-    expect(workflow).toContain('vercel rollback "$PREVIOUS_ID" --yes --scope "$VERCEL_ORG_ID"');
+    expect(workflow).toContain('pnpm --silent ci:vercel promote "$CANDIDATE_ID"');
+    expect(workflow).toContain('pnpm --silent ci:vercel rollback "$PREVIOUS_ID"');
+    expect(workflow).not.toContain("pnpm exec vercel promote");
+    expect(workflow).not.toContain("pnpm exec vercel rollback");
   });
 
   it("passes the trusted baseline identity only to jobs that may inspect it", async () => {

@@ -80,6 +80,22 @@ describe("CI and staging workflow contract", () => {
     expect(workflow).not.toContain('"POSTGRES_SSL_CA=$POSTGRES_SSL_CA"');
   });
 
+  it("limits staging database secrets to the ephemeral configuration step", async () => {
+    const workflow = await text(".github/workflows/staging.yml");
+    const migrateJob = workflow.match(/^  migrate:\n[\s\S]*?(?=^  [a-z][a-z-]+:\n)/m)?.[0];
+    expect(migrateJob).toBeDefined();
+    expect(migrateJob).not.toMatch(/^      POSTGRES_MIGRATION_URL:/m);
+    expect(migrateJob).not.toMatch(/^      POSTGRES_SSL_CA:/m);
+
+    const configurationStep = migrateJob?.match(
+      /^      - name: Create ephemeral staging database configuration\n[\s\S]*?(?=^      - name:)/m
+    )?.[0];
+    expect(configurationStep).toContain(
+      "POSTGRES_MIGRATION_URL: ${{ secrets.POSTGRES_MIGRATION_URL }}"
+    );
+    expect(configurationStep).toContain("POSTGRES_SSL_CA: ${{ secrets.POSTGRES_SSL_CA }}");
+  });
+
   it("grants OIDC only to the four exact-origin smoke jobs", async () => {
     const workflow = await text(".github/workflows/staging.yml");
     const jobs = workflow.split(/^  (?=[a-z][a-z-]+:)/m).slice(1);

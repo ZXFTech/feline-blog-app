@@ -201,8 +201,6 @@ jobs:
     env:
       CANDIDATE_SHA: ${{ needs.candidate.outputs.candidate-sha }}
       DEPLOYMENT_ID: ${{ needs.candidate.outputs.deployment-id }}
-      POSTGRES_MIGRATION_URL: ${{ secrets.POSTGRES_MIGRATION_URL }}
-      POSTGRES_SSL_CA: ${{ secrets.POSTGRES_SSL_CA }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -220,6 +218,9 @@ jobs:
           corepack prepare "pnpm@$PNPM_VERSION" --activate
           pnpm install --frozen-lockfile
       - name: Create ephemeral staging database configuration
+        env:
+          POSTGRES_MIGRATION_URL: ${{ secrets.POSTGRES_MIGRATION_URL }}
+          POSTGRES_SSL_CA: ${{ secrets.POSTGRES_SSL_CA }}
         run: |
           umask 077
           pnpm exec tsx ./scripts/ci/write-staging-environment.ts

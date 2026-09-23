@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { assertDeployment, correlatedDeployments, type VercelTarget } from "./vercel-api";
+import {
+  assertDeployment,
+  baselineIdentityFromEnvironment,
+  correlatedDeployments,
+  type VercelTarget,
+} from "./vercel-api";
 
 const target: VercelTarget = {
   token: "unused",
@@ -9,6 +14,11 @@ const target: VercelTarget = {
 };
 
 describe("Vercel deployment validation", () => {
+  const baseline = {
+    deploymentId: "dpl_baseline1",
+    commitSha: "b".repeat(40),
+  };
+
   it("accepts the exact READY Production candidate", () => {
     expect(
       assertDeployment(
@@ -51,6 +61,61 @@ describe("Vercel deployment validation", () => {
     ).toThrow();
   });
 
+  it("accepts the exact trusted baseline when Vercel has no Git metadata", () => {
+    expect(
+      assertDeployment(
+        target,
+        {
+          id: baseline.deploymentId,
+          url: "baseline.example.vercel.app",
+          name: target.projectName,
+          projectId: target.projectId,
+          readyState: "READY",
+          target: "production",
+        },
+        undefined,
+        baseline
+      )
+    ).toMatchObject(baseline);
+  });
+
+  it("does not use the baseline SHA for another deployment", () => {
+    expect(() =>
+      assertDeployment(
+        target,
+        {
+          id: "dpl_other1",
+          url: "other.example.vercel.app",
+          name: target.projectName,
+          projectId: target.projectId,
+          readyState: "READY",
+          target: "production",
+        },
+        undefined,
+        baseline
+      )
+    ).toThrow();
+  });
+
+  it("rejects baseline metadata that conflicts with the trusted SHA", () => {
+    expect(() =>
+      assertDeployment(
+        target,
+        {
+          id: baseline.deploymentId,
+          url: "baseline.example.vercel.app",
+          name: target.projectName,
+          projectId: target.projectId,
+          readyState: "READY",
+          target: "production",
+          meta: { githubCommitSha: "c".repeat(40) },
+        },
+        undefined,
+        baseline
+      )
+    ).toThrow("trusted identity");
+  });
+
   it("reconciles a timeout only through all correlation fields", () => {
     const exact = {
       id: "dpl_exact",
@@ -73,5 +138,38 @@ describe("Vercel deployment validation", () => {
         recordKey: `${"a".repeat(40)}:12:2`,
       })
     ).toEqual([exact]);
+  });
+});
+
+describe("Vercel baseline configuration", () => {
+  it("is optional when neither variable is configured", () => {
+    expect(baselineIdentityFromEnvironment({})).toBeUndefined();
+  });
+
+  it("accepts a complete baseline identity", () => {
+    expect(
+      baselineIdentityFromEnvironment({
+        STAGING_BASELINE_DEPLOYMENT_ID: "dpl_baseline1",
+        STAGING_BASELINE_COMMIT_SHA: "a".repeat(40),
+      })
+    ).toEqual({ deploymentId: "dpl_baseline1", commitSha: "a".repeat(40) });
+  });
+
+  it.each([
+    ["missing SHA", { STAGING_BASELINE_DEPLOYMENT_ID: "dpl_baseline1" }],
+    ["missing deployment", { STAGING_BASELINE_COMMIT_SHA: "a".repeat(40) }],
+    [
+      "malformed deployment",
+      {
+        STAGING_BASELINE_DEPLOYMENT_ID: "baseline1",
+        STAGING_BASELINE_COMMIT_SHA: "a".repeat(40),
+      },
+    ],
+    [
+      "malformed SHA",
+      { STAGING_BASELINE_DEPLOYMENT_ID: "dpl_baseline1", STAGING_BASELINE_COMMIT_SHA: "abc" },
+    ],
+  ])("rejects %s", (_label, environment) => {
+    expect(() => baselineIdentityFromEnvironment(environment)).toThrow();
   });
 });

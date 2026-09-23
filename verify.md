@@ -98,20 +98,36 @@ Issuer 必须是 `https://token.actions.githubusercontent.com`。工作流只在
 
 在 Repository Settings > Environments > staging 中核对以下名称。只核对名称和目标，不展示内容。
 
-| Kind     | Name                      | Target                                         |
-| -------- | ------------------------- | ---------------------------------------------- |
-| Secret   | `POSTGRES_MIGRATION_URL`  | Supabase staging `app_migrator` direct TLS URL |
-| Secret   | `POSTGRES_SSL_CA`         | Supabase CA PEM content                        |
-| Secret   | `VERCEL_TOKEN`            | 专用 staging Vercel principal                  |
-| Secret   | `E2E_USER_EMAIL`          | Synthetic staging user                         |
-| Secret   | `E2E_USER_PASSWORD`       | Synthetic staging user                         |
-| Secret   | `RELEASE_APP_PRIVATE_KEY` | Release GitHub App PEM                         |
-| Variable | `VERCEL_ORG_ID`           | Expected Vercel team ID                        |
-| Variable | `VERCEL_PROJECT_ID`       | Expected project ID                            |
-| Variable | `STAGING_BASE_URL`        | `https://feline-blog-staging.vercel.app`       |
-| Variable | `E2E_USER_ID`             | Synthetic user database ID                     |
-| Variable | `RELEASE_APP_ID`          | Release GitHub App ID                          |
-| Variable | `RELEASE_APP_LOGIN`       | Exact `<app-slug>[bot]` login                  |
+| Kind     | Name                             | Target                                                 |
+| -------- | -------------------------------- | ------------------------------------------------------ |
+| Secret   | `POSTGRES_MIGRATION_URL`         | Supabase staging `app_migrator` Session Pooler TLS URL |
+| Secret   | `POSTGRES_SSL_CA`                | Supabase CA PEM content                                |
+| Secret   | `VERCEL_TOKEN`                   | 专用 staging Vercel principal                          |
+| Secret   | `E2E_USER_EMAIL`                 | Synthetic staging user                                 |
+| Secret   | `E2E_USER_PASSWORD`              | Synthetic staging user                                 |
+| Secret   | `RELEASE_APP_PRIVATE_KEY`        | Release GitHub App PEM                                 |
+| Variable | `VERCEL_ORG_ID`                  | Expected Vercel team ID                                |
+| Variable | `VERCEL_PROJECT_ID`              | Expected project ID                                    |
+| Variable | `STAGING_BASE_URL`               | `https://feline-blog-staging.vercel.app`               |
+| Variable | `STAGING_BASELINE_DEPLOYMENT_ID` | Verified current stable deployment ID                  |
+| Variable | `STAGING_BASELINE_COMMIT_SHA`    | Full SHA that produced the baseline deployment         |
+| Variable | `E2E_USER_ID`                    | Synthetic user database ID                             |
+| Variable | `RELEASE_APP_ID`                 | Release GitHub App ID                                  |
+| Variable | `RELEASE_APP_LOGIN`              | Exact `<app-slug>[bot]` login                          |
+
+首次激活前，在 Vercel Dashboard 中打开 `STAGING_BASE_URL` 当前指向的 deployment，确认它属于预期 team 和 `feline-blog-staging` project、target 为 Production、状态为 READY。记录其不可变 deployment ID，并从该 deployment 的 source build、部署日志或其他不可变发布记录确认生成它的完整 40 字符 commit SHA。不得用当前 `master` SHA 或部署日期猜测。
+
+确认后写入两个非 secret Environment variables：
+
+```powershell
+gh variable set STAGING_BASELINE_DEPLOYMENT_ID --env staging --body "<dpl_...>"
+gh variable set STAGING_BASELINE_COMMIT_SHA --env staging --body "<40-character-sha>"
+```
+
+- [ ] 两个 baseline 变量同时存在，ID 和 SHA 来自同一个已核验 deployment。
+- [ ] Vercel 若返回 baseline Git metadata，其值与配置 SHA 完全一致。
+- [ ] 不把 baseline 变量更新为每次新 deployment；它们只标识首次激活前的同一个受信任 deployment。
+- [ ] 若无法从可信记录证明 baseline SHA，停止激活并创建一个可证明来源的新 baseline，不要猜测。
 
 ## 6. Pull request 验证
 

@@ -48,6 +48,25 @@ describe("CI and staging workflow contract", () => {
     expect(workflow).toContain("vercel rollback");
   });
 
+  it("passes the trusted baseline identity only to jobs that may inspect it", async () => {
+    const workflow = await text(".github/workflows/staging.yml");
+    const jobs = Object.fromEntries(
+      workflow
+        .split(/^  (?=[a-z][a-z-]+:)/m)
+        .slice(1)
+        .map((job) => [job.match(/^([a-z][a-z-]+):/)?.[1], job])
+    );
+    for (const jobName of ["deploy", "promote", "restore", "recovery-smoke"]) {
+      expect(jobs[jobName]).toContain(
+        "STAGING_BASELINE_DEPLOYMENT_ID: ${{ vars.STAGING_BASELINE_DEPLOYMENT_ID }}"
+      );
+      expect(jobs[jobName]).toContain(
+        "STAGING_BASELINE_COMMIT_SHA: ${{ vars.STAGING_BASELINE_COMMIT_SHA }}"
+      );
+    }
+    expect(jobs["candidate"]).not.toContain("STAGING_BASELINE_DEPLOYMENT_ID");
+  });
+
   it("preserves a multiline staging CA in the ephemeral dotenv file", async () => {
     const certificate = [
       "-----BEGIN CERTIFICATE-----",

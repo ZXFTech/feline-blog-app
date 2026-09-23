@@ -32,6 +32,11 @@ export interface VercelTarget {
   projectName: string;
 }
 
+export interface VercelBaseline {
+  deploymentId: string;
+  commitSha: string;
+}
+
 function required(name: string): string {
   const value = process.env[name];
   if (!value) throw new Error(`${name} is required.`);
@@ -45,6 +50,21 @@ export function vercelTargetFromEnvironment(): VercelTarget {
     projectId: required("VERCEL_PROJECT_ID"),
     projectName: required("VERCEL_PROJECT_NAME"),
   };
+}
+
+export function baselineIdentityFromEnvironment(
+  environment: Readonly<Record<string, string | undefined>> = process.env
+): VercelBaseline | undefined {
+  const deploymentId = environment.STAGING_BASELINE_DEPLOYMENT_ID?.trim();
+  const commitSha = environment.STAGING_BASELINE_COMMIT_SHA?.trim();
+  if (!deploymentId && !commitSha) return undefined;
+  if (!deploymentId || !commitSha) {
+    throw new Error("Both staging baseline identity variables are required.");
+  }
+  if (!/^dpl_[A-Za-z0-9]+$/.test(deploymentId)) {
+    throw new Error("Staging baseline deployment ID is invalid.");
+  }
+  return { deploymentId, commitSha: assertFullSha(commitSha) };
 }
 
 async function vercelRequest<T>(target: VercelTarget, pathname: string): Promise<T> {
@@ -87,7 +107,8 @@ function deploymentId(deployment: VercelDeployment): string {
 export function assertDeployment(
   target: VercelTarget,
   deployment: VercelDeployment,
-  candidateSha?: string
+  candidateSha?: string,
+  baseline?: VercelBaseline
 ): DeploymentIdentity & { url: string } {
   if (deployment.projectId !== target.projectId || deployment.name !== target.projectName) {
     throw new Error("Vercel deployment belongs to a different project.");
@@ -97,8 +118,17 @@ export function assertDeployment(
   }
   const state = deployment.readyState ?? deployment.state;
   if (state !== "READY") throw new Error("Vercel deployment is not READY.");
-  const commitSha = String(deployment.meta?.githubCommitSha ?? "");
-  assertFullSha(commitSha);
+  const id = deploymentId(deployment);
+  const metadataCommitSha = String(deployment.meta?.githubCommitSha ?? "");
+  let commitSha: string;
+  if (baseline && id === baseline.deploymentId) {
+    commitSha = metadataCommitSha ? assertFullSha(metadataCommitSha) : baseline.commitSha;
+    if (commitSha !== baseline.commitSha) {
+      throw new Error("Vercel baseline commit metadata does not match the trusted identity.");
+    }
+  } else {
+    commitSha = assertFullSha(metadataCommitSha);
+  }
   if (candidateSha && commitSha !== assertFullSha(candidateSha)) {
     throw new Error("Vercel deployment commit does not match the candidate.");
   }
@@ -107,7 +137,7 @@ export function assertDeployment(
     rawUrl.startsWith("https://") ? rawUrl : `https://${rawUrl}`
   ).origin;
   return {
-    deploymentId: deploymentId(deployment),
+    deploymentId: id,
     commitSha,
     hostHash: hostHash(url),
     url,
@@ -149,7 +179,12 @@ async function main(): Promise<void> {
   const target = vercelTargetFromEnvironment();
   const [command, value] = process.argv.slice(2);
   if (command === "inspect" && value) {
-    const identity = assertDeployment(target, await getDeployment(target, value));
+    const identity = assertDeployment(
+      target,
+      await getDeployment(target, value),
+      undefined,
+      baselineIdentityFromEnvironment()
+    );
     process.stdout.write(`${JSON.stringify(identity)}\n`);
     return;
   }

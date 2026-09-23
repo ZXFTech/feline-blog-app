@@ -317,6 +317,8 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_PROJECT_NAME: feline-blog-staging
       STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      STAGING_BASELINE_DEPLOYMENT_ID: ${{ vars.STAGING_BASELINE_DEPLOYMENT_ID }}
+      STAGING_BASELINE_COMMIT_SHA: ${{ vars.STAGING_BASELINE_COMMIT_SHA }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -568,6 +570,8 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_PROJECT_NAME: feline-blog-staging
       STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      STAGING_BASELINE_DEPLOYMENT_ID: ${{ vars.STAGING_BASELINE_DEPLOYMENT_ID }}
+      STAGING_BASELINE_COMMIT_SHA: ${{ vars.STAGING_BASELINE_COMMIT_SHA }}
       CANDIDATE_URL: ${{ needs.deploy.outputs.candidate-url }}
       CANDIDATE_ID: ${{ needs.deploy.outputs.candidate-id }}
       PREVIOUS_ID: ${{ needs.deploy.outputs.previous-id }}
@@ -737,6 +741,8 @@ jobs:
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_PROJECT_NAME: feline-blog-staging
       STAGING_BASE_URL: ${{ vars.STAGING_BASE_URL }}
+      STAGING_BASELINE_DEPLOYMENT_ID: ${{ vars.STAGING_BASELINE_DEPLOYMENT_ID }}
+      STAGING_BASELINE_COMMIT_SHA: ${{ vars.STAGING_BASELINE_COMMIT_SHA }}
       CANDIDATE_ID: ${{ needs.deploy.outputs.candidate-id }}
       PREVIOUS_ID: ${{ needs.deploy.outputs.previous-id }}
     steps:
@@ -831,6 +837,8 @@ jobs:
       VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
       VERCEL_PROJECT_ID: ${{ vars.VERCEL_PROJECT_ID }}
       VERCEL_PROJECT_NAME: feline-blog-staging
+      STAGING_BASELINE_DEPLOYMENT_ID: ${{ vars.STAGING_BASELINE_DEPLOYMENT_ID }}
+      STAGING_BASELINE_COMMIT_SHA: ${{ vars.STAGING_BASELINE_COMMIT_SHA }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:

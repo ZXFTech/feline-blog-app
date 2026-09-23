@@ -25,6 +25,8 @@ Create a GitHub Environment named `staging`. Limit it to `master` and trusted ma
 | Variable | `VERCEL_ORG_ID` | Expected Vercel team ID |
 | Variable | `VERCEL_PROJECT_ID` | Expected `feline-blog-staging` project ID |
 | Variable | `STAGING_BASE_URL` | Stable HTTPS staging origin |
+| Variable | `STAGING_BASELINE_DEPLOYMENT_ID` | Manually verified deployment currently serving the stable origin before first activation |
+| Variable | `STAGING_BASELINE_COMMIT_SHA` | Full commit SHA that produced the baseline deployment |
 | Variable | `E2E_USER_ID` | Expected synthetic user ID |
 | Variable | `RELEASE_APP_ID` | Dedicated Release Please GitHub App ID |
 | Variable | `RELEASE_APP_LOGIN` | Exact bot login, including `[bot]` |
@@ -42,7 +44,14 @@ Use the `feline-blog-staging` project Production environment as stable staging.
 * Limit claims to repository `ZXFTech/feline-blog-app`, ref `refs/heads/master`, GitHub Environment `staging`, the trusted workflow refs in this repository, and the `feline-blog-staging` project.
 * Keep SSO enabled for human access. Do not create a long lived protection bypass secret for Actions.
 
-Before enabling the automatic `master` trigger, verify that `STAGING_BASE_URL` resolves to a READY deployment in the expected team and project, with a valid `githubCommitSha` metadata value.
+Before enabling the automatic `master` trigger, bootstrap the current stable deployment identity.
+
+1. Open `STAGING_BASE_URL` in the Vercel dashboard and record the immutable deployment ID. Confirm that it is READY, uses the Production target, and belongs to the configured team and `feline-blog-staging` project.
+2. Determine the exact 40 character commit SHA that produced that deployment from its source build, deployment log, or another immutable release record. Do not substitute the current `master` SHA or guess from the deployment date. If no trustworthy source exists, create a new manually verified baseline deployment instead.
+3. Add the deployment ID as `STAGING_BASELINE_DEPLOYMENT_ID` and the lowercase or uppercase full SHA as `STAGING_BASELINE_COMMIT_SHA` in the GitHub Environment `staging` variables.
+4. Configure both variables together. The workflow fails closed if either value is missing, malformed, points to another deployment, or conflicts with Git metadata returned by Vercel.
+
+The baseline exception only supplies missing Git metadata for that exact deployment ID. Candidate and later stable deployments must carry their own `githubCommitSha` metadata. Do not rotate the baseline variables after each release. To retire the bootstrap configuration after a successful pipeline deployment is stable and no recovery path still depends on the original baseline, remove both variables together; this restores metadata only inspection.
 
 ## Supabase settings
 
@@ -52,7 +61,7 @@ The migration URL must identify the `app_migrator` role in project `zjnjjzgxiltu
 
 Use the repository root [`verify.md`](../../verify.md) for the complete provider configuration and first activation checklist.
 
-1. Configure the provider settings above before merging the workflow change to `master`.
+1. Configure the provider settings and the verified baseline pair above before merging the workflow change to `master`.
 2. Merge the workflow change through a squash pull request. Its resulting `master` HEAD starts the first automatic Staging run.
 3. Confirm the GitHub deployment record, migration reconciliation, staged Production deployment, candidate smoke, same deployment promotion, stable smoke, and Release Please maintenance.
 4. Confirm no artifact or log contains an OIDC token, request authentication header, Cookie, password, connection URL, or CA content.

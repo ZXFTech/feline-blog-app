@@ -3,6 +3,14 @@ import { expect, test, type BrowserContext, type Page } from "@playwright/test";
 const origin = new URL(requireEnvironment("STAGING_SMOKE_ORIGIN")).origin;
 const oidcToken = requireEnvironment("VERCEL_OIDC_TOKEN");
 const mode = process.env.STAGING_SMOKE_MODE ?? "public";
+const remoteMutationTimeoutMs = 20_000;
+
+interface SmokeTodoRecord {
+  id: number;
+  content: string;
+  finished: boolean;
+  delete: boolean;
+}
 
 function requireEnvironment(name: string): string {
   const value = process.env[name];
@@ -63,12 +71,24 @@ test("authenticated Todo smoke and bounded cleanup", async ({ page }) => {
       }
     );
     expect(response.ok()).toBe(true);
-    const body = (await response.json()) as {
-      data?: {
-        records?: Array<{ id: number; content: string; finished: boolean; delete: boolean }>;
-      };
-    };
+    const body = (await response.json()) as { data?: { records?: SmokeTodoRecord[] } };
     return body.data?.records ?? [];
+  };
+  const waitForRecord = async (
+    predicate: (record: SmokeTodoRecord) => boolean
+  ): Promise<SmokeTodoRecord> => {
+    let match: SmokeTodoRecord | undefined;
+    await expect
+      .poll(
+        async () => {
+          match = (await readRecords()).find(predicate);
+          return match;
+        },
+        { timeout: remoteMutationTimeoutMs }
+      )
+      .toBeTruthy();
+    if (!match) throw new Error("Expected staging smoke Todo record was not found.");
+    return match;
   };
 
   await page.goto("/login?from=/todo");
@@ -102,27 +122,39 @@ test("authenticated Todo smoke and bounded cleanup", async ({ page }) => {
     const editor = page.locator('[data-slot="modal-panel"]');
     await editor.locator("input").first().fill(prefix);
     await editor.getByRole("button", { name: "确定" }).click();
-    await expect(page.getByRole("button", { name: prefix })).toBeVisible();
-
-    createdIds.push(...(await readRecords()).map(({ id }) => id));
+    const created = await waitForRecord(({ content }) => content === prefix);
+    createdIds.push(created.id);
     expect(createdIds).toHaveLength(1);
+    await expect(page.getByRole("button", { name: prefix })).toBeVisible({
+      timeout: remoteMutationTimeoutMs,
+    });
 
     const item = page.getByRole("button", { name: prefix }).locator("..");
     await item.getByRole("button", { name: "edit" }).click();
     const editEditor = page.locator('[data-slot="modal-panel"]');
     await editEditor.locator("input").first().fill(`${prefix}-edited`);
     await editEditor.getByRole("button", { name: "确定" }).click();
+    await waitForRecord(
+      ({ id, content }) => id === createdIds[0] && content === `${prefix}-edited`
+    );
     const edited = page.getByRole("button", { name: `${prefix}-edited` });
-    await expect(edited).toBeVisible();
+    await expect(edited).toBeVisible({ timeout: remoteMutationTimeoutMs });
     await edited.click();
     await expect
-      .poll(async () => (await readRecords()).find(({ id }) => id === createdIds[0])?.finished)
+      .poll(async () => (await readRecords()).find(({ id }) => id === createdIds[0])?.finished, {
+        timeout: remoteMutationTimeoutMs,
+      })
       .toBe(true);
     await edited.locator("..").getByRole("button", { name: "delete" }).click();
     await expect
-      .poll(async () => (await readRecords()).find(({ id }) => id === createdIds[0])?.delete)
+      .poll(async () => (await readRecords()).find(({ id }) => id === createdIds[0])?.delete, {
+        timeout: remoteMutationTimeoutMs,
+      })
       .toBe(true);
   } finally {
+    for (const { id } of await readRecords()) {
+      if (!createdIds.includes(id)) createdIds.push(id);
+    }
     if (createdIds.length > 0) {
       const cleanup = await page.request.delete(`${origin}/api/v1/staging-smoke/todos`, {
         headers: {

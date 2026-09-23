@@ -1,8 +1,11 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   assertDeployment,
   baselineIdentityFromEnvironment,
   correlatedDeployments,
+  promoteDeployment,
+  rollbackDeployment,
+  type VercelRequestFn,
   type VercelTarget,
 } from "./vercel-api";
 
@@ -171,5 +174,24 @@ describe("Vercel baseline configuration", () => {
     ],
   ])("rejects %s", (_label, environment) => {
     expect(() => baselineIdentityFromEnvironment(environment)).toThrow();
+  });
+});
+
+describe("Vercel production mutations", () => {
+  it.each([
+    ["promote", promoteDeployment, "/v10/projects/prj_1/promote/dpl_candidate1"],
+    ["rollback", rollbackDeployment, "/v1/projects/prj_1/rollback/dpl_candidate1"],
+  ])("uses the team scoped REST API for %s", async (_name, operation, pathname) => {
+    const request = vi.fn<VercelRequestFn>(async () => new Response("{}", { status: 201 }));
+
+    await operation(target, "dpl_candidate1", request);
+
+    expect(request).toHaveBeenCalledTimes(1);
+    const [url, init] = request.mock.calls[0];
+    expect(url.toString()).toBe(`https://api.vercel.com${pathname}?teamId=team_1`);
+    expect(init).toMatchObject({ method: "POST", body: "{}", redirect: "error" });
+    const headers = new Headers(init.headers);
+    expect(headers.get("authorization")).toBe("Bearer unused");
+    expect(headers.get("content-type")).toBe("application/json");
   });
 });

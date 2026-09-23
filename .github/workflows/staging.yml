@@ -607,9 +607,16 @@ jobs:
       - name: Promote without rebuild
         run: |
           pnpm ci:checkpoint phase checkpoint.json promote running
-          timeout 180s pnpm exec vercel promote "$CANDIDATE_URL" --yes --scope "$VERCEL_ORG_ID"
-          current=$(pnpm --silent ci:vercel inspect "$STAGING_BASE_URL")
-          current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+          pnpm --silent ci:vercel promote "$CANDIDATE_ID"
+          current_id=
+          for attempt in $(seq 1 60); do
+            current=$(pnpm --silent ci:vercel inspect "$STAGING_BASE_URL")
+            current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+            if [ "$current_id" = "$CANDIDATE_ID" ]; then
+              break
+            fi
+            sleep 2
+          done
           test "$current_id" = "$CANDIDATE_ID"
           pnpm ci:checkpoint phase checkpoint.json promote succeeded
       - name: Record promote result
@@ -784,7 +791,17 @@ jobs:
             echo 'Stable alias changed outside this run.' >&2
             exit 1
           fi
-          timeout 120s pnpm exec vercel rollback "$PREVIOUS_ID" --yes --scope "$VERCEL_ORG_ID"
+          pnpm --silent ci:vercel rollback "$PREVIOUS_ID"
+          restored_id=
+          for attempt in $(seq 1 60); do
+            restored=$(pnpm --silent ci:vercel inspect "$STAGING_BASE_URL")
+            restored_id=$(printf '%s' "$restored" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
+            if [ "$restored_id" = "$PREVIOUS_ID" ]; then
+              break
+            fi
+            sleep 2
+          done
+          test "$restored_id" = "$PREVIOUS_ID"
           pnpm ci:checkpoint phase checkpoint.json restore succeeded
           echo 'restored=true' >> "$GITHUB_OUTPUT"
       - name: Record restore result

@@ -152,4 +152,37 @@ describe("CI and staging workflow contract", () => {
     expect(workflow).toContain("staging:verified");
     expect(workflow).not.toContain("npm publish");
   });
+
+  it("binds release jobs to the staging GitHub App configuration", async () => {
+    const workflow = await text(".github/workflows/staging.yml");
+    const jobs = Object.fromEntries(
+      workflow
+        .split(/^  (?=[a-z][a-z-]+:)/m)
+        .slice(1)
+        .map((job) => [job.match(/^([a-z][a-z-]+):/)?.[1], job])
+    );
+
+    for (const jobName of ["release-maintenance", "release-detect", "release-finalize"]) {
+      expect(jobs[jobName]).toContain(
+        "    environment:\n      name: staging\n      deployment: false"
+      );
+    }
+    expect(jobs["release-maintenance"]).toContain("client-id: ${{ vars.RELEASE_APP_ID }}");
+    expect(jobs["release-maintenance"]).not.toContain("app-id:");
+
+    const retryWorkflow = await text(".github/workflows/release-bookkeeping.yml");
+    const retryJobs = Object.fromEntries(
+      retryWorkflow
+        .split(/^  (?=[a-z][a-z-]+:)/m)
+        .slice(1)
+        .map((job) => [job.match(/^([a-z][a-z-]+):/)?.[1], job])
+    );
+    for (const jobName of ["maintain", "finalize"]) {
+      expect(retryJobs[jobName]).toContain(
+        "    environment:\n      name: staging\n      deployment: false"
+      );
+    }
+    expect(retryJobs["maintain"]).toContain("client-id: ${{ vars.RELEASE_APP_ID }}");
+    expect(retryJobs["maintain"]).not.toContain("app-id:");
+  });
 });

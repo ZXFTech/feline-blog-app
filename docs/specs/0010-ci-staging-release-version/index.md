@@ -152,7 +152,6 @@ GitHub Environment `staging` secrets:
 * `VERCEL_TOKEN`: scoped Vercel access token
 * `E2E_USER_EMAIL`: synthetic staging account email
 * `E2E_USER_PASSWORD`: synthetic staging account password
-* `RELEASE_APP_ID`: GitHub App identifier for release PR maintenance
 * `RELEASE_APP_PRIVATE_KEY`: GitHub App private key for a short lived installation token
 
 Vercel project `feline-blog-staging` Deployment Protection:
@@ -171,7 +170,7 @@ GitHub Environment `staging` variables:
 * `STAGING_BASELINE_COMMIT_SHA`: 与 baseline deployment metadata 一致的 40 字符 commit SHA
 * `SMOKE_DATA_RETENTION_HOURS`: stale synthetic data cutoff, fixed to `24` unless this spec is revised
 * `E2E_USER_ID`: synthetic staging account 的不可变用户 ID
-* `RELEASE_APP_LOGIN`: 允许维护 release PR 的 GitHub App bot login
+* `RELEASE_APP_ID`: 用于 release PR maintenance 的 GitHub App Client ID，不是 App slug 或 numeric App ID
 
 Vercel project `feline-blog-staging` runtime variables:
 
@@ -180,6 +179,7 @@ Vercel project `feline-blog-staging` runtime variables:
 
 Repository configuration:
 
+* repository variable `RELEASE_APP_LOGIN`: 允许维护 release PR 的 GitHub App bot login，包含 `[bot]`；该公开身份必须可被 `pull_request` workflow 读取，不放在只允许 protected branch ref 的 `staging` Environment
 * `release-please-config.json`: single Node package, branch `master`, stable releases, changelog enabled, `include-v-in-tag: true`, no package publish
 * `.release-please-manifest.json`: `{ ".": "0.1.0" }`
 * `config/database-targets.json`: 记录非 secret 的 `stagingSessionPoolerHost`、`stagingProjectRef`、`stagingDatabase`、固定 session port `5432`、`stagingMigrationLockTimeoutMs=5000` 和 `stagingMigrationStatementTimeoutMs=120000`；只接受一个完整 hostname，不接受 wildcard 或从 region 动态拼接

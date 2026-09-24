@@ -944,6 +944,9 @@ jobs:
     needs: [candidate, complete]
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment:
+      name: staging
+      deployment: false
     permissions:
       contents: read
     outputs:
@@ -963,7 +966,7 @@ jobs:
       - id: app-token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3
         with:
-          app-id: ${{ vars.RELEASE_APP_ID }}
+          client-id: ${{ vars.RELEASE_APP_ID }}
           private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
           permission-contents: write
           permission-pull-requests: write
@@ -989,6 +992,9 @@ jobs:
     needs: [candidate, complete]
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    environment:
+      name: staging
+      deployment: false
     permissions:
       contents: read
       pull-requests: read
@@ -1020,6 +1026,9 @@ jobs:
     if: needs.release-detect.outputs.eligible == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    environment:
+      name: staging
+      deployment: false
     permissions:
       contents: write
       pull-requests: read

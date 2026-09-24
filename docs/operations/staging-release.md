@@ -28,8 +28,9 @@ Create a GitHub Environment named `staging`. Limit it to `master` and trusted ma
 | Variable | `STAGING_BASELINE_DEPLOYMENT_ID` | Manually verified deployment currently serving the stable origin before first activation |
 | Variable | `STAGING_BASELINE_COMMIT_SHA` | Full commit SHA that produced the baseline deployment |
 | Variable | `E2E_USER_ID` | Expected synthetic user ID |
-| Variable | `RELEASE_APP_ID` | Dedicated Release Please GitHub App ID |
-| Variable | `RELEASE_APP_LOGIN` | Exact bot login, including `[bot]` |
+| Variable | `RELEASE_APP_ID` | Dedicated Release Please GitHub App Client ID, not the App slug or numeric App ID |
+
+Create `RELEASE_APP_LOGIN` as a repository variable containing the exact bot login, including `[bot]`. It is public identity data rather than a credential. The pull request eligibility workflow cannot read an Environment variable because `staging` accepts only protected branch refs, while pull request workflows run from `refs/pull/*/merge`.
 
 The Release Please App needs repository metadata read, contents write, and pull requests write. It does not need deployments, Actions, environments, administration, or packages permission.
 

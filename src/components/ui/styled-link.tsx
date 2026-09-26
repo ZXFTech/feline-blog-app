@@ -9,5 +9,11 @@ export interface StyledLinkProps
   extends ComponentPropsWithRef<typeof Link>, VariantProps<typeof buttonVariants> {}
 
 export function StyledLink({ className, variant, size, ...props }: StyledLinkProps) {
-  return <Link className={cn(buttonVariants({ variant, size }), className)} {...props} />;
+  return (
+    <Link
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size }), className)}
+      {...props}
+    />
+  );
 }

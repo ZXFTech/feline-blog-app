@@ -3,6 +3,11 @@
 import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
 
 import { DIALOG_BACKDROP_CLASS_NAME } from "@/lib/dialog-backdrop";
+import {
+  DIALOG_DISPLAY_SURFACE_CLASS_NAME,
+  DIALOG_FORM_SURFACE_CLASS_NAME,
+  DIALOG_SURFACE_CLASS_NAME,
+} from "@/lib/dialog-style";
 import { cn } from "@/lib/utils";
 
 const Dialog = DialogPrimitive.Root;
@@ -11,7 +16,11 @@ const DialogClose = DialogPrimitive.Close;
 const DialogTitle = DialogPrimitive.Title;
 const DialogDescription = DialogPrimitive.Description;
 
-function DialogContent({ className, ...props }: DialogPrimitive.Popup.Props) {
+interface DialogContentProps extends DialogPrimitive.Popup.Props {
+  variant?: "form" | "display";
+}
+
+function DialogContent({ className, variant = "form", ...props }: DialogContentProps) {
   return (
     <DialogPrimitive.Portal>
       <DialogPrimitive.Backdrop
@@ -19,8 +28,10 @@ function DialogContent({ className, ...props }: DialogPrimitive.Popup.Props) {
       />
       <DialogPrimitive.Viewport className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4">
         <DialogPrimitive.Popup
+          data-variant={variant}
           className={cn(
-            "w-full rounded-xl bg-background p-[var(--spacing-panel-inset-comfortable)] text-foreground shadow-neu-raised outline-none",
+            DIALOG_SURFACE_CLASS_NAME,
+            variant === "form" ? DIALOG_FORM_SURFACE_CLASS_NAME : DIALOG_DISPLAY_SURFACE_CLASS_NAME,
             className
           )}
           {...props}

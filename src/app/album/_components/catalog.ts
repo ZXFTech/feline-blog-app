@@ -484,16 +484,25 @@ export const catalogEntries: readonly CatalogEntry[] = [
       slug: "checklist-workflows",
       nameZh: "清单项、表单与详情",
       codeName:
-        "ChecklistItemCard / ChecklistForm / ChecklistDetailDialog / ChecklistItemDetailDialog",
-      description: "集中展示清单项状态、清单编辑流程与两级详情弹窗，全部操作使用本地沙盒状态。",
+        "ChecklistItemCard / ChecklistForm / ChecklistDetailDialog / ChecklistItemDetailDialog / ChecklistItemEditDialog",
+      description:
+        "展示卡片管理按钮显隐、方框状态图标、主题化小时分钟选择及短屏表单滚动，全部操作使用本地沙盒状态。",
       useCases: ["清单项确认", "创建与编辑清单", "查看清单及清单项详情"],
       importPath:
-        "@/components/Checklist/ChecklistItemCard · @/components/Checklist/ChecklistForm · @/components/Checklist/ChecklistDetailDialog · @/components/Checklist/ChecklistItemDetailDialog",
+        "@/components/Checklist/ChecklistItemCard · @/components/Checklist/ChecklistForm · @/components/Checklist/ChecklistDetailDialog · @/components/Checklist/ChecklistItemDetailDialog · @/components/Checklist/ChecklistItemEditDialog",
       sourceFiles: [
         "Checklist/ChecklistItemCard.tsx",
         "Checklist/ChecklistForm.tsx",
         "Checklist/ChecklistDetailDialog.tsx",
         "Checklist/ChecklistItemDetailDialog.tsx",
+        "Checklist/ChecklistItemEditDialog.tsx",
+        "ui/kbd.tsx",
+        "Checklist/ChecklistItemTrashDialog.tsx",
+        "Checklist/ChecklistDetailView.tsx",
+        "Checklist/ChecklistFormScreen.tsx",
+        "Checklist/ChecklistListFilters.tsx",
+        "Checklist/ChecklistTrashView.tsx",
+        "Checklist/ChecklistVirtualGrid.tsx",
       ],
       categoryId: "business",
       order: 20,
@@ -509,7 +518,7 @@ export const catalogEntries: readonly CatalogEntry[] = [
       capabilities: capability(
         ["sm", "md", "lg"],
         ["创建", "编辑", "清单详情", "清单项详情"],
-        ["未确认", "已确认", "提交成功", "提交失败", "删除", "恢复"]
+        ["未确认", "已确认", "更新中", "提交成功", "提交失败", "删除", "恢复"]
       ),
     },
     () => import("@/app/album/_components/demos/ChecklistWorkflowDemo")

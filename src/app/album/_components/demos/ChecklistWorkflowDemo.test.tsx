@@ -53,13 +53,13 @@ describe("ChecklistWorkflowDemo", () => {
     const sandbox = within(screen.getByTestId("checklist-form-sandbox"));
 
     await user.click(sandbox.getByRole("button", { name: "编辑模式" }));
-    await user.click(sandbox.getByRole("button", { name: "保存修改" }));
+    await user.click(sandbox.getByRole("button", { name: "保存" }));
     await waitFor(() =>
       expect(sandbox.getByText("已在本地保存：版本发布检查，共 2 项")).toBeVisible()
     );
 
     await user.click(sandbox.getByRole("button", { name: "下一次提交模拟失败" }));
-    await user.click(sandbox.getByRole("button", { name: "保存修改" }));
+    await user.click(sandbox.getByRole("button", { name: "保存" }));
     await waitFor(() => expect(sandbox.getByRole("alert")).toHaveTextContent("模拟保存失败"));
   });
 });

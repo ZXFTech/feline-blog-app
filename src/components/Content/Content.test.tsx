@@ -30,4 +30,17 @@ describe("Content", () => {
     expect(container.querySelectorAll("aside")).toHaveLength(0);
     expect(container.querySelector(".content-grid")).not.toHaveAttribute("data-has-left");
   });
+
+  it("marks a right sidebar that should appear before content in compact layouts", () => {
+    const { container } = render(
+      <Content rightSideBarFirstOnCompact rightSideBar={<span>筛选</span>}>
+        清单
+      </Content>
+    );
+
+    expect(container.querySelector(".content-grid")).toHaveAttribute(
+      "data-right-first-on-compact",
+      "true"
+    );
+  });
 });

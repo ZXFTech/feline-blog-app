@@ -4,6 +4,8 @@
 import { MouseEventHandler, ReactElement, ReactNode, useEffect, useRef, useState } from "react";
 import { NeuPanel } from "@/components/ui/neu-panel";
 import { DIALOG_BACKDROP_CLASS_NAME } from "@/lib/dialog-backdrop";
+import { DIALOG_FORM_SURFACE_CLASS_NAME, DIALOG_SURFACE_CLASS_NAME } from "@/lib/dialog-style";
+import { cn } from "@/lib/utils";
 import Icon, { IconType } from "../Icon";
 import { Button } from "@/components/ui/button";
 import Portal from "../Portal";
@@ -108,11 +110,16 @@ const Modal = ({
       >
         <NeuPanel
           data-slot="modal-panel"
+          data-variant="form"
           density="comfortable"
+          radius="xl"
           onClick={(e) => e.stopPropagation()}
-          className={`model-main w-[60%] min-w-100 max-w-150 min-h-50 transform transition-all duration-300 ease-in-out ${
+          className={cn(
+            DIALOG_SURFACE_CLASS_NAME,
+            DIALOG_FORM_SURFACE_CLASS_NAME,
+            "model-main min-h-50 w-[60%] min-w-100 max-w-150 transform transition-all duration-300 ease-in-out",
             show ? "scale-100 opacity-100" : "scale-95 opacity-0"
-          }`}
+          )}
         >
           {/* Header */}
           <div className="modal-title-bar flex items-center justify-between">

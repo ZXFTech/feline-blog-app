@@ -40,6 +40,14 @@ describe("DialogDemo", () => {
 
     await user.click(screen.getByRole("button", { name: "打开受控弹窗" }));
     expect(await screen.findByText("本地发布检查")).toBeVisible();
+    expect(document.querySelector('[data-slot="modal-panel"]')).toHaveAttribute(
+      "data-variant",
+      "form"
+    );
+    expect(document.querySelector('[data-slot="modal-panel"]')).toHaveClass(
+      "rounded-xl",
+      "shadow-neu-raised"
+    );
     await user.click(screen.getByRole("button", { name: "确认本地操作" }));
     expect(screen.getByText("已确认受控弹窗")).toBeVisible();
   });

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { CircleAlert, Pencil, Trash2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Pencil, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 import { NeuSurface } from "@/components/ui/neu-surface";
 import {
   type Checklist,
@@ -24,13 +25,10 @@ const SIZE_CONFIG = {
     pad: "p-[var(--spacing-card-pad-lg)]",
     status: 11,
     countdown: "text-[11px]",
-    countdownIcon: "size-3",
     title: "mt-3 line-clamp-2 text-sm font-semibold leading-5",
     deadline: "mt-1 text-body-base",
     totals: "text-body-base",
     actionsMt: "mt-3",
-    button: "size-8",
-    buttonIcon: "size-4",
   },
   md: {
     width: 192,
@@ -39,13 +37,10 @@ const SIZE_CONFIG = {
     pad: "p-[var(--spacing-card-pad-md)]",
     status: 8,
     countdown: "text-[9px]",
-    countdownIcon: "size-2.5",
     title: "mt-2 line-clamp-2 text-xs font-semibold leading-4",
     deadline: "mt-0.5 text-[10px]",
     totals: "text-[10px]",
     actionsMt: "mt-2",
-    button: "size-6",
-    buttonIcon: "size-3.5",
   },
   sm: {
     width: 128,
@@ -54,13 +49,10 @@ const SIZE_CONFIG = {
     pad: "p-[var(--spacing-card-pad-sm)]",
     status: 6,
     countdown: "text-[7px]",
-    countdownIcon: "size-2",
     title: "mt-1 line-clamp-2 text-[10px] font-semibold leading-3",
     deadline: "mt-0.5 text-[8px]",
     totals: "text-[8px]",
     actionsMt: "mt-1",
-    button: "size-4",
-    buttonIcon: "size-2.5",
   },
 } as const;
 
@@ -125,15 +117,28 @@ export function StatusIndicator({
 export function CountdownBadge({
   expiresAt,
   textClass,
-  iconClass,
+  serverNow,
 }: {
   expiresAt: number;
   textClass: string;
-  iconClass: string;
+  serverNow?: number;
 }) {
-  const [now, setNow] = useState(() => Date.now());
+  const calibration = useRef({
+    serverNow: serverNow ?? 0,
+    receivedAt: 0,
+  });
+  const [now, setNow] = useState(serverNow ?? 0);
+
   useEffect(() => {
-    const id = setInterval(() => setNow(Date.now()), 30_000);
+    calibration.current = { serverNow: serverNow ?? Date.now(), receivedAt: performance.now() };
+    setNow(calibration.current.serverNow);
+  }, [serverNow]);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      const current = calibration.current;
+      setNow(current.serverNow + performance.now() - current.receivedAt);
+    }, 30_000);
     return () => clearInterval(id);
   }, []);
 
@@ -149,9 +154,7 @@ export function CountdownBadge({
 
   return (
     <span className={cn("inline-flex items-center gap-0.5 font-semibold leading-none", textClass)}>
-      {cd.showAlert && (
-        <CircleAlert className={iconClass} style={{ color: "var(--status-error)" }} aria-hidden />
-      )}
+      {cd.urgent ? <span className="text-destructive">即将到期</span> : null}
       <span className="text-foreground">{cd.label}</span>
     </span>
   );
@@ -160,17 +163,21 @@ export function CountdownBadge({
 export interface ChecklistCardProps {
   checklist: Checklist;
   size?: ChecklistCardSize;
+  layout?: "card" | "list";
   onOpenDetail?: (checklist: Checklist) => void;
   onEdit?: (checklist: Checklist) => void;
   onDelete?: (checklist: Checklist) => void;
+  serverNow?: number;
 }
 
 export function ChecklistCard({
   checklist,
   size = "lg",
+  layout = "card",
   onOpenDetail,
   onEdit,
   onDelete,
+  serverNow,
 }: ChecklistCardProps) {
   const { done, total } = getProgress(checklist);
   const c = SIZE_CONFIG[size];
@@ -179,8 +186,8 @@ export function ChecklistCard({
     <NeuSurface
       radius="xl"
       style={{
-        width: c.width,
-        height: c.height,
+        width: layout === "list" ? "100%" : c.width,
+        height: layout === "list" ? (size === "lg" ? 96 : size === "md" ? 80 : 64) : c.height,
         borderColor: checklist.themeColor ?? "var(--primary)",
       }}
       className={cn(
@@ -188,11 +195,11 @@ export function ChecklistCard({
         "transition-colors hover:bg-muted"
       )}
     >
-      <button
+      <Button
         type="button"
         aria-label={`查看清单详情：${checklist.name}`}
         onClick={() => onOpenDetail?.(checklist)}
-        className="absolute inset-0 z-0 cursor-pointer rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="absolute inset-0 z-0 h-auto w-auto opacity-0"
       />
       {/* 顶部主题色窄条 */}
       <div
@@ -201,27 +208,64 @@ export function ChecklistCard({
         aria-hidden
       />
 
-      <div className={cn("pointer-events-none relative z-10 flex flex-1 flex-col", c.pad)}>
-        {/* 头部：状态（左上） + 倒计时（右上） */}
-        <div className="flex items-center justify-between">
-          <StatusIndicator done={done} total={total} size={c.status} />
-          <CountdownBadge
-            expiresAt={checklist.expiresAt}
-            textClass={c.countdown}
-            iconClass={c.countdownIcon}
-          />
-        </div>
-
-        {/* 清单名（最多两行，省略号） */}
-        <h3 className={cn("text-foreground text-pretty", c.title)}>{checklist.name}</h3>
+      <div
+        className={cn(
+          "pointer-events-none relative z-10 flex flex-1 whitespace-nowrap",
+          layout === "list" ? "flex-row items-center gap-3 px-4 py-2" : "flex-col",
+          layout === "card" && c.pad
+        )}
+      >
+        {layout === "list" ? (
+          <div className="flex min-w-0 flex-1 items-center gap-2.5 whitespace-nowrap">
+            <StatusIndicator done={done} total={total} size={14} />
+            <h3
+              title={checklist.name}
+              className="min-w-0 truncate text-sm font-semibold leading-none text-foreground"
+            >
+              {checklist.name}
+            </h3>
+            <CountdownBadge
+              expiresAt={checklist.expiresAt}
+              textClass="shrink-0 text-sm"
+              serverNow={serverNow}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="flex items-center justify-between">
+              <StatusIndicator done={done} total={total} size={c.status} />
+              <CountdownBadge
+                expiresAt={checklist.expiresAt}
+                textClass={c.countdown}
+                serverNow={serverNow}
+              />
+            </div>
+            <h3
+              title={checklist.name}
+              className={cn("min-w-0 truncate text-foreground text-pretty", c.title)}
+            >
+              {checklist.name}
+            </h3>
+          </>
+        )}
 
         {/* 截止日期（小字号，精确到分钟） */}
-        <p className={cn("text-muted-foreground", c.deadline)}>
+        <p
+          className={cn(
+            "shrink-0 whitespace-nowrap text-muted-foreground",
+            layout === "card" ? c.deadline : "hidden text-xs lg:block"
+          )}
+        >
           截止日期: {formatDeadline(checklist.expiresAt)}
         </p>
 
         {/* 已完成 / 总数（纯文本，无边框无背景，与卡片底色统一） */}
-        <div className={cn("mt-auto flex items-stretch", c.totals)}>
+        <div
+          className={cn(
+            "items-stretch whitespace-nowrap",
+            layout === "card" ? `mt-auto flex ${c.totals}` : "hidden shrink-0 text-xs md:flex"
+          )}
+        >
           <div className="flex flex-1 items-center justify-center gap-1 py-1.5">
             <span className="text-muted-foreground">已完成</span>
             <span className="font-semibold text-foreground">{done}</span>
@@ -232,43 +276,37 @@ export function ChecklistCard({
           </div>
         </div>
 
-        {/* 操作区：删除（左下） + 编辑（右下），均为 neu 按钮 */}
-        <div className={cn("pointer-events-auto flex items-center justify-between", c.actionsMt)}>
-          <button
+        <div
+          className={cn(
+            "pointer-events-auto flex items-center gap-2",
+            layout === "card" ? `w-full justify-between ${c.actionsMt}` : "shrink-0 justify-end"
+          )}
+        >
+          <Button
             type="button"
+            size="icon"
+            variant="danger"
             aria-label="删除清单"
             onClick={(e) => {
               e.stopPropagation();
               onDelete?.(checklist);
             }}
-            className={cn(
-              "inline-flex cursor-pointer items-center justify-center rounded-md bg-background outline-none",
-              "shadow-neu-raised-sm transition-shadow active:shadow-neu-inset-sm",
-              "focus-visible:ring-2 focus-visible:ring-ring",
-              c.button
-            )}
-            style={{ color: "var(--destructive)" }}
           >
-            <Trash2 className={c.buttonIcon} />
-          </button>
+            <Trash2 />
+          </Button>
 
-          <button
+          <Button
             type="button"
+            size="icon"
+            variant="primary"
             aria-label="编辑清单"
             onClick={(e) => {
               e.stopPropagation();
               onEdit?.(checklist);
             }}
-            className={cn(
-              "inline-flex cursor-pointer items-center justify-center rounded-md bg-background outline-none",
-              "shadow-neu-raised-sm transition-shadow active:shadow-neu-inset-sm",
-              "focus-visible:ring-2 focus-visible:ring-ring",
-              c.button
-            )}
-            style={{ color: "var(--primary)" }}
           >
-            <Pencil className={c.buttonIcon} />
-          </button>
+            <Pencil />
+          </Button>
         </div>
       </div>
     </NeuSurface>

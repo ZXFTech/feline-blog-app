@@ -55,14 +55,14 @@ export default function DialogDemo({ compact = false }: DemoProps) {
 
       <ComponentDemoGroup
         title="1. 通用对话框 Dialog"
-        description="用于承载补充信息或短流程，支持遮罩、焦点管理、Escape 关闭和返回触发器。"
+        description="用于承载表单和短流程，支持遮罩、焦点管理、Escape 关闭和返回触发器；form 是默认风格。"
       >
         <DemoSection nested title="当前主题真实交互">
           <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
             <DialogTrigger render={<Button type="button" variant="primary" />}>
               打开通用对话框
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent variant="form" className="max-w-md">
               <DialogTitle className="text-lg font-semibold">组件展示说明</DialogTitle>
               <DialogDescription className="mt-2 text-sm text-muted-foreground">
                 这是固定中文样例，不会读取或写入真实数据。
@@ -83,7 +83,7 @@ export default function DialogDemo({ compact = false }: DemoProps) {
 
       <ComponentDemoGroup
         title="2. 确认对话框 AlertDialog"
-        description="用于不可逆或高风险操作，明确说明影响，并要求用户选择取消或确认。"
+        description="用于不可逆或高风险操作；只读展示弹窗复用这一视觉风格，同时保留通用 Dialog 的关闭交互。"
       >
         <DemoSection nested title="default 与 sm 确认形态">
           <AlertDialog>

@@ -23,7 +23,7 @@ export default async function Blog({ searchParams }: BlogPageProps) {
   const { blogs } = result.data;
 
   return (
-    <Content>
+    <Content className="mx-auto max-w-[700px]">
       <BlogListOperationBar />
       <BlogList dataSource={blogs} />
     </Content>

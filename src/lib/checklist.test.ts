@@ -36,23 +36,32 @@ describe("checklist helpers", () => {
     expect(getCountdown(now, now)).toEqual({
       expired: true,
       label: "已过期",
-      showAlert: false,
+      urgent: false,
     });
-    expect(getCountdown(now + 24 * 60 * 60_000, now)).toEqual({
+    expect(getCountdown(now + (3 * 24 + 20) * 60 * 60_000 + 40 * 60_000, now)).toEqual({
       expired: false,
-      label: "> 1d",
-      showAlert: false,
+      label: "> 3d",
+      urgent: false,
     });
-    expect(getCountdown(now + 60 * 60_000, now)).toEqual({
+    expect(getCountdown(now + 5 * 60 * 60_000 + 3 * 60_000, now)).toEqual({
       expired: false,
-      label: "> 1h",
-      showAlert: false,
+      label: "< 6h",
+      urgent: false,
     });
-    expect(getCountdown(now + 59_000, now)).toEqual({
+    expect(getCountdown(now + 36 * 60_000, now)).toEqual({
       expired: false,
-      label: "1m",
-      showAlert: true,
+      label: "36min",
+      urgent: false,
     });
+    expect(getCountdown(now + 5 * 60_000, now)).toEqual({
+      expired: false,
+      label: "5min",
+      urgent: true,
+    });
+    expect(getCountdown(now + 500, now).label).toBe("1min");
+    expect(getCountdown(now + 10 * 60_000, now).urgent).toBe(false);
+    expect(getCountdown(now + 60 * 60_000, now).label).toBe("1h");
+    expect(getCountdown(now + 24 * 60 * 60_000, now).label).toBe("1d");
   });
 
   it("covers: AC-8 formats a local deadline to the minute", () => {

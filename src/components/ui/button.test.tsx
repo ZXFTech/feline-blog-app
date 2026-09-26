@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import Link from "next/link";
 import { createRef } from "react";
 import { describe, expect, it, vi } from "vitest";
 
@@ -45,6 +46,20 @@ describe("Button", () => {
     expect(screen.getByRole("button", { name: "默认" })).toHaveClass(
       "hover:bg-[color-mix(in_oklch,var(--secondary),var(--foreground)_5%)]"
     );
+  });
+
+  it("renders a linked non-native button without Base UI errors", () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    render(
+      <Button nativeButton={false} render={<Link href="/checklists" />}>
+        返回清单
+      </Button>
+    );
+
+    expect(screen.getByRole("button", { name: "返回清单" })).toHaveAttribute("href", "/checklists");
+    expect(consoleError).not.toHaveBeenCalled();
+    consoleError.mockRestore();
   });
 
   it.each([

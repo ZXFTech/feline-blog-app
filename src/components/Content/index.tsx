@@ -4,11 +4,13 @@ import { HTMLAttributes, ReactNode } from "react";
 interface ContentProps extends HTMLAttributes<HTMLDivElement> {
   leftSideBar?: ReactNode;
   rightSideBar?: ReactNode;
+  rightSideBarFirstOnCompact?: boolean;
 }
 
 export default function Content({
   leftSideBar,
   rightSideBar,
+  rightSideBarFirstOnCompact = false,
   children,
   className,
   ...restProps
@@ -21,6 +23,7 @@ export default function Content({
         className="content-grid"
         data-has-left={hasLeftSideBar || undefined}
         data-has-right={hasRightSideBar || undefined}
+        data-right-first-on-compact={rightSideBarFirstOnCompact || undefined}
       >
         <div
           id="content"

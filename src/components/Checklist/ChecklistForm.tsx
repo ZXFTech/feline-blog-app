@@ -1,51 +1,54 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
-import { Plus, Trash2, Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Plus } from "lucide-react";
+import { ChecklistItemCard } from "@/components/Checklist/ChecklistItemCard";
+import { Kbd, KbdGroup } from "@/components/ui/kbd";
+import { useChecklistFormHeight } from "@/hooks/useChecklistFormHeight";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useChecklistItemGrid } from "@/hooks/useChecklistItemGrid";
+import { usePlatformShortcut } from "@/hooks/usePlatformShortcut";
+import { ChecklistItemEditDialog } from "@/components/Checklist/ChecklistItemEditDialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { THEME_COLOR_OPTIONS } from "@/lib/checklists/constants";
 import { cn } from "@/lib/utils";
 
-/* ------------------------------------------------------------------ */
-/* 表单值类型                                                          */
-/* ------------------------------------------------------------------ */
+export { THEME_COLOR_OPTIONS } from "@/lib/checklists/constants";
 
-/** 有效期类型：不设置 / 指定日期时间 */
 export type ExpiresAtKind = "none" | "datetime";
 
 export interface ChecklistFormExpiresAt {
   kind: ExpiresAtKind;
-  /** 本地日期时间，格式 "YYYY-MM-DDTHH:mm"（datetime-local 输入值，显示为 YYYY-MM-DD HH:mm） */
   localDateTime: string;
 }
 
-/** 主题色可选项：值取自 Figma 八个主题组件的边框颜色 */
-export const THEME_COLOR_OPTIONS = [
-  { value: "#20c997", label: "青" },
-  { value: "#0d6efd", label: "蓝" },
-  { value: "#6f42c1", label: "紫" },
-  { value: "#52c41a", label: "绿" },
-  { value: "#fadb14", label: "琥珀" },
-  { value: "#fd7e14", label: "橙" },
-  { value: "#d63384", label: "玫红" },
-  { value: "#6c757d", label: "灰" },
-] as const;
-
-/** 清单项类型：已存在（编辑）/ 新增 */
 export type ItemKind = "existing" | "new";
 
 export interface ChecklistFormItem {
   kind: ItemKind;
-  /** 已存在项的服务端 id（新增项为空） */
   itemId?: string;
-  /** 已存在项的乐观并发版本号（新增项为空） */
   expectedRevision?: number;
-  /** 新增项的稳定标识，独立字段，绝不复用 RHF field.id */
   clientKey: string;
-  name: string;
   detail: string;
 }
 
@@ -59,19 +62,19 @@ export interface ChecklistFormValues {
 export interface ChecklistFormProps {
   mode: "create" | "edit";
   initialValues: ChecklistFormValues;
-  /** 提交回调，由外部负责持久化；抛错会显示为根级错误 */
   onSubmit: (values: ChecklistFormValues) => Promise<void> | void;
   onCancel: () => void;
+  deadlineRequired?: boolean;
+  requireItem?: boolean;
+  fillHeight?: boolean;
 }
 
-/* ------------------------------------------------------------------ */
-/* 内部小型输入控件（复用 Neu 拟态令牌，不引入新组件体系）             */
-/* ------------------------------------------------------------------ */
+interface ItemFieldsValue {
+  detail: string;
+}
 
 const fieldSurface =
-  "w-full rounded-lg bg-background px-3 py-2 text-sm text-foreground shadow-neu-inset-sm outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/50 disabled:opacity-50 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-destructive/60";
-
-/** 操作目标最小 44×44 的高度基线 */
+  "w-full rounded-lg bg-background px-3 py-2 text-sm text-foreground shadow-neu-inset-sm outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-destructive/60";
 const controlMinH = "min-h-11";
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -83,25 +86,62 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* 日期时间选择器（shadcn Calendar + Popover + 时间输入，仅日期时间无时区） */
-/* ------------------------------------------------------------------ */
+function itemDetailRule(value: string) {
+  const normalized = value.trim().normalize("NFC");
+  if (!normalized) return "请填写清单项详情";
+  if (Array.from(normalized).length > 2000) return "项目详情不超过 2000 个字符";
+  return true;
+}
 
-const pad = (n: number) => String(n).padStart(2, "0");
+interface ChecklistItemFieldsProps {
+  id: string;
+  disabled: boolean;
+  register: ReturnType<typeof useForm<ItemFieldsValue>>["register"];
+  error?: string;
+  autoFocus?: boolean;
+}
 
-/** "YYYY-MM-DDTHH:mm" -> Date（本地时区，用于日历高亮） */
+function ChecklistItemFields({
+  id,
+  disabled,
+  register,
+  error,
+  autoFocus,
+}: ChecklistItemFieldsProps) {
+  return (
+    <div>
+      <label htmlFor={id} className="mb-1.5 block text-sm font-medium">
+        清单项详情
+      </label>
+      <textarea
+        id={id}
+        rows={3}
+        autoFocus={autoFocus}
+        disabled={disabled}
+        placeholder="例如：确认护照有效期，并准备一份复印件"
+        className={cn(fieldSurface, "resize-y")}
+        aria-invalid={error ? true : undefined}
+        aria-describedby={error ? `${id}-error` : undefined}
+        {...register("detail", { validate: itemDetailRule })}
+      />
+      <FieldError id={`${id}-error`} message={error} />
+    </div>
+  );
+}
+
+const pad = (value: number) => String(value).padStart(2, "0");
+
 function parseLocalDateTime(value: string): Date | undefined {
   if (!value) return undefined;
   const [datePart, timePart] = value.split("T");
-  const [y, mo, d] = datePart.split("-").map(Number);
-  const [h, mi] = (timePart ?? "00:00").split(":").map(Number);
-  if (!y || !mo || !d) return undefined;
-  return new Date(y, mo - 1, d, h || 0, mi || 0);
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = (timePart ?? "00:00").split(":").map(Number);
+  if (!year || !month || !day) return undefined;
+  return new Date(year, month - 1, day, hour || 0, minute || 0);
 }
 
-/** Date -> "YYYY-MM-DD" */
-function toDatePart(d: Date): string {
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+function toDatePart(date: Date) {
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 interface DateTimePickerProps {
@@ -110,352 +150,600 @@ interface DateTimePickerProps {
   onChange: (value: string) => void;
   invalid?: boolean;
   describedBy?: string;
+  disabled?: boolean;
 }
 
-function DateTimePicker({ id, value, onChange, invalid, describedBy }: DateTimePickerProps) {
+function DateTimePicker({
+  id,
+  value,
+  onChange,
+  invalid,
+  describedBy,
+  disabled,
+}: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
+  const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
+  const timeOpen = useRef(false);
+  const [collisionPadding, setCollisionPadding] = useState({
+    top: 12,
+    bottom: 12,
+    left: 12,
+    right: 12,
+  });
+  useEffect(() => {
+    if (!open) return;
+    const measure = () => {
+      const root = getComputedStyle(document.documentElement);
+      const inset =
+        parseFloat(root.getPropertyValue("--spacing-panel-inset-default")) *
+        parseFloat(root.fontSize);
+      const nav = document.querySelector(".navbar")?.getBoundingClientRect();
+      const footer = document.querySelector("footer")?.getBoundingClientRect();
+      setCollisionPadding({
+        top: (nav?.bottom ?? 0) + inset,
+        bottom: (footer ? innerHeight - footer.top : 0) + inset,
+        left: inset,
+        right: inset,
+      });
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    window.visualViewport?.addEventListener("resize", measure);
+    return () => {
+      window.removeEventListener("resize", measure);
+      window.visualViewport?.removeEventListener("resize", measure);
+    };
+  }, [open]);
   const selectedDate = parseLocalDateTime(value);
   const datePart = value ? value.slice(0, 10) : "";
   const timePart = value ? value.slice(11, 16) : "";
-
-  const handleSelectDate = (d?: Date) => {
-    if (!d) return;
-    onChange(`${toDatePart(d)}T${timePart || "09:00"}`);
-  };
-
-  const handleTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const t = e.target.value;
-    if (!t) {
-      onChange("");
-      return;
-    }
-    onChange(`${datePart || toDatePart(new Date())}T${t}`);
-  };
+  const valueId = `${id}-value`;
+  const ariaDescribedBy = [valueId, describedBy].filter(Boolean).join(" ");
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger
-        id={id}
-        type="button"
-        aria-invalid={invalid || undefined}
-        aria-describedby={describedBy}
-        className={cn(
-          fieldSurface,
-          controlMinH,
-          "flex items-center justify-between gap-2 text-left",
-          !value && "text-muted-foreground"
-        )}
-      >
-        <span>{value ? value.replace("T", " ") : "选择日期时间"}</span>
-        <CalendarIcon className="size-4 shrink-0 text-muted-foreground" />
-      </PopoverTrigger>
+    <Popover
+      open={open}
+      onOpenChange={(next, event) => {
+        if (!next && timeOpen.current) {
+          event.cancel();
+          return;
+        }
+        setOpen(next);
+      }}
+    >
+      <div className="flex items-center justify-start gap-2">
+        <span id={valueId} className={cn("text-left text-sm", !value && "text-muted-foreground")}>
+          {value ? value.replace("T", " ") : "请选择截止日期时间"}
+        </span>
+        <Button
+          size="icon"
+          disabled={disabled}
+          aria-label="选择截止日期时间"
+          render={
+            <PopoverTrigger
+              id={id}
+              type="button"
+              aria-invalid={invalid || undefined}
+              aria-describedby={ariaDescribedBy}
+            />
+          }
+        >
+          <CalendarIcon aria-hidden />
+        </Button>
+      </div>
       <PopoverContent
-        align="start"
-        className="w-auto bg-background p-0 shadow-neu-raised-sm ring-0"
+        collisionPadding={collisionPadding}
+        ref={setPortalContainer}
+        align="end"
+        className="max-h-(--available-height) w-auto overflow-y-auto bg-background p-0 shadow-neu-raised-sm ring-0"
       >
-        <Calendar mode="single" selected={selectedDate} onSelect={handleSelectDate} autoFocus />
+        <Calendar
+          disabled={disabled}
+          mode="single"
+          selected={selectedDate}
+          onSelect={(date) => date && onChange(`${toDatePart(date)}T${timePart || "09:00"}`)}
+          autoFocus
+        />
         <div className="flex items-center gap-3 border-t border-border p-3">
-          <label htmlFor={`${id}-time`} className="text-sm font-medium">
-            时间
-          </label>
-          <input
-            id={`${id}-time`}
-            type="time"
-            value={timePart}
-            onChange={handleTimeChange}
-            className={cn(fieldSurface, "min-h-9 flex-1")}
-          />
+          <span className="text-sm font-medium">时间</span>
+          {(["hour", "minute"] as const).map((part) => (
+            <Select
+              key={part}
+              disabled={disabled}
+              value={timePart ? timePart.split(":")[part === "hour" ? 0 : 1] : ""}
+              onOpenChange={(next) => {
+                timeOpen.current = next;
+              }}
+              onValueChange={(next) => {
+                const [hour = "09", minute = "00"] = (timePart || "09:00").split(":");
+                onChange(
+                  (datePart || toDatePart(new Date())) +
+                    "T" +
+                    (part === "hour" ? next : hour) +
+                    ":" +
+                    (part === "minute" ? next : minute)
+                );
+              }}
+            >
+              <SelectTrigger
+                aria-label={part === "hour" ? "小时" : "分钟"}
+                className="min-h-11 min-w-20 border-0 bg-background text-foreground shadow-neu-inset-sm dark:bg-background dark:hover:bg-muted"
+              >
+                <SelectValue placeholder={part === "hour" ? "小时" : "分钟"} />
+              </SelectTrigger>
+              <SelectContent
+                portalContainer={portalContainer}
+                position="popper"
+                collisionPadding={collisionPadding}
+                className="min-w-20 bg-background p-[var(--spacing-panel-inset-default)] text-foreground shadow-neu-raised-sm ring-0"
+                onEscapeKeyDown={(event) => event.stopPropagation()}
+              >
+                {Array.from({ length: part === "hour" ? 24 : 60 }, (_, index) => (
+                  <SelectItem
+                    key={index}
+                    value={pad(index)}
+                    className="min-h-11 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus:bg-muted focus:text-foreground"
+                  >
+                    {pad(index)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          ))}
         </div>
       </PopoverContent>
     </Popover>
   );
 }
 
-/* ------------------------------------------------------------------ */
-/* ChecklistForm                                                       */
-/* ------------------------------------------------------------------ */
-
-export function ChecklistForm({ mode, initialValues, onSubmit, onCancel }: ChecklistFormProps) {
+export function ChecklistForm({
+  mode,
+  initialValues,
+  onSubmit,
+  onCancel,
+  deadlineRequired = false,
+  requireItem = false,
+  fillHeight = false,
+}: ChecklistFormProps) {
   const uid = useId();
-  const {
-    register,
-    control,
-    handleSubmit,
-    setValue,
-    setError,
-    clearErrors,
-    formState: { errors, isSubmitting },
-  } = useForm<ChecklistFormValues>({
-    defaultValues: initialValues,
-    mode: "onBlur",
-  });
-
-  // items 只实例化一次；渲染 key 使用 RHF 生成的 field.id
-  const { fields, append, remove } = useFieldArray({
-    control,
+  const height = useChecklistFormHeight(fillHeight);
+  const [submitting, setSubmitting] = useState(false);
+  const [removeTarget, setRemoveTarget] = useState<number | null>(null);
+  const [editTarget, setEditTarget] = useState<number | null>(null);
+  const [pendingSnapshot, setPendingSnapshot] = useState<ChecklistFormValues | null>(null);
+  const editTriggerRefs = useRef(new Map<string, HTMLButtonElement>());
+  const parent = useForm<ChecklistFormValues>({ defaultValues: initialValues, mode: "onSubmit" });
+  const composer = useForm<ItemFieldsValue>({ defaultValues: { detail: "" } });
+  const { fields, prepend, remove, update } = useFieldArray({
+    control: parent.control,
     name: "items",
   });
+  const expiresKind = useWatch({ control: parent.control, name: "expiresAt.kind" });
+  const itemGrid = useChecklistItemGrid<HTMLUListElement>(fields.length);
+  const shortcut = usePlatformShortcut();
+  const themeColor = useWatch({ control: parent.control, name: "themeColor" });
 
-  const expiresKind = useWatch({ control, name: "expiresAt.kind" });
-  const themeColor = useWatch({ control, name: "themeColor" });
-
-  const submit = handleSubmit(async (values) => {
-    clearErrors("root");
+  const persist = async (values: ChecklistFormValues) => {
+    parent.clearErrors("root");
+    setSubmitting(true);
     try {
       await onSubmit(values);
-    } catch (e) {
-      setError("root", {
-        message: e instanceof Error ? e.message : "提交失败，请稍后重试",
+    } catch (error) {
+      parent.setError("root", {
+        message: error instanceof Error ? error.message : "提交失败，请稍后重试",
       });
+    } finally {
+      setSubmitting(false);
     }
+  };
+
+  const requestSubmit = parent.handleSubmit(async (values) => {
+    if (requireItem && values.items.length === 0) {
+      parent.setError("root", { message: "清单至少需要一个已添加项目" });
+      return;
+    }
+    const snapshot = structuredClone(values);
+    if (composer.getValues("detail") !== "") {
+      setPendingSnapshot(snapshot);
+      return;
+    }
+    await persist(snapshot);
   });
 
-  const addItem = () => {
-    append({
+  const addItem = composer.handleSubmit((value) => {
+    if (fields.length >= 200) {
+      composer.setError("detail", { message: "每份清单最多添加 200 个项目" });
+      return;
+    }
+    prepend({
       kind: "new",
-      clientKey:
-        typeof crypto !== "undefined" && "randomUUID" in crypto
-          ? crypto.randomUUID()
-          : `new-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-      name: "",
-      detail: "",
+      clientKey: crypto.randomUUID(),
+      detail: value.detail.trim().normalize("NFC"),
     });
+    composer.reset({ detail: "" });
+    requestAnimationFrame(() => document.getElementById(`${uid}-composer-detail`)?.focus());
+  });
+
+  const openEditor = (index: number) => {
+    setEditTarget(index);
+  };
+
+  const saveEditor = (detail: string) => {
+    if (editTarget === null) return;
+    const current = fields[editTarget];
+    update(editTarget, { ...current, detail });
+    setEditTarget(null);
+    requestAnimationFrame(() => editTriggerRefs.current.get(current.clientKey)?.focus());
+  };
+
+  const closeEditor = () => {
+    if (editTarget !== null) {
+      const current = fields[editTarget];
+      setEditTarget(null);
+      requestAnimationFrame(() => editTriggerRefs.current.get(current.clientKey)?.focus());
+    }
   };
 
   const title = mode === "create" ? "创建清单" : "编辑清单";
-  const submitLabel = mode === "create" ? "创建清单" : "保存修改";
+  const currentZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
   return (
-    <form onSubmit={submit} noValidate className="flex flex-col gap-6">
-      {/* 标题区 */}
-      <div>
-        <h2 className="text-xl font-bold text-balance">{title}</h2>
-      </div>
-
-      {/* 根级错误 */}
-      {errors.root?.message && (
-        <div role="alert" className="text-sm text-destructive">
-          {errors.root.message}
-        </div>
+    <form
+      ref={height.formRef}
+      onSubmit={requestSubmit}
+      onKeyDown={(event) => {
+        if (
+          event.key !== "Enter" ||
+          !shortcut.matches(event) ||
+          event.defaultPrevented ||
+          event.nativeEvent.isComposing ||
+          !event.currentTarget.contains(event.target as Node)
+        )
+          return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (
+          event.repeat ||
+          submitting ||
+          composer.formState.isSubmitting ||
+          fields.length >= 200 ||
+          !composer.getValues("detail").trim()
+        )
+          return;
+        void addItem();
+      }}
+      noValidate
+      className={cn(
+        "@container flex flex-col gap-2",
+        fillHeight && "checklist-form-fill h-full min-h-0 [&>*]:shrink-0"
       )}
-
-      {/* 清单名 */}
-      <div>
-        <label htmlFor={`${uid}-name`} className="mb-1.5 block text-sm font-medium">
-          清单名
-        </label>
-        <input
-          id={`${uid}-name`}
-          type="text"
-          placeholder="例如：季度产品发布验收清单"
-          className={cn(fieldSurface, controlMinH)}
-          aria-invalid={errors.name ? true : undefined}
-          aria-describedby={errors.name ? `${uid}-name-err` : undefined}
-          {...register("name", {
-            required: "请填写清单名",
-            maxLength: { value: 60, message: "清单名不超过 60 个字符" },
-          })}
-        />
-        <FieldError id={`${uid}-name-err`} message={errors.name?.message} />
-      </div>
-
-      {/* 主题色：八个固定可选颜色 */}
-      <fieldset>
-        <legend className="mb-1.5 text-sm font-medium">主题色</legend>
-        <div
-          role="radiogroup"
-          aria-label="主题色"
-          aria-invalid={errors.themeColor ? true : undefined}
-          aria-describedby={errors.themeColor ? `${uid}-theme-err` : undefined}
-          className="flex flex-wrap gap-3"
-        >
-          {THEME_COLOR_OPTIONS.map((opt) => {
-            const selected = themeColor === opt.value;
-            return (
-              <label key={opt.value} className="relative flex cursor-pointer" title={opt.label}>
-                <input
-                  type="radio"
-                  value={opt.value}
-                  className="peer sr-only"
-                  {...register("themeColor", { required: "请选择主题色" })}
-                />
-                <span
-                  aria-hidden
-                  className={cn(
-                    "flex size-[33px] items-center justify-center rounded-lg bg-background shadow-neu-raised-sm transition-shadow",
-                    "peer-focus-visible:ring-2 peer-focus-visible:ring-primary/60",
-                    selected && "shadow-neu-inset-sm"
-                  )}
-                >
-                  <span
-                    className="size-[18px] rounded-full"
-                    style={{ backgroundColor: opt.value }}
-                  />
-                </span>
-                <span className="sr-only">{opt.label}</span>
-              </label>
-            );
-          })}
+      aria-busy={submitting}
+    >
+      {!fillHeight ? (
+        <div>
+          <h2 className="text-xl font-bold text-balance">{title}</h2>
         </div>
-        <FieldError id={`${uid}-theme-err`} message={errors.themeColor?.message} />
-      </fieldset>
+      ) : null}
+      {parent.formState.errors.root?.message ? (
+        <div role="alert" className="text-sm text-destructive">
+          {parent.formState.errors.root.message}
+        </div>
+      ) : null}
 
-      {/* 有效期：勾选表示指定截止日期时间，不勾选表示不指定 */}
-      <fieldset className="flex flex-col gap-3">
-        <legend className="mb-1.5 text-sm font-medium">有效期</legend>
-        <div className="flex items-center gap-3 min-h-11">
-          <Checkbox
-            id={`${uid}-exp-toggle`}
-            checked={expiresKind === "datetime"}
-            onCheckedChange={(checked) =>
-              setValue("expiresAt.kind", checked ? "datetime" : "none", {
-                shouldValidate: true,
-              })
-            }
-          />
-          <label htmlFor={`${uid}-exp-toggle`} className="text-sm cursor-pointer">
-            指定截止日期时间
+      <div className="flex flex-col gap-2">
+        <div>
+          <label htmlFor={`${uid}-name`} className="mb-1.5 block text-sm font-medium">
+            清单名
           </label>
+          <input
+            id={`${uid}-name`}
+            disabled={submitting}
+            placeholder="例如：季度产品发布验收清单"
+            className={cn(fieldSurface, controlMinH)}
+            aria-invalid={parent.formState.errors.name ? true : undefined}
+            aria-describedby={parent.formState.errors.name ? `${uid}-name-error` : undefined}
+            {...parent.register("name", {
+              validate: (value) => {
+                const length = Array.from(value.trim().normalize("NFC")).length;
+                return (length >= 1 && length <= 100) || "清单名需为 1 到 100 个字符";
+              },
+            })}
+          />
+          <FieldError id={`${uid}-name-error`} message={parent.formState.errors.name?.message} />
         </div>
-        {/* kind 作为受控隐藏字段随表单提交 */}
-        <input type="hidden" {...register("expiresAt.kind")} />
 
-        {expiresKind === "datetime" && (
-          <div>
-            <label htmlFor={`${uid}-exp-dt`} className="mb-1.5 block text-sm font-medium">
-              截止日期时间
-            </label>
-            <Controller
-              control={control}
-              name="expiresAt.localDateTime"
-              rules={{
-                validate: (v) => expiresKind !== "datetime" || !!v || "请填写截止日期时间",
-              }}
-              render={({ field }) => (
-                <DateTimePicker
-                  id={`${uid}-exp-dt`}
-                  value={field.value}
-                  onChange={field.onChange}
-                  invalid={!!errors.expiresAt?.localDateTime}
-                  describedBy={errors.expiresAt?.localDateTime ? `${uid}-exp-dt-err` : undefined}
-                />
-              )}
-            />
-            <FieldError
-              id={`${uid}-exp-dt-err`}
-              message={errors.expiresAt?.localDateTime?.message}
-            />
+        <fieldset className="flex flex-col gap-3" disabled={submitting}>
+          <legend className="sr-only">主题色</legend>
+          <div className="flex items-center gap-3">
+            <span aria-hidden className="shrink-0 text-sm font-medium">
+              主题色
+            </span>
+            <input type="hidden" {...parent.register("themeColor", { required: "请选择主题色" })} />
+            <div
+              role="radiogroup"
+              aria-label="主题色"
+              aria-invalid={parent.formState.errors.themeColor ? true : undefined}
+              aria-describedby={
+                parent.formState.errors.themeColor ? `${uid}-theme-error` : undefined
+              }
+              className={cn("flex flex-wrap gap-3", fillHeight && "gap-2")}
+            >
+              {THEME_COLOR_OPTIONS.map((option) => (
+                <Button
+                  key={option.value}
+                  type="button"
+                  size="icon"
+                  role="radio"
+                  aria-checked={themeColor === option.value}
+                  aria-label={option.label}
+                  title={option.label}
+                  className={cn("size-8", themeColor === option.value && "shadow-neu-inset-sm")}
+                  onClick={() =>
+                    parent.setValue("themeColor", option.value, {
+                      shouldDirty: true,
+                      shouldValidate: true,
+                    })
+                  }
+                >
+                  <span aria-hidden className="flex items-center justify-center">
+                    <span
+                      className="size-4 rounded-full"
+                      style={{ backgroundColor: option.value }}
+                    />
+                  </span>
+                </Button>
+              ))}
+            </div>
           </div>
-        )}
-      </fieldset>
+          <FieldError
+            id={`${uid}-theme-error`}
+            message={parent.formState.errors.themeColor?.message}
+          />
+        </fieldset>
 
-      {/* 清单项 */}
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">清单项（{fields.length}）</p>
-          <Button type="button" variant="default" onClick={addItem} className="min-h-11 gap-1.5">
-            <Plus className="size-4" />
-            添加清单项
+        <fieldset className="flex flex-col gap-3" disabled={submitting}>
+          <legend className="sr-only">{deadlineRequired ? "截止时间" : "有效期"}</legend>
+          <div className="flex items-center gap-3">
+            <span aria-hidden className="shrink-0 text-sm font-medium">
+              {deadlineRequired ? "截止时间" : "有效期"}
+            </span>
+            <div className="min-w-0 flex-1">
+              {!deadlineRequired ? (
+                <div className="flex min-h-11 items-center gap-3">
+                  <Checkbox
+                    id={`${uid}-exp-toggle`}
+                    checked={expiresKind === "datetime"}
+                    onCheckedChange={(checked) =>
+                      parent.setValue("expiresAt.kind", checked ? "datetime" : "none", {
+                        shouldValidate: true,
+                      })
+                    }
+                  />
+                  <label htmlFor={`${uid}-exp-toggle`} className="cursor-pointer text-sm">
+                    指定截止日期时间
+                  </label>
+                </div>
+              ) : null}
+              <input type="hidden" {...parent.register("expiresAt.kind")} />
+              {expiresKind === "datetime" ? (
+                <div>
+                  <label htmlFor={`${uid}-expires`} className="sr-only">
+                    截止日期时间
+                  </label>
+                  <Controller
+                    control={parent.control}
+                    name="expiresAt.localDateTime"
+                    rules={{
+                      validate: (value) =>
+                        expiresKind !== "datetime" || Boolean(value) || "请填写截止日期时间",
+                    }}
+                    render={({ field }) => (
+                      <DateTimePicker
+                        id={`${uid}-expires`}
+                        value={field.value}
+                        onChange={field.onChange}
+                        disabled={submitting}
+                        invalid={Boolean(parent.formState.errors.expiresAt?.localDateTime)}
+                        describedBy={
+                          parent.formState.errors.expiresAt?.localDateTime
+                            ? `${uid}-expires-error`
+                            : undefined
+                        }
+                      />
+                    )}
+                  />
+                </div>
+              ) : null}
+            </div>
+          </div>
+          {expiresKind === "datetime" ? (
+            <>
+              <p className={cn("mt-1 text-xs text-muted-foreground")}>
+                按当前时区 {currentZone} 保存，跨时区后仍表示同一时刻。
+              </p>
+              <FieldError
+                id={`${uid}-expires-error`}
+                message={parent.formState.errors.expiresAt?.localDateTime?.message}
+              />
+            </>
+          ) : null}
+        </fieldset>
+      </div>
+      <section
+        aria-labelledby={`${uid}-composer-title`}
+        className={cn("flex flex-col gap-3", fillHeight && "checklist-composer gap-2")}
+      >
+        <div>
+          <h3 id={`${uid}-composer-title`} className="text-sm font-semibold">
+            新增清单项
+          </h3>
+          <p className="text-xs text-muted-foreground">
+            {fillHeight ? "快捷添加：" : "填写详情后点击添加或按 "}
+            <KbdGroup>
+              <Kbd aria-label={shortcut.modifierName}>{shortcut.modifier}</Kbd>
+              <Kbd>Enter</Kbd>
+            </KbdGroup>
+            {!fillHeight && "，只有已添加列表中的项目会随清单保存。"}
+          </p>
+        </div>
+        <ChecklistItemFields
+          id={`${uid}-composer-detail`}
+          disabled={submitting}
+          register={composer.register}
+          error={composer.formState.errors.detail?.message}
+        />
+        <div className="flex justify-end">
+          <Button type="button" onClick={addItem} disabled={submitting || fields.length >= 200}>
+            <Plus aria-hidden />
+            添加
           </Button>
         </div>
+      </section>
 
-        {fields.length === 0 && (
-          <p className="rounded-lg bg-muted px-3 py-4 text-center text-sm text-muted-foreground">
-            暂无清单项，点击「添加清单项」新增。
-          </p>
-        )}
-
-        <ul className="flex flex-col gap-4">
-          {fields.map((field, index) => {
-            const nameErr = errors.items?.[index]?.name?.message;
-            return (
-              // 渲染 key 使用 RHF field.id，与业务字段 clientKey 相互独立
-              <li key={field.id} className="rounded-lg border border-border bg-background p-4">
-                {/* kind / itemId / expectedRevision / clientKey 为受控隐藏字段，用户不可编辑 */}
-                <input type="hidden" {...register(`items.${index}.kind` as const)} />
-                <input type="hidden" {...register(`items.${index}.itemId` as const)} />
-                <input type="hidden" {...register(`items.${index}.expectedRevision` as const)} />
-                <input type="hidden" {...register(`items.${index}.clientKey` as const)} />
-
-                <div className="flex flex-col gap-3">
-                  <div>
-                    <label
-                      htmlFor={`${uid}-item-${field.id}-name`}
-                      className="mb-1.5 block text-sm font-medium"
-                    >
-                      清单项名称
-                    </label>
-                    <input
-                      id={`${uid}-item-${field.id}-name`}
-                      type="text"
-                      placeholder="例如：完成回归测试"
-                      className={cn(fieldSurface, controlMinH)}
-                      aria-invalid={nameErr ? true : undefined}
-                      aria-describedby={nameErr ? `${uid}-item-${field.id}-name-err` : undefined}
-                      {...register(`items.${index}.name` as const, {
-                        required: "请填写清单项名称",
-                        maxLength: { value: 80, message: "不超过 80 个字符" },
-                      })}
-                    />
-                    <FieldError id={`${uid}-item-${field.id}-name-err`} message={nameErr} />
-                  </div>
-
-                  <div>
-                    <label
-                      htmlFor={`${uid}-item-${field.id}-detail`}
-                      className="mb-1.5 block text-sm font-medium"
-                    >
-                      清单项详情
-                      <span className="ml-1.5 text-xs font-normal text-muted-foreground">选填</span>
-                    </label>
-                    <textarea
-                      id={`${uid}-item-${field.id}-detail`}
-                      rows={2}
-                      placeholder="补充说明、上下文或验收标准…"
-                      className={cn(fieldSurface, "resize-y")}
-                      {...register(`items.${index}.detail` as const)}
-                    />
-                  </div>
-
-                  <div className="flex justify-end">
-                    <Button
-                      type="button"
-                      variant="danger"
-                      size="icon"
-                      onClick={() => remove(index)}
-                      aria-label={`移除第 ${index + 1} 项`}
-                      className="size-8 [&_svg]:size-4"
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                </div>
+      <section
+        ref={height.sectionRef}
+        data-checklist-items
+        aria-labelledby={`${uid}-added-title`}
+        className={cn("flex min-w-0 flex-col gap-3", fillHeight && "min-h-0 flex-1")}
+      >
+        <h3 id={`${uid}-added-title`} className="text-sm font-semibold">
+          已添加清单项（{fields.length}）
+        </h3>
+        <div
+          ref={height.scrollRef}
+          data-testid="checklist-item-scroll"
+          className={cn(
+            "min-w-0 overflow-auto overscroll-contain p-[var(--spacing-panel-inset-default)]",
+            fillHeight && "min-h-0 flex-1"
+          )}
+        >
+          {fields.length === 0 ? (
+            <p className="rounded-lg bg-muted px-3 py-4 text-center text-sm text-muted-foreground">
+              尚未添加项目。请先在上方填写详情并点击添加。
+            </p>
+          ) : null}
+          <ul className="checklist-item-grid" {...itemGrid}>
+            {fields.map((field, index) => (
+              <li
+                id={field.itemId ? `item-${field.itemId}` : undefined}
+                key={field.id}
+                className="min-h-0 min-w-0 scroll-mt-24"
+              >
+                <ChecklistItemCard
+                  item={{ id: field.clientKey, label: field.detail, done: false }}
+                  size="md"
+                  draftMode
+                  showActions
+                  loading={submitting}
+                  editButtonRef={(node) => {
+                    if (node) editTriggerRefs.current.set(field.clientKey, node);
+                    else editTriggerRefs.current.delete(field.clientKey);
+                  }}
+                  onEdit={() => openEditor(index)}
+                  onDelete={() => setRemoveTarget(index)}
+                />
               </li>
-            );
-          })}
-        </ul>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      <div className={cn("flex justify-end pt-4", fillHeight && "pt-0")}>
+        <div className="flex flex-wrap gap-2">
+          <Button
+            type="button"
+            size="md"
+            variant="default"
+            onClick={onCancel}
+            disabled={submitting}
+          >
+            取消
+          </Button>
+          <Button type="submit" size="md" variant="primary" loading={submitting}>
+            {submitting ? "提交中…" : "保存"}
+          </Button>
+        </div>
       </div>
 
-      {/* 操作区 */}
-      <div className="flex items-center justify-end gap-3 pt-4">
-        <Button
-          type="button"
-          variant="default"
-          onClick={onCancel}
-          disabled={isSubmitting}
-          className="min-h-11 min-w-24"
-        >
-          取消
-        </Button>
-        <Button
-          type="submit"
-          variant="primary"
-          disabled={isSubmitting}
-          className="min-h-11 min-w-24"
-        >
-          {isSubmitting ? "提交中…" : submitLabel}
-        </Button>
-      </div>
+      {editTarget !== null ? (
+        <ChecklistItemEditDialog
+          open
+          detail={fields[editTarget].detail}
+          description="修改只保存在当前草稿中，保存整份清单后才会写入数据库。"
+          onOpenChange={(open) => {
+            if (!open) closeEditor();
+          }}
+          onSave={saveEditor}
+          onDelete={() => {
+            setRemoveTarget(editTarget);
+            setEditTarget(null);
+          }}
+          deleteDisabled={requireItem && fields.length <= 1}
+        />
+      ) : null}
+
+      <AlertDialog
+        open={removeTarget !== null}
+        onOpenChange={(open) => !open && setRemoveTarget(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>从清单中删除这个项目？</AlertDialogTitle>
+            <AlertDialogDescription>
+              {removeTarget === null ? "这个项目" : fields[removeTarget]?.detail}{" "}
+              将从当前草稿移除。既有项目只会在整份清单保存成功后进入回收站。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={submitting}>取消</AlertDialogCancel>
+            <AlertDialogAction
+              variant="danger"
+              disabled={submitting || (requireItem && fields.length <= 1)}
+              onClick={() => {
+                if (removeTarget !== null) remove(removeTarget);
+                setRemoveTarget(null);
+              }}
+            >
+              确认删除
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingSnapshot !== null}
+        onOpenChange={(open) => !open && setPendingSnapshot(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>有未添加的清单项内容</AlertDialogTitle>
+            <AlertDialogDescription>
+              继续保存将不会包含固定新增器中的这些内容。
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel
+              onClick={() =>
+                requestAnimationFrame(() =>
+                  document.getElementById(`${uid}-composer-detail`)?.focus()
+                )
+              }
+            >
+              取消
+            </AlertDialogCancel>
+            <AlertDialogAction
+              variant="primary"
+              onClick={() => {
+                const snapshot = pendingSnapshot;
+                setPendingSnapshot(null);
+                if (snapshot) void persist(snapshot);
+              }}
+            >
+              继续保存
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </form>
   );
 }

@@ -95,7 +95,7 @@
 - 分别注入连接中断、序列化失败、死锁和不可重试错误，并准备多批积压，确认仅前三类按 50 和 100 毫秒退避最多重试两次，Route Handler 声明 60 秒 `maxDuration` 并在第 55 秒停止开启新批次，后续受保护调用可以续跑，验证 **AC-17**。
 - 让恢复与清理竞争同一父子集合，确认统一锁顺序、资格重验和无死锁或误删，验证 **AC-13**、**AC-16**、**AC-17**。
 - 检查 PostgreSQL 查询计划和目录，确认外键索引、活动部分索引、列表复合索引与详情 trigram GIN 索引存在且相关查询可使用，并确认不存在项目详情唯一索引，验证 **AC-18**。
-- 在空环境执行 forward schema 改造，确认删除 name 列、detail 为 NOT NULL、重复详情可写且详情 trigram 索引可用；在存在任何旧清单行的环境确认迁移在写入前停止且不删除数据。确认 reset 工具只接受明确 allowlist 的本地或暂存目标，并拒绝其他环境，验证 **AC-4**、**AC-18**。
+- 从空环境执行唯一的清单 migration，确认它直接创建最终 `Checklist` 和 `ChecklistItem`，项目从创建时就只有必填 `TEXT detail`，重复详情可写且最终部分 trigram 索引可用。确认 migration 不包含旧 `name` 字段、中间索引、`DELETE`、`DROP`、`ALTER` 或 procedural block，并通过未放宽的 staging SQL 安全分类器。确认 `app_migrator` 创建对象后，既有 default privileges 只给 `app_runtime` 所需最小权限，验证 **AC-4**、**AC-18**。
 - 检查名称、详情、主题 allowlist、正 revision、正 createdOrder、唯一键和外键约束，并用普通空格、制表符、换行、不换行空格和全角空格测试服务端与数据库边界，验证 **AC-4**、**AC-18**。
 - 确认迁移只存在于 `prisma/postgres`，从空库重放成功，业务代码没有 legacy MySQL 或生成客户端导入，验证 **AC-18**。
 - 以 Supabase `anon` 和 `authenticated` 数据库角色尝试直接访问新表和序列，确认权限被拒绝；应用运行角色仍具有所需最小权限，验证 **AC-18**。

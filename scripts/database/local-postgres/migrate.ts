@@ -13,6 +13,7 @@ import {
 } from "./local";
 import { repositoryRoot, targets } from "./config";
 import { runCommand } from "./process";
+import type { CommandResult } from "./process";
 
 export function parseMigrationName(args: readonly string[]): string {
   const normalized = args[0] === "--" ? args.slice(1) : [...args];
@@ -33,23 +34,29 @@ export function parseMigrationName(args: readonly string[]): string {
 async function runPrisma(
   args: readonly string[],
   environment: NodeJS.ProcessEnv,
-  options: { signal?: AbortSignal; killGracePeriodMillis?: number } = {}
-): Promise<void> {
+  options: {
+    signal?: AbortSignal;
+    killGracePeriodMillis?: number;
+    captureOutput?: boolean;
+    acceptedExitCodes?: readonly number[];
+  } = {}
+): Promise<CommandResult> {
   const pnpmEntrypoint = process.env.npm_execpath;
   if (!pnpmEntrypoint) {
     throw new DatabaseToolError("CONFIG_CONFLICT", "Run this command through pnpm.");
   }
-  await runCommand(
+  return await runCommand(
     process.execPath,
     [pnpmEntrypoint, "exec", "prisma", ...args, "--config", "./prisma.postgres.config.ts"],
     {
       cwd: repositoryRoot,
       env: environment,
-      inherit: true,
+      inherit: !options.captureOutput,
       code: "MIGRATION_DRIFT",
       phase: "prisma",
       signal: options.signal,
       killGracePeriodMillis: options.killGracePeriodMillis,
+      acceptedExitCodes: options.acceptedExitCodes,
     }
   );
 }

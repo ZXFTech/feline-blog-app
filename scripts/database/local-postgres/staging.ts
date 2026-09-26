@@ -483,8 +483,10 @@ export async function stagingStatus(): Promise<StagingStatus> {
   return status;
 }
 
-export async function reconcileStagingMigrations(): Promise<MigrationDecision> {
-  const values = await stagingValues();
+export async function reconcileStagingMigrations(
+  configuredValues?: Readonly<Record<string, string>>
+): Promise<MigrationDecision> {
+  const values = configuredValues || (await stagingValues());
   const files = await localMigrationFiles();
   const migration = await stagingMigrationClient(values);
   try {
@@ -816,6 +818,31 @@ export interface StagingMigrationProbeResult extends RedactedTarget {
   prismaStatus: "reachable";
 }
 
+export function assertExpectedPendingPrismaStatus(
+  output: string,
+  expectedNames: readonly string[]
+): void {
+  const lines = output.split(/\r?\n/).map((line) => line.trim());
+  const marker = lines.indexOf("Following migration have not yet been applied:");
+  const reported: string[] = [];
+  for (let index = marker + 1; marker >= 0 && index < lines.length; index += 1) {
+    if (!/^\d{14}_[a-zA-Z0-9_]+$/.test(lines[index])) break;
+    reported.push(lines[index]);
+  }
+  if (
+    expectedNames.length === 0 ||
+    reported.length !== expectedNames.length ||
+    reported.some((name, index) => name !== expectedNames[index]) ||
+    /\bError:/i.test(output)
+  ) {
+    throw new DatabaseToolError(
+      "MIGRATION_DRIFT",
+      "Prisma migration status did not match the pending migration history.",
+      "prisma"
+    );
+  }
+}
+
 export async function probeStagingMigration(
   configuredValues?: Readonly<Record<string, string>>
 ): Promise<StagingMigrationProbeResult> {
@@ -842,7 +869,17 @@ export async function probeStagingMigration(
     try {
       await peer.query("SELECT 1");
       await withStagingPrismaEnvironment(values, async (environment) => {
-        await runPrisma(["migrate", "status"], environment);
+        const result = await runPrisma(["migrate", "status"], environment, {
+          captureOutput: true,
+          acceptedExitCodes: [1],
+        });
+        if (result.exitCode === 1) {
+          const decision = await reconcileStagingMigrations(values);
+          assertExpectedPendingPrismaStatus(
+            `${result.stdout}\n${result.stderr}`,
+            decision.pending.map((migration) => migration.name)
+          );
+        }
       });
     } finally {
       await controller

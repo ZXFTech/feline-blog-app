@@ -2,6 +2,8 @@
 
 This runbook owns the one time provider settings and the safe recovery path for the staging pipeline in `.github/workflows/staging.yml`.
 
+For the complete bilingual setup and operating procedure, see the [Chinese runbook](./ci-staging-release-runbook.zh-CN.md) and the [English runbook](./ci-staging-release-runbook.en.md).
+
 ## GitHub repository settings
 
 Protect `master` with a repository ruleset.

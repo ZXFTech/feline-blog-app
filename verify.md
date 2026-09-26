@@ -2,6 +2,8 @@
 
 本清单用于首次启用和以后重新验证 `.github/workflows/staging.yml`。不要把 token、密码、数据库 URL、Cookie、CA 内容或 GitHub App 私钥复制到 issue、PR、Actions 日志或 artifact。
 
+完整配置、操作、验证和故障恢复说明见 [中文全流程手册](docs/operations/ci-staging-release-runbook.zh-CN.md) 与 [English runbook](docs/operations/ci-staging-release-runbook.en.md)。
+
 ## 1. GitHub App
 
 - [ ] 在 GitHub 创建一个仅用于本仓库 Release Please 的私有 GitHub App。
@@ -10,15 +12,15 @@
 - [ ] Organization、account 和其他 repository permissions 保持 `No access`，不订阅事件。
 - [ ] App 只允许安装到所有者账号，并且安装时只选择 `ZXFTech/feline-blog-app`。
 - [ ] 生成 private key，并把完整 PEM 内容保存为 GitHub Environment `staging` 的 secret `RELEASE_APP_PRIVATE_KEY`。
-- [ ] 把 App settings 页面显示的 App ID 保存为 Environment variable `RELEASE_APP_ID`。
-- [ ] 把 `<app-slug>[bot]` 保存为 Environment variable `RELEASE_APP_LOGIN`。`app-slug` 是 `https://github.com/apps/<app-slug>` 中的最后一段。
+- [ ] 把 App settings 页面显示的 Client ID 保存为 Environment variable `RELEASE_APP_ID`。不要使用 numeric App ID 或 App slug。
+- [ ] 把 `<app-slug>[bot]` 保存为 repository variable `RELEASE_APP_LOGIN`。`app-slug` 是 `https://github.com/apps/<app-slug>` 中的最后一段。
 - [ ] 确认私钥没有写入仓库、`.env`、shell history 或命令参数。GitHub secret 保存成功后，将本地 PEM 移入安全密钥库或安全删除。
 
 PowerShell 可使用以下命令保存三个值。不要把私钥作为 `--body` 参数传递。
 
 ```powershell
-gh variable set RELEASE_APP_ID --env staging --body "<app-id>"
-gh variable set RELEASE_APP_LOGIN --env staging --body "<app-slug>[bot]"
+gh variable set RELEASE_APP_ID --env staging --body "<client-id>"
+gh variable set RELEASE_APP_LOGIN --body "<app-slug>[bot]"
 Get-Content -Raw -LiteralPath "<private-key.pem>" |
   gh secret set RELEASE_APP_PRIVATE_KEY --env staging
 ```
@@ -30,6 +32,8 @@ gh api repos/ZXFTech/feline-blog-app/environments/staging/secrets `
   --jq '[.secrets[].name]'
 gh api repos/ZXFTech/feline-blog-app/environments/staging/variables `
   --jq '[.variables[].name]'
+gh api repos/ZXFTech/feline-blog-app/actions/variables `
+  --jq '[.variables[].name]'
 ```
 
 预期同时存在：
@@ -37,7 +41,7 @@ gh api repos/ZXFTech/feline-blog-app/environments/staging/variables `
 ```text
 Secret: RELEASE_APP_PRIVATE_KEY
 Variable: RELEASE_APP_ID
-Variable: RELEASE_APP_LOGIN
+Repository variable: RELEASE_APP_LOGIN
 ```
 
 ## 2. GitHub Environment 和分支保护
@@ -112,8 +116,9 @@ Issuer 必须是 `https://token.actions.githubusercontent.com`。工作流只在
 | Variable | `STAGING_BASELINE_DEPLOYMENT_ID` | Verified current stable deployment ID                  |
 | Variable | `STAGING_BASELINE_COMMIT_SHA`    | Full SHA that produced the baseline deployment         |
 | Variable | `E2E_USER_ID`                    | Synthetic user database ID                             |
-| Variable | `RELEASE_APP_ID`                 | Release GitHub App ID                                  |
-| Variable | `RELEASE_APP_LOGIN`              | Exact `<app-slug>[bot]` login                          |
+| Variable | `RELEASE_APP_ID`                 | Release GitHub App Client ID                           |
+
+另在 repository variable 中保存 `RELEASE_APP_LOGIN`，值为精确的 `<app-slug>[bot]` login。不要只把该值配置在 `staging` Environment 中。
 
 首次激活前，在 Vercel Dashboard 中打开 `STAGING_BASE_URL` 当前指向的 deployment，确认它属于预期 team 和 `feline-blog-staging` project、target 为 Production、状态为 READY。记录其不可变 deployment ID，并从该 deployment 的 source build、部署日志或其他不可变发布记录确认生成它的完整 40 字符 commit SHA。不得用当前 `master` SHA 或部署日期猜测。
 
@@ -204,5 +209,5 @@ gh workflow run release-bookkeeping.yml `
   -f operation=maintain `
   -f candidate_sha=<full-sha> `
   -f source_run_id=<run-id> `
-  -f source_attempt=<attempt>
+  -f attempt=<attempt>
 ```

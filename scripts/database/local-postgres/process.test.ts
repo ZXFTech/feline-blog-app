@@ -47,6 +47,19 @@ describe("runCommand", () => {
     });
   });
 
+  it("accepts only an explicitly listed nonzero exit code", async () => {
+    const command = ["-e", "process.stdout.write('pending'); process.exit(1)"];
+    await expect(
+      runCommand(process.execPath, command, { acceptedExitCodes: [1] })
+    ).resolves.toEqual({ stdout: "pending", stderr: "", exitCode: 1 });
+    await expect(
+      runCommand(process.execPath, ["-e", "process.exit(2)"], {
+        acceptedExitCodes: [1],
+        code: "MIGRATION_DRIFT",
+      })
+    ).rejects.toMatchObject({ code: "MIGRATION_DRIFT" });
+  });
+
   it("covers: AC-15 terminates a child process when its controller aborts", async () => {
     const controller = new AbortController();
     const running = runCommand(

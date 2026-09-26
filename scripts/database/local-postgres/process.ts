@@ -18,6 +18,7 @@ export async function runCommand(
     phase?: string;
     signal?: AbortSignal;
     killGracePeriodMillis?: number;
+    acceptedExitCodes?: readonly number[];
   } = {}
 ): Promise<CommandResult> {
   return await new Promise((resolve, reject) => {
@@ -76,7 +77,7 @@ export async function runCommand(
             options.phase
           )
         );
-      } else if (result.exitCode !== 0) {
+      } else if (result.exitCode !== 0 && !options.acceptedExitCodes?.includes(result.exitCode)) {
         reject(
           new DatabaseToolError(
             options.code || "DOCKER_UNAVAILABLE",

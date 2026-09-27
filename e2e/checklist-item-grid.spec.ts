@@ -46,8 +46,7 @@ async function expectGeometry(grid: Locator) {
         expect(card.x - cards[index - 1].x - cards[index - 1].width).toBeCloseTo(gap, 1);
       }
     }
-    const occupied = columns * cards[0].width + (columns - 1) * gap;
-    expect(cards[0].x - geometry.left).toBeCloseTo((width - occupied) / 2, 1);
+    expect(cards[0].x - geometry.left).toBeCloseTo(0, 1);
   }).toPass({ timeout: 3000, intervals: [50] });
 }
 

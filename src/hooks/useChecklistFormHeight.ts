@@ -47,10 +47,12 @@ export function useChecklistFormHeight(enabled: boolean) {
       const rem = parseFloat(getComputedStyle(document.documentElement).fontSize);
       const cardSize = grid ? parseFloat(getComputedStyle(grid).gridTemplateColumns) : rem * 12.5;
       const scrollStyle = getComputedStyle(scroll);
+      const emptyMessage = scroll.querySelector<HTMLElement>("p");
+      const itemHeight = grid?.children.length
+        ? Math.max(rem * 12, Math.min(rem * 12.5, cardSize || rem * 12.5))
+        : (emptyMessage?.getBoundingClientRect().height ?? 0);
       const minimum =
-        Math.max(rem * 12, Math.min(rem * 12.5, cardSize || rem * 12.5)) +
-        parseFloat(scrollStyle.paddingTop) +
-        parseFloat(scrollStyle.paddingBottom);
+        itemHeight + parseFloat(scrollStyle.paddingTop) + parseFloat(scrollStyle.paddingBottom);
       form.style.setProperty("--checklist-form-height", `${height}px`);
       form.style.setProperty("--checklist-list-min-height", `${minimum}px`);
       form.dataset.short = String(height - fixed < minimum);

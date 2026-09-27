@@ -51,9 +51,12 @@ async function expectContained(page: Page) {
     };
   });
   if (isShort) {
-    const minimum = await page.evaluate(
-      () => parseFloat(getComputedStyle(document.documentElement).fontSize) * 12
-    );
+    const minimum =
+      (await form.getAttribute("data-empty")) === "true"
+        ? await scroll.locator("p").evaluate((element) => element.getBoundingClientRect().height)
+        : await page.evaluate(
+            () => parseFloat(getComputedStyle(document.documentElement).fontSize) * 12
+          );
     expect(geometry.height - geometry.paddingHeight).toBeGreaterThanOrEqual(minimum - 1);
     await expect(shortForm).toHaveCSS("overflow-y", "auto");
     await page.getByRole("button", { name: "保存", exact: true }).scrollIntoViewIfNeeded();

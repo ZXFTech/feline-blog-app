@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-/** Fit by the minimum size, then let CSS cap and center the occupied tracks. */
+/** Fit by the minimum size, then let CSS cap and left align the occupied tracks. */
 export function useChecklistItemGrid<T extends HTMLElement>(itemCount: number) {
   const ref = useRef<T>(null);
   const [columns, setColumns] = useState(1);

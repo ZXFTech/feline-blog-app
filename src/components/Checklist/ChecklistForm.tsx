@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+import { getDefaultClassNames } from "react-day-picker";
 import { Calendar as CalendarIcon, Plus } from "lucide-react";
 import { ChecklistItemCard } from "@/components/Checklist/ChecklistItemCard";
 import { Kbd, KbdGroup } from "@/components/ui/kbd";
@@ -130,6 +131,12 @@ function ChecklistItemFields({
 }
 
 const pad = (value: number) => String(value).padStart(2, "0");
+const calendarClassNames = getDefaultClassNames();
+
+function localToday() {
+  const now = new Date();
+  return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+}
 
 function parseLocalDateTime(value: string): Date | undefined {
   if (!value) return undefined;
@@ -162,6 +169,7 @@ function DateTimePicker({
   disabled,
 }: DateTimePickerProps) {
   const [open, setOpen] = useState(false);
+  const [today, setToday] = useState(localToday);
   const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
   const timeOpen = useRef(false);
   const [collisionPadding, setCollisionPadding] = useState({
@@ -208,6 +216,7 @@ function DateTimePicker({
           event.cancel();
           return;
         }
+        if (next) setToday(localToday());
         setOpen(next);
       }}
     >
@@ -235,61 +244,88 @@ function DateTimePicker({
         collisionPadding={collisionPadding}
         ref={setPortalContainer}
         align="end"
-        className="max-h-(--available-height) w-auto overflow-y-auto bg-background p-0 shadow-neu-raised-sm ring-0"
+        className="w-56 overflow-visible rounded-md p-1 text-base"
       >
-        <Calendar
-          disabled={disabled}
-          mode="single"
-          selected={selectedDate}
-          onSelect={(date) => date && onChange(`${toDatePart(date)}T${timePart || "09:00"}`)}
-          autoFocus
-        />
-        <div className="flex items-center gap-3 border-t border-border p-3">
-          <span className="text-sm font-medium">时间</span>
-          {(["hour", "minute"] as const).map((part) => (
-            <Select
-              key={part}
-              disabled={disabled}
-              value={timePart ? timePart.split(":")[part === "hour" ? 0 : 1] : ""}
-              onOpenChange={(next) => {
-                timeOpen.current = next;
-              }}
-              onValueChange={(next) => {
-                const [hour = "09", minute = "00"] = (timePart || "09:00").split(":");
-                onChange(
-                  (datePart || toDatePart(new Date())) +
-                    "T" +
-                    (part === "hour" ? next : hour) +
-                    ":" +
-                    (part === "minute" ? next : minute)
-                );
-              }}
-            >
-              <SelectTrigger
-                aria-label={part === "hour" ? "小时" : "分钟"}
-                className="min-h-11 min-w-20 border-0 bg-background text-foreground shadow-neu-inset-sm dark:bg-background dark:hover:bg-muted"
+        <div className="max-h-[calc(var(--available-height)-0.5rem)] overflow-y-auto">
+          <Calendar
+            disabled={disabled || { before: today }}
+            mode="single"
+            selected={selectedDate}
+            today={today}
+            className="p-0 text-popover-foreground [--cell-radius:var(--radius-sm)] [--cell-size:1.875rem]"
+            classNames={{
+              month: cn(calendarClassNames.month, "flex w-full flex-col gap-1"),
+              button_previous: cn(
+                calendarClassNames.button_previous,
+                "flex size-(--cell-size) items-center justify-center rounded-sm bg-transparent text-popover-foreground shadow-none hover:bg-accent focus-visible:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+              ),
+              button_next: cn(
+                calendarClassNames.button_next,
+                "flex size-(--cell-size) items-center justify-center rounded-sm bg-transparent text-popover-foreground shadow-none hover:bg-accent focus-visible:bg-accent focus-visible:outline-2 focus-visible:outline-ring"
+              ),
+              caption_label: cn(
+                calendarClassNames.caption_label,
+                "text-xs font-medium text-muted-foreground select-none"
+              ),
+              weekdays: cn(calendarClassNames.weekdays, "flex gap-0"),
+              weekday: cn(
+                calendarClassNames.weekday,
+                "flex-1 text-xs font-normal text-muted-foreground select-none"
+              ),
+              week: cn(calendarClassNames.week, "flex w-full gap-0"),
+              day_button: cn(calendarClassNames.day_button, "text-sm leading-5 [&>span]:text-sm"),
+            }}
+            onSelect={(date) => date && onChange(`${toDatePart(date)}T${timePart || "09:00"}`)}
+            autoFocus
+          />
+          <div className="mt-1 flex items-center gap-2 border-t border-foreground/10 px-2 py-1.5">
+            <span className="text-xs font-medium text-muted-foreground">时间</span>
+            {(["hour", "minute"] as const).map((part) => (
+              <Select
+                key={part}
+                disabled={disabled}
+                value={timePart ? timePart.split(":")[part === "hour" ? 0 : 1] : ""}
+                onOpenChange={(next) => {
+                  timeOpen.current = next;
+                }}
+                onValueChange={(next) => {
+                  const [hour = "09", minute = "00"] = (timePart || "09:00").split(":");
+                  onChange(
+                    (datePart || toDatePart(new Date())) +
+                      "T" +
+                      (part === "hour" ? next : hour) +
+                      ":" +
+                      (part === "minute" ? next : minute)
+                  );
+                }}
               >
-                <SelectValue placeholder={part === "hour" ? "小时" : "分钟"} />
-              </SelectTrigger>
-              <SelectContent
-                portalContainer={portalContainer}
-                position="popper"
-                collisionPadding={collisionPadding}
-                className="min-w-20 bg-background p-[var(--spacing-panel-inset-default)] text-foreground shadow-neu-raised-sm ring-0"
-                onEscapeKeyDown={(event) => event.stopPropagation()}
-              >
-                {Array.from({ length: part === "hour" ? 24 : 60 }, (_, index) => (
-                  <SelectItem
-                    key={index}
-                    value={pad(index)}
-                    className="min-h-11 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground focus:bg-muted focus:text-foreground"
-                  >
-                    {pad(index)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          ))}
+                <SelectTrigger
+                  aria-label={part === "hour" ? "小时" : "分钟"}
+                  size="sm"
+                  className="min-w-0 flex-1 rounded-sm border-0 bg-transparent px-2 py-1.5 text-sm text-popover-foreground shadow-none hover:bg-accent focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-0 dark:bg-transparent dark:hover:bg-accent"
+                >
+                  <SelectValue placeholder={part === "hour" ? "小时" : "分钟"} />
+                </SelectTrigger>
+                <SelectContent
+                  portalContainer={portalContainer}
+                  position="popper"
+                  collisionPadding={collisionPadding}
+                  className="w-fit min-w-0 p-1 text-base"
+                  onEscapeKeyDown={(event) => event.stopPropagation()}
+                >
+                  {Array.from({ length: part === "hour" ? 24 : 60 }, (_, index) => (
+                    <SelectItem
+                      key={index}
+                      value={pad(index)}
+                      className="px-[var(--spacing-panel-inset-comfortable)] [&>span:first-child]:right-[var(--spacing-panel-inset-comfortable)]"
+                    >
+                      {pad(index)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ))}
+          </div>
         </div>
       </PopoverContent>
     </Popover>
@@ -413,6 +449,7 @@ export function ChecklistForm({
         void addItem();
       }}
       noValidate
+      data-empty={fields.length === 0}
       className={cn(
         "@container flex flex-col gap-2",
         fillHeight && "checklist-form-fill h-full min-h-0 [&>*]:shrink-0"
@@ -613,7 +650,7 @@ export function ChecklistForm({
           ref={height.scrollRef}
           data-testid="checklist-item-scroll"
           className={cn(
-            "min-w-0 overflow-auto overscroll-contain p-[var(--spacing-panel-inset-default)]",
+            "min-w-0 overflow-auto p-[var(--spacing-panel-inset-default)]",
             fillHeight && "min-h-0 flex-1"
           )}
         >
@@ -678,7 +715,6 @@ export function ChecklistForm({
             setRemoveTarget(editTarget);
             setEditTarget(null);
           }}
-          deleteDisabled={requireItem && fields.length <= 1}
         />
       ) : null}
 
@@ -698,7 +734,7 @@ export function ChecklistForm({
             <AlertDialogCancel disabled={submitting}>取消</AlertDialogCancel>
             <AlertDialogAction
               variant="danger"
-              disabled={submitting || (requireItem && fields.length <= 1)}
+              disabled={submitting}
               onClick={() => {
                 if (removeTarget !== null) remove(removeTarget);
                 setRemoveTarget(null);

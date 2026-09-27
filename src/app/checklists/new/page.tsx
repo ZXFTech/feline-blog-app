@@ -8,7 +8,7 @@ import { requireAuth } from "@/lib/auth/userAuth";
 export default async function NewChecklistPage() {
   const auth = await requireAuth();
   return (
-    <Content className="checklist-content">
+    <Content className="checklist-content checklist-form-content">
       <main className="flex h-full min-h-0 w-full flex-col gap-4 overflow-hidden p-[var(--spacing-panel-inset-default)]">
         <header className="shrink-0">
           <h1 className="text-2xl font-bold">新建确认清单</h1>

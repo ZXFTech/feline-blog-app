@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -157,6 +157,70 @@ describe("ChecklistForm", () => {
     expect(screen.getByText("已添加清单项（0）")).toBeVisible();
   });
 
+  it.each(["create", "edit"] as const)(
+    "allows deleting the last draft card in %s mode and checks the item count on save",
+    async (mode) => {
+      const user = userEvent.setup();
+      const onSubmit = vi.fn().mockResolvedValue(undefined);
+      render(
+        <ChecklistForm
+          mode={mode}
+          initialValues={
+            mode === "create"
+              ? {
+                  ...editValues,
+                  items: [{ kind: "new", clientKey: "new-1", detail: "唯一项目" }],
+                }
+              : editValues
+          }
+          onSubmit={onSubmit}
+          onCancel={vi.fn()}
+          requireItem
+        />
+      );
+
+      await user.click(screen.getByRole("button", { name: "删除清单项" }));
+      const confirmDelete = screen.getByRole("button", { name: "确认删除" });
+      expect(confirmDelete).toBeEnabled();
+      await user.click(confirmDelete);
+      expect(screen.getByText("已添加清单项（0）")).toBeVisible();
+      expect(screen.queryByText("清单至少需要一个已添加项目")).not.toBeInTheDocument();
+      expect(onSubmit).not.toHaveBeenCalled();
+
+      await user.click(screen.getByRole("button", { name: "保存" }));
+      expect(await screen.findByRole("alert")).toHaveTextContent("清单至少需要一个已添加项目");
+      expect(onSubmit).not.toHaveBeenCalled();
+
+      if (mode === "create") {
+        await user.type(screen.getByRole("textbox", { name: "清单项详情" }), "替换项目");
+        await user.click(screen.getByRole("button", { name: "添加" }));
+        await user.click(screen.getByRole("button", { name: "保存" }));
+        await waitFor(() => expect(onSubmit).toHaveBeenCalledOnce());
+        expect(onSubmit.mock.calls[0][0].items).toMatchObject([{ detail: "替换项目" }]);
+      }
+    }
+  );
+
+  it("allows deleting the last draft item from its edit dialog", async () => {
+    const user = userEvent.setup();
+    render(
+      <ChecklistForm
+        mode="edit"
+        initialValues={editValues}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+        requireItem
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "编辑清单项" }));
+    await user.click(within(screen.getByRole("dialog")).getByRole("button", { name: "删除" }));
+    const confirmDelete = await screen.findByRole("button", { name: "确认删除" });
+    expect(confirmDelete).toBeEnabled();
+    await user.click(confirmDelete);
+    expect(screen.getByText("已添加清单项（0）")).toBeVisible();
+  });
+
   it("saves an edited checklist item with Ctrl and Enter", async () => {
     render(
       <ChecklistForm mode="edit" initialValues={editValues} onSubmit={vi.fn()} onCancel={vi.fn()} />
@@ -212,6 +276,37 @@ describe("ChecklistForm", () => {
     await userEvent.click(screen.getByRole("button", { name: "保存" }));
 
     expect(await screen.findByText("请填写截止日期时间")).toHaveAttribute("role", "alert");
+  });
+
+  it("disables dates before local today while keeping today selectable", async () => {
+    const user = userEvent.setup();
+    render(
+      <ChecklistForm
+        mode="create"
+        initialValues={{
+          ...emptyValues,
+          expiresAt: { kind: "datetime", localDateTime: "" },
+        }}
+        onSubmit={vi.fn()}
+        onCancel={vi.fn()}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: "选择截止日期时间" }));
+    const calendar = document.querySelector('[data-slot="calendar"]')!;
+    const today = new Date();
+    const yesterday = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+    const days = Array.from(calendar.querySelectorAll<HTMLButtonElement>("button[data-day]"));
+    const yesterdayButton = days.find(
+      (button) => button.dataset.day === yesterday.toLocaleDateString()
+    );
+    const todayButton = days.find((button) => button.dataset.day === today.toLocaleDateString());
+
+    expect(yesterdayButton).toBeDisabled();
+    expect(todayButton).toBeEnabled();
+    await user.click(todayButton!);
+    const datePart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+    expect(screen.getByText(`${datePart} 09:00`)).toBeVisible();
   });
 
   it("covers: AC-8 reports submit failures and keeps cancel independent", async () => {

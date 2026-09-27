@@ -1070,7 +1070,7 @@ html[dir="rtl"],
 .checklist-item-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(12rem, 12.5rem));
-  justify-content: center;
+  justify-content: start;
   gap: calc(var(--spacing) * 3);
   min-width: 12rem;
 }
@@ -1370,6 +1370,9 @@ html[dir="rtl"],
   min-height: 0;
   overflow: hidden;
 }
+.content.checklist-content.checklist-form-content {
+  overflow-y: auto;
+}
 .checklist-form-fill .checklist-composer textarea {
   height: 3.5rem;
   resize: none;
@@ -1391,7 +1394,6 @@ html[dir="rtl"],
 }
 .checklist-form-fill:not([data-short="false"]) {
   overflow-y: auto;
-  overscroll-behavior: contain;
 }
 .checklist-form-fill:not([data-short="false"]) [data-checklist-items] {
   flex: none;
@@ -1399,4 +1401,11 @@ html[dir="rtl"],
 .checklist-form-fill:not([data-short="false"]) [data-testid="checklist-item-scroll"] {
   flex: none;
   height: var(--checklist-list-min-height, calc(12.5rem + 2 * var(--spacing-panel-inset-default)));
+}
+.checklist-form-fill[data-empty="true"] [data-checklist-items],
+.checklist-form-fill[data-empty="true"] [data-testid="checklist-item-scroll"] {
+  flex: none;
+}
+.checklist-form-fill[data-empty="true"] [data-testid="checklist-item-scroll"] {
+  height: auto;
 }

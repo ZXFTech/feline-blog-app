@@ -1,0 +1,441 @@
+{
+  "adapterVersion": "managed-proxy-v1",
+  "service": "blog",
+  "cronVersion": "1.6.4",
+  "migrations": [
+    {
+      "id": "20260919000000_init_connection_probe",
+      "hash": "0ac8e82309913d3149704e179edb70c003fd9e8aaf0af31059e3c0816cec6b8b"
+    },
+    {
+      "id": "20260919070056_migrate_legacy_models",
+      "hash": "dc3b905a9834448c03832717fb3ab588726c21199455d2cd4cd8ec8a733a077c"
+    },
+    {
+      "id": "20260919070822_verify_legacy_schema",
+      "hash": "52e3a49a0b7320285b5ebc602d0dd8af96d637fd7e29d8032630b8ac42af55a7"
+    },
+    {
+      "id": "20260920090000_add_checklist_core_loop",
+      "hash": "a0be8dba7dbab30a1ce42fadcf14f27f468b21317079cb9bf724075e244c341a"
+    },
+    {
+      "id": "20261015000000_user_center",
+      "hash": "f2763bf80fe1d86da2faecdb9068be6a9902bf2d11af40dffe76add69b727600"
+    },
+    {
+      "id": "20261016000000_auth_ops",
+      "hash": "0441c416a6375be21928c792b91808263326c477b5559a861fe4dfa69f3847b9"
+    },
+    {
+      "id": "20261018000000_managed_cron_history",
+      "hash": "bc2c32c9280a189faea328ab140f132988055d100a33fb39f4d6a31e4c88ec6e"
+    }
+  ],
+  "catalog": {
+    "functions": [
+      {
+        "signature": "auth_ops.cleanup_batch(integer,timestamp with time zone)",
+        "owner": "auth_ops_owner",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "sha256": "9ae4778c5df6be6240695f5cb3d0178cc7e82dec0b14c8b0c672e9a8cbe93db0"
+      },
+      {
+        "signature": "auth_ops.cleanup_eligible(timestamp with time zone)",
+        "owner": "auth_ops_owner",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": false,
+        "proconfig": [
+          "search_path=pg_catalog"
+        ],
+        "sha256": "2c45a7f3b0bdd8920afa653c2153a94476d483357dae79213083290fb132f45f"
+      },
+      {
+        "signature": "auth_ops.cleanup_status()",
+        "owner": "auth_ops_owner",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": false,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "d1d2c4ac6551eb0e7b3399420ed2406065c8788827fbe5d137921a88eadc560a"
+      },
+      {
+        "signature": "auth_ops.cleanup_tick()",
+        "owner": "auth_ops_owner",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": false,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "ee6ddcfb745e11a78aeffcf4052a6065f11daedd1003985425a980273034d79f"
+      },
+      {
+        "signature": "auth_ops.cron_current_run()",
+        "owner": "auth_cron_history",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": true,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "c01a30796d48065d9c268276f81614642cef3d244d51fa7260fdf792746ca597"
+      },
+      {
+        "signature": "auth_ops.cron_history_range(bigint,bigint)",
+        "owner": "auth_cron_history",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": true,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "75fbda8baf6ec63a46c5a1d36c00cfa39cc638f795c015197c7cd8fb7003ee67"
+      },
+      {
+        "signature": "auth_ops.cron_prune_range(bigint,bigint)",
+        "owner": "auth_cron_history",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": true,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "bfb09b08ddfad3b17c5d3015c024fafff37f61e3e52c6d8a2776059a68976949"
+      },
+      {
+        "signature": "auth_ops.cron_registration()",
+        "owner": "auth_cron_history",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": true,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "84d05f02eefbc3ee8d5fca197ebd7d7957527e7a401031dd4178cbe3a26bbe18"
+      },
+      {
+        "signature": "auth_ops.failure_count()",
+        "owner": "auth_ops_owner",
+        "prosecdef": true,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": false,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "66532e092eedb7ab95e10f1310e4b6509455a3ebc8cb5f35b3695dd34504ccce"
+      },
+      {
+        "signature": "auth_ops.protect_history_state()",
+        "owner": "auth_ops_owner",
+        "prosecdef": false,
+        "provolatile": "v",
+        "proparallel": "u",
+        "parsed": false,
+        "proconfig": [
+          "search_path=pg_catalog, pg_temp"
+        ],
+        "sha256": "14b30c0722051c236d5a1bd92246fc9598cc38d807e7661e804137baa183ff0e"
+      }
+    ],
+    "columns": [
+      {
+        "table": "cleanup_run",
+        "name": "job_name",
+        "type": "text",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "tick_minute",
+        "type": "timestamp with time zone",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cron_run_id",
+        "type": "bigint",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "started_at",
+        "type": "timestamp with time zone",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "finished_at",
+        "type": "timestamp with time zone",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "removed_counts",
+        "type": "jsonb",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "batches",
+        "type": "integer",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "pending",
+        "type": "boolean",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "result_code",
+        "type": "text",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "job_name",
+        "type": "text",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cron_job_id",
+        "type": "bigint",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "activated_at",
+        "type": "timestamp with time zone",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "next_due_at",
+        "type": "timestamp with time zone",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "last_attempt_at",
+        "type": "timestamp with time zone",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "last_completed_at",
+        "type": "timestamp with time zone",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "consecutive_failures",
+        "type": "integer",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "last_result",
+        "type": "text",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "generation",
+        "type": "uuid",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_mode",
+        "type": "text",
+        "notNull": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_initial_floor",
+        "type": "bigint",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_prune_floor",
+        "type": "bigint",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_prune_cursor",
+        "type": "bigint",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_prune_upper",
+        "type": "bigint",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_prune_keep_from",
+        "type": "bigint",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_prune_cutoff",
+        "type": "timestamp with time zone",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_prune_next_expiry",
+        "type": "timestamp with time zone",
+        "notNull": false
+      },
+      {
+        "table": "cleanup_state",
+        "name": "history_next_expiry",
+        "type": "timestamp with time zone",
+        "notNull": false
+      }
+    ],
+    "constraints": [
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_batches_check",
+        "definition": "CHECK (((batches >= 0) AND (batches <= 500)))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_check",
+        "definition": "CHECK ((finished_at >= started_at))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_job_name_cron_run_id_key",
+        "definition": "UNIQUE (job_name, cron_run_id)",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_job_name_fkey",
+        "definition": "FOREIGN KEY (job_name) REFERENCES auth_ops.cleanup_state(job_name)",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_pkey",
+        "definition": "PRIMARY KEY (job_name, tick_minute)",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_removed_counts_check",
+        "definition": "CHECK ((jsonb_typeof(removed_counts) = 'object'::text))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_result_code_check",
+        "definition": "CHECK ((result_code = ANY (ARRAY['complete'::text, 'pending'::text, 'stalled'::text, 'error'::text])))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_check",
+        "definition": "CHECK (((cron_job_id IS NULL) = (activated_at IS NULL)))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_consecutive_failures_check",
+        "definition": "CHECK (((consecutive_failures >= 0) AND (consecutive_failures <= 3)))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_history_mode",
+        "definition": "CHECK ((history_mode = ANY (ARRAY['disabled'::text, 'managed-proxy-v1'::text, 'isolated-direct-v1'::text])))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_history_shape",
+        "definition": "CHECK ((((history_mode = 'managed-proxy-v1'::text) AND (cron_job_id IS NOT NULL) AND (history_initial_floor IS NOT NULL) AND (history_initial_floor >= 0) AND (history_prune_floor IS NOT NULL) AND (history_prune_floor >= history_initial_floor) AND (history_prune_cursor IS NOT NULL) AND (history_prune_cursor >= history_prune_floor) AND (((history_prune_upper IS NULL) AND (history_prune_cutoff IS NULL) AND (history_prune_keep_from IS NULL) AND (history_prune_next_expiry IS NULL) AND (history_prune_cursor = history_prune_floor)) OR ((history_prune_upper IS NOT NULL) AND (history_prune_cutoff IS NOT NULL) AND (history_prune_upper >= history_prune_cursor) AND ((history_prune_keep_from IS NULL) OR ((history_prune_keep_from > history_prune_floor) AND (history_prune_keep_from <= history_prune_cursor)))))) OR (((history_mode <> 'managed-proxy-v1'::text) OR (cron_job_id IS NULL)) AND ((history_mode <> 'disabled'::text) OR (cron_job_id IS NULL)) AND (history_initial_floor IS NULL) AND (history_prune_floor IS NULL) AND (history_prune_cursor IS NULL) AND (history_prune_upper IS NULL) AND (history_prune_keep_from IS NULL) AND (history_prune_cutoff IS NULL) AND (history_prune_next_expiry IS NULL) AND (history_next_expiry IS NULL))))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_job_name_check",
+        "definition": "CHECK ((job_name = 'auth-cleanup'::text))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_last_result_check",
+        "definition": "CHECK ((last_result = ANY (ARRAY['disabled'::text, 'complete'::text, 'pending'::text, 'stalled'::text, 'error'::text])))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_pkey",
+        "definition": "PRIMARY KEY (job_name)",
+        "valid": true
+      }
+    ],
+    "indexes": [
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_job_name_cron_run_id_key",
+        "definition": "CREATE UNIQUE INDEX cleanup_run_job_name_cron_run_id_key ON auth_ops.cleanup_run USING btree (job_name, cron_run_id)",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_pkey",
+        "definition": "CREATE UNIQUE INDEX cleanup_run_pkey ON auth_ops.cleanup_run USING btree (job_name, tick_minute)",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_retention_idx",
+        "definition": "CREATE INDEX cleanup_run_retention_idx ON auth_ops.cleanup_run USING btree (finished_at)",
+        "valid": true
+      },
+      {
+        "table": "cleanup_run",
+        "name": "cleanup_run_success_idx",
+        "definition": "CREATE INDEX cleanup_run_success_idx ON auth_ops.cleanup_run USING btree (job_name, cron_run_id DESC NULLS LAST) WHERE (result_code = ANY (ARRAY['complete'::text, 'pending'::text]))",
+        "valid": true
+      },
+      {
+        "table": "cleanup_state",
+        "name": "cleanup_state_pkey",
+        "definition": "CREATE UNIQUE INDEX cleanup_state_pkey ON auth_ops.cleanup_state USING btree (job_name)",
+        "valid": true
+      }
+    ]
+  }
+}

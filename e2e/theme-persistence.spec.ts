@@ -6,7 +6,7 @@ test("defaults to light and restores an explicit theme across page lifecycles", 
 }) => {
   await page.emulateMedia({ colorScheme: "dark" });
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("radio", { name: "Light" })).toBeEnabled();
 
   await expect(page.locator("html")).not.toHaveClass(/dark|sugar|warm/);
   await expect(page.getByRole("radio", { name: "Light" })).toHaveAttribute("aria-checked", "true");
@@ -16,14 +16,14 @@ test("defaults to light and restores an explicit theme across page lifecycles", 
 
   await page.emulateMedia({ colorScheme: "dark" });
   await page.reload();
-  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("radio", { name: "Sugar" })).toBeEnabled();
   await expect(page.locator("html")).toHaveClass(/sugar/);
   await expect(page.getByRole("radio", { name: "Sugar" })).toHaveAttribute("aria-checked", "true");
 
   await page.close();
   const reopenedPage = await context.newPage();
   await reopenedPage.goto("/");
-  await reopenedPage.waitForLoadState("networkidle");
+  await expect(reopenedPage.getByRole("radio", { name: "Sugar" })).toBeEnabled();
   await expect(reopenedPage.locator("html")).toHaveClass(/sugar/);
   await expect(reopenedPage.getByRole("radio", { name: "Sugar" })).toHaveAttribute(
     "aria-checked",
@@ -36,7 +36,7 @@ test("AC-4 switches every supported theme and disables visual transitions for re
 }) => {
   await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/");
-  await page.waitForLoadState("networkidle");
+  await expect(page.getByRole("radio", { name: "Light" })).toBeEnabled();
 
   for (const theme of ["Dark", "Sugar", "Warm", "Light"] as const) {
     await page.getByRole("radio", { name: theme }).click();

@@ -91,11 +91,13 @@ test("authenticated Todo smoke and bounded cleanup", async ({ page }) => {
     return match;
   };
 
-  await page.goto("/login?from=/todo");
-  await page.getByPlaceholder("请输入邮箱").fill(email);
-  await page.getByPlaceholder("请输入密码").fill(password);
-  await page.getByRole("button", { name: /登\s*录/ }).click();
-  await page.waitForURL(new RegExp(`${origin.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}/todo`));
+  await page.goto("/login");
+  await page.getByText("旧账号登录", { exact: true }).click();
+  await page.getByLabel("原博客邮箱").fill(email);
+  await page.getByLabel("原博客密码").fill(password);
+  await page.getByRole("button", { name: "登录旧账号", exact: true }).click();
+  await page.waitForURL(url => url.origin === origin && url.pathname === "/profile");
+  await page.goto("/todo");
 
   const identityResponse = await page.request.get(`${origin}/api/auth/me`, {
     headers: { "x-vercel-trusted-oidc-idp-token": oidcToken },

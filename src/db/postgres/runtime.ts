@@ -13,7 +13,13 @@ let postgresRuntime: { db: PrismaClient; pool: Pool } | undefined;
 function getPostgresRuntime(): { db: PrismaClient; pool: Pool } {
   if (postgresRuntime) return postgresRuntime;
 
-  const pool = globalForPostgres.postgresPool ?? new Pool(buildPostgresPoolConfig());
+  let pool = globalForPostgres.postgresPool;
+  if (!pool) {
+    pool = new Pool(buildPostgresPoolConfig());
+    pool.on("error", () => {
+      console.info(JSON.stringify({ event: "feline_database", code: "DATABASE_CONNECTION_LOST" }));
+    });
+  }
   const db = globalForPostgres.postgresDb ?? new PrismaClient({ adapter: new PrismaPg(pool) });
 
   if (process.env.NODE_ENV !== "production") {

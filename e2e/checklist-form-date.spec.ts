@@ -1,3 +1,4 @@
+import { authPost } from "./auth-helpers";
 import { expect, test } from "@playwright/test";
 
 const account = {
@@ -38,7 +39,7 @@ test("checklist date picker disables past days and matches the operation menu su
     "border-radius",
   ];
   const dayProperties = ["font-size", "font-weight", "line-height", "border-radius"];
-  const signedIn = await page.request.post("/api/auth/login", { data: account });
+  const signedIn = await authPost(page.request, "login", account);
   expect(signedIn.ok()).toBe(true);
   await page.goto("/checklists/new");
   await page.getByRole("button", { name: "选择截止日期时间" }).click();
@@ -131,7 +132,7 @@ test("checklist date picker disables past days and matches the operation menu su
 
 test("date and time popups follow the operation menu in every theme", async ({ page }) => {
   test.setTimeout(90_000);
-  const signedIn = await page.request.post("/api/auth/login", { data: account });
+  const signedIn = await authPost(page.request, "login", account);
   expect(signedIn.ok()).toBe(true);
 
   const surface = async (selector: string) =>

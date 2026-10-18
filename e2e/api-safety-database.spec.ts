@@ -2,6 +2,7 @@ import { expect, request as playwrightRequest, test } from "@playwright/test";
 
 import db from "../src/db/postgres/runtime";
 import { login, type TestAccount } from "./pomodoro-helpers";
+import { authPost } from "./auth-helpers";
 
 const primary: TestAccount = {
   email: process.env.E2E_USER_EMAIL ?? "",
@@ -162,25 +163,26 @@ test("covers: AC-10, opposing like requests leave the cached count equal to the 
 
 test("covers: AC-1 AC-2 AC-6 AC-7, live routes preserve safe projections and status distinctions", async ({
   request,
+  baseURL,
 }) => {
-  const malformed = await fetch("http://127.0.0.1:3000/api/auth/login", {
+  const malformed = await fetch(new URL("/api/auth/login", baseURL), {
     method: "POST",
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", Origin: baseURL! },
     body: "{",
   });
   expect(malformed.status).toBe(400);
-  await expect(malformed.json()).resolves.toEqual({
+  await expect(malformed.json()).resolves.toMatchObject({
     error: true,
-    message: "请求内容不是有效的 JSON",
+    code: "INVALID_INPUT",
     data: null,
   });
 
   const anonymousTag = await request.get("/api/tag");
   expect(anonymousTag.status()).toBe(401);
 
-  const userContext = await playwrightRequest.newContext({ baseURL: "http://127.0.0.1:3000" });
+  const userContext = await playwrightRequest.newContext({ baseURL });
   try {
-    const loginResponse = await userContext.post("/api/auth/login", { data: secondary });
+    const loginResponse = await authPost(userContext, "login", secondary);
     expect(loginResponse.status()).toBe(200);
     const forbiddenTag = await userContext.get("/api/tag");
     expect(forbiddenTag.status()).toBe(403);
@@ -188,9 +190,7 @@ test("covers: AC-1 AC-2 AC-6 AC-7, live routes preserve safe projections and sta
     await userContext.dispose();
   }
 
-  const duplicate = await request.post("/api/auth/register", {
-    data: { email: primary.email, password: primary.password, username: "duplicate" },
-  });
+  const duplicate = await authPost(request, "register", { email: primary.email, password: primary.password, username: "duplicate" });
   expect(duplicate.status()).toBe(409);
 
   const publicBlogs = await request.get("/api/blog");

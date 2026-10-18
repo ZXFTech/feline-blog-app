@@ -10,6 +10,10 @@ const mocks = vi.hoisted(() => ({
 
 vi.mock("@/db/userAction", () => ({ checkUser: mocks.checkUser }));
 vi.mock("@/lib/cookieStore", () => ({ getCookieData: mocks.getCookieData }));
+vi.mock("next/headers", () => ({ cookies: async () => {
+  const cookie = await mocks.getCookieData();
+  return { get: (name: string) => name === "token" ? cookie : undefined };
+} }));
 vi.mock("@/lib/jwt", () => ({ verifyToken: mocks.verifyToken }));
 vi.mock("next/navigation", () => ({ unstable_rethrow: mocks.unstableRethrow }));
 vi.mock("@/lib/logger/Logger", () => ({
@@ -28,6 +32,8 @@ describe("getCurrentUser", () => {
       username: "猫猫",
       role: "USER",
       avatar: null,
+      authMode: "legacy",
+      authVersion: 0,
     };
     mocks.getCookieData.mockResolvedValue({
       name: "token",
@@ -67,12 +73,7 @@ describe("getCurrentUser", () => {
     mocks.checkUser.mockRejectedValue(databaseError);
 
     await expect(getCurrentUser()).resolves.toBeNull();
-    expect(mocks.unstableRethrow).toHaveBeenCalledWith(databaseError);
-    expect(mocks.loggerError).toHaveBeenCalledWith({
-      category: "unexpected",
-      errorClass: "Error",
-      operation: "getCurrentUser",
-    });
+    expect(mocks.loggerError).not.toHaveBeenCalled();
     expect(mocks.loggerError).not.toHaveBeenCalledWith(
       expect.objectContaining({ message: "database unavailable" })
     );
@@ -94,10 +95,6 @@ describe("resolveCurrentUser", () => {
       status: "temporary_failure",
       message: "暂时无法验证登录状态，请稍后重试",
     });
-    expect(mocks.loggerError).toHaveBeenLastCalledWith({
-      category: "unexpected",
-      errorClass: "Error",
-      operation: "resolveCurrentUser",
-    });
+    expect(mocks.loggerError).not.toHaveBeenCalled();
   });
 });

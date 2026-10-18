@@ -1,3 +1,4 @@
+import { authPost } from "./auth-helpers";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 
 const account = {
@@ -35,7 +36,7 @@ async function expectWheelChains(page: Page, scroll: Locator, content: Locator) 
 test("empty checklist items have no card-sized gap and wheel scrolling reaches the page", async ({
   page,
 }) => {
-  const signedIn = await page.request.post("/api/auth/login", { data: account });
+  const signedIn = await authPost(page.request, "login", account);
   expect(signedIn.ok()).toBe(true);
   const mobile = test.info().project.name === "mobile";
   await page.setViewportSize({ width: mobile ? 390 : 1280, height: 620 });

@@ -24,7 +24,7 @@ interface Props {
 const Blog = async ({ params }: Props) => {
   const { id } = await params;
   const result = await getBlogById(id);
-  if (result.status !== "success") throw new Error(result.message);
+  if (result.status !== "success") return <Content><section role="alert"><h1>文章暂时不可用</h1><p>{result.message}</p><a href={`/blog/${id}`}>重试</a></section></Content>;
   const { blog, isLiked, isFavorite } = result.data;
 
   if (!blog) {
@@ -68,6 +68,7 @@ const Blog = async ({ params }: Props) => {
         <title>{blog.title}</title>
       </Head>
       <div className="flex flex-col" id="blog-container">
+        {"identityUnavailable" in result.data && result.data.identityUnavailable ? <p role="status">身份暂时不可用，你仍可阅读这篇公开文章。登录和互动请稍后重试。</p> : null}
         <NeuSurface
           elevation="flat"
           className="blog-content-container px-4 pt-2 pb-4 overflow-auto"

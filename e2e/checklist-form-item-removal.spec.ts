@@ -1,3 +1,4 @@
+import { authPost } from "./auth-helpers";
 import { expect, test } from "@playwright/test";
 
 const account = {
@@ -10,7 +11,7 @@ test.skip(!account.email || !account.password, "需要本地测试账号");
 test("the sole draft item can be removed before create validates the item count", async ({
   page,
 }) => {
-  const signedIn = await page.request.post("/api/auth/login", { data: account });
+  const signedIn = await authPost(page.request, "login", account);
   expect(signedIn.ok()).toBe(true);
   await page.goto("/checklists/new");
 

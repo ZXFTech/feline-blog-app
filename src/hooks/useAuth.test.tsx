@@ -1,4 +1,4 @@
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AuthProviders from "@/providers/AuthProviders";
@@ -76,5 +76,26 @@ describe("useAuth", () => {
 
     await waitFor(() => expect(fetchSpy).toHaveBeenCalledWith("/api/auth/me"));
     await waitFor(() => expect(result.current.authLoading).toBe(false));
+  });
+
+  it("0003 AC-15 shows a temporary auth outage without claiming an anonymous success", async () => {
+    vi.spyOn(window, "fetch").mockResolvedValue(Response.json({ message: "retry" }, { status: 503 }));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
+    expect(result.current.authUnavailable).toBe(true); expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("0003 AC-14 keeps the current identity and page when local logout fails", async () => {
+    const user = { id: "test", username: "Original", email: "local@unit.test", role: "USER" };
+    vi.spyOn(window, "fetch").mockImplementation(async input => {
+      if (input === "/api/auth/me") return Response.json({ data: { user } });
+      if (input === "/api/auth/csrf") return Response.json({ data: { csrfToken: "test-csrf" } });
+      return Response.json({ message: "退出未完成" }, { status: 503 });
+    });
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
+    await act(async () => { await expect(result.current.logout()).rejects.toThrow("退出未完成"); });
+    expect(result.current.user?.id).toBe("test"); expect(result.current.authUnavailable).toBe(true);
+    expect(mocks.routerPush).not.toHaveBeenCalled();
   });
 });

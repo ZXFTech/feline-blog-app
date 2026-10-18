@@ -89,14 +89,13 @@ export async function getBlogById(id: unknown) {
   const blogId = parsePositiveInt(id);
   if (!blogId) return actionResult.failure("invalid_input", "文章 ID 无效");
   const auth = await resolveCurrentUser();
-  if (auth.status === "temporary_failure") return auth;
   const userId = auth.status === "success" ? auth.data.id : null;
   try {
     const blog = await db.blog.findFirst({
       where: { id: blogId, delete: false },
       include: { author: { select: publicAuthorSelect }, tags: tagInclude },
     });
-    if (!blog || !userId) return actionResult.success({ blog, isLiked: false, isFavorite: false });
+    if (!blog || !userId) return actionResult.success({ blog, isLiked: false, isFavorite: false, identityUnavailable: auth.status === "temporary_failure" });
     const isLiked = await db.blogLike.findUnique({ where: { blogId_userId: { userId, blogId } } });
     const isFavorite = await db.blogFavorite.findUnique({
       where: { blogId_userId: { userId, blogId } },

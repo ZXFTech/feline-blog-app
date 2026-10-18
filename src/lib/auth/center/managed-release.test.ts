@@ -1,0 +1,26 @@
+// @vitest-environment node
+import{randomBytes,createHash}from'node:crypto';
+import{mkdtempSync,writeFileSync,unlinkSync,rmdirSync}from'node:fs';
+import{tmpdir}from'node:os';import{join}from'node:path';
+import{beforeEach,afterEach,describe,expect,it,vi}from'vitest';
+import{authTestEnv}from'@/test/auth-center';
+const mocks=vi.hoisted(()=>({query:vi.fn(),ensure:vi.fn()}));
+vi.mock('@/db/postgres/runtime',()=>({postgresPool:{query:mocks.query}}));vi.mock('./readiness',()=>({ensureAuthReady:mocks.ensure}));
+import{opsStatus}from'./ops';
+import{opsAdapterVersion}from'./release';
+const secret=randomBytes(32).toString('base64'),generation='11111111-1111-4111-8111-111111111111',node=Object.getOwnPropertyDescriptor(process.versions,'node')!;
+let dir:string,file:string;
+const sha=(v:string,base64=false)=>createHash('sha256').update(base64?Buffer.from(v,'base64'):v).digest('hex');
+function summary(version:unknown){const now=new Date().toISOString();return{adapterVersion:version,generation,observedAt:now,activatedAt:now,lastCompletedAt:now,consecutiveFailures:0,pending:false,eligibleCount:0,oldestEligibleExpiry:null,lastTickRef:'9007199254740993'};}
+beforeEach(()=>{vi.clearAllMocks();Object.defineProperty(process.versions,'node',{...node,value:'22.21.1'});for(const[k,v]of Object.entries(authTestEnv))vi.stubEnv(k,v);vi.stubEnv('APP_ENV','production');vi.stubEnv('FELINE_PUBLIC_ORIGIN','https://blog.zhaosie.com');vi.stubEnv('VERCEL','1');vi.stubEnv('POSTGRES_DATABASE_URL','postgresql://fixture:fixture@pooler.invalid/postgres');vi.stubEnv('OPS_STATUS_READ_SECRET',secret);vi.stubEnv('VERCEL_PROJECT_ID','prj_fixture');vi.stubEnv('RELEASE_VERCEL_TEAM_ID','team_fixture');vi.stubEnv('VERCEL_DEPLOYMENT_ID','dpl_fixture');for(const key of['FELINE_SESSION_SECRET_VERSION','FELINE_GRANT_KEYRING_VERSION','USER_CENTER_CLIENT_SECRET_VERSION','OPS_STATUS_READ_SECRET_VERSION'])vi.stubEnv(key,key);dir=mkdtempSync(join(tmpdir(),'feline-managed-release-'));file=join(dir,'input.json');vi.stubEnv('RELEASE_INPUT_PATH',file);mocks.ensure.mockResolvedValue(undefined);mocks.query.mockResolvedValue({rowCount:1,rows:[{summary:summary("managed-proxy-v1")}]});});
+afterEach(()=>{Object.defineProperty(process.versions,'node',node);vi.unstubAllEnvs();try{unlinkSync(file);}catch{}rmdirSync(dir);});
+function input(){return{schemaVersion:1,releaseId:generation,source:{repositoryId:'UNIT_FIXTURE',commitSha:'a'.repeat(40),inputDigest:'sha256:'+'b'.repeat(64),clean:true},target:{kind:'vercel',service:'blog',appEnv:'production',origin:'https://blog.zhaosie.com',opsAdapterVersion:'managed-proxy-v1',nodeMajor:22,projectId:'prj_fixture',teamId:'team_fixture',databaseHost:'pooler.invalid',databaseName:'postgres',databaseGeneration:generation,secrets:Object.fromEntries([['session',authTestEnv.FELINE_SESSION_SECRET,'FELINE_SESSION_SECRET_VERSION',true],['grant',authTestEnv.FELINE_GRANT_KEYRING,'FELINE_GRANT_KEYRING_VERSION',false],['client',authTestEnv.USER_CENTER_CLIENT_SECRET,'USER_CENTER_CLIENT_SECRET_VERSION',false],['ops',secret,'OPS_STATUS_READ_SECRET_VERSION',true]].map(([key,value,version,base64])=>[key,{version,digest:sha(value as string,base64 as boolean)}]))}};}
+async function read(){return opsStatus(new Request('https://candidate.vercel.app/internal/ops/status',{headers:{Authorization:'Bearer '+secret}}));}
+describe('HC-06 blog managed release boundary',()=>{
+ it('recognizes only the existing disposable Docker fixture as local direct mode',()=>{vi.stubEnv('VERCEL','');vi.stubEnv('APP_ENV','development');vi.stubEnv('POSTGRES_DATABASE_URL','postgresql://fixture:fixture@user-center-enhancement-blog-pg:5432/runtime_enhancement_blog');expect(opsAdapterVersion()).toBe('isolated-direct-v1');vi.stubEnv('APP_ENV','production');expect(opsAdapterVersion()).toBe('managed-proxy-v1');});
+ it('binds the full input, adapter mode, and lossless real tick reference',async()=>{const pack=input();writeFileSync(file,JSON.stringify(pack));const r=await read();expect(r.status).toBe(200);const value=await r.json();expect(value.release.inputDigest).toBe('sha256:'+sha(JSON.stringify(pack)));expect(value.cleanup).toMatchObject({adapterVersion:'managed-proxy-v1',lastTickRef:'9007199254740993'});});
+ it.each([undefined,'disabled','unknown-v1'])('rejects a missing or unsupported database adapter %s',async version=>{writeFileSync(file,JSON.stringify(input()));mocks.query.mockResolvedValue({rowCount:1,rows:[{summary:summary(version)}]});expect((await read()).status).toBe(503);});
+ it('rejects a database adapter different from the controlled input',async()=>{writeFileSync(file,JSON.stringify(input()));mocks.query.mockResolvedValue({rowCount:1,rows:[{summary:summary('isolated-direct-v1')}]});expect((await read()).status).toBe(503);});
+ it('rejects an old input without an adapter identity before accessing storage',async()=>{const pack=input();delete(pack.target as Partial<typeof pack.target>).opsAdapterVersion;writeFileSync(file,JSON.stringify(pack));expect((await read()).status).toBe(503);expect(mocks.ensure).not.toHaveBeenCalled();expect(mocks.query).not.toHaveBeenCalled();});
+ it('refuses direct mode in a production input',async()=>{const pack=input();pack.target.opsAdapterVersion='isolated-direct-v1';writeFileSync(file,JSON.stringify(pack));expect((await read()).status).toBe(503);expect(mocks.query).not.toHaveBeenCalled();});
+});

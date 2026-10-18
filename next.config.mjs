@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   cleanDistDir: true,
+  logging: { incomingRequests: false, browserToTerminal: false },
   images: {
     remotePatterns: [
       {

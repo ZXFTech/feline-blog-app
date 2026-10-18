@@ -1,135 +1,22 @@
-"use client";
-
-import { StyledLink } from "@/components/ui/styled-link";
-import Content from "@/components/Content";
-import Icon from "@/components/Icon";
-import { Button } from "@/components/ui/button";
-import { NeuSurface } from "@/components/ui/neu-surface";
-import { InputField } from "@/components/ui/input-field";
-import { useAuth } from "@/hooks/useAuth";
-import { toast as message } from "@/components/ProMessage";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
-import React, { FormEvent, useMemo, useState } from "react";
-import { TextGap } from "@/components/TextGap";
-
-export default function Login() {
-  const { login } = useAuth();
-  const searchParams = useSearchParams();
-
-  const [loading, setLoading] = useState(false);
-
-  const [submitted, setSubmitted] = useState(false);
-
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-
-  const errorStatus = useMemo(() => {
-    let error = {
-      emailError: false,
-      emailErrorMessage: "",
-      passwordError: false,
-      passwordErrorMessage: "",
-    };
-
-    if (!email) {
-      error = {
-        ...error,
-        emailError: true,
-        emailErrorMessage: "邮箱不能为空",
-      };
-    }
-    if (!password) {
-      error = {
-        ...error,
-        passwordError: true,
-        passwordErrorMessage: "密码不能为空",
-      };
-    }
-    return error;
-  }, [email, password]);
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+import AuthFrame from "@/app/auth/user-center/_components/auth-frame";
+import ActionForm from "@/app/auth/user-center/_components/action-form";
+import { cookies } from "next/headers";
+import { currentFlow } from "@/lib/auth/center/store";
+import { flowProof } from "@/lib/auth/center/flows";
+export const dynamic = "force-dynamic";
+export const metadata = { title: "登录 neon cat", robots: { index: false, follow: false } };
+export default async function Login() {
+  const store = await cookies();
+  let cancelProof: string | undefined;
+  if (store.size) {
     try {
-      e.preventDefault();
-      setSubmitted(true);
-      if (errorStatus.emailError || errorStatus.passwordError) {
-        return;
-      }
-      setLoading(true);
-      const result = await login(email, password);
-      if (!result.success) {
-        message.error(result.message || "登录失败.");
-        return;
-      } else {
-        message.success("登录成功!");
-        const from = searchParams.get("from");
-        window.location.assign(from || "/");
-      }
-    } catch (error) {
-      message.error("出错了," + error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  return (
-    <Content>
-      <form onSubmit={handleSubmit} className="flex justify-center">
-        <NeuSurface className="flex flex-col w-100 min-w-50 justify-center items-stretch p-4">
-          <div className="text-3xl mb-4 text-center">欢迎</div>
-          <InputField
-            disabled={loading}
-            prefix={<Icon icon="email" size="lg" />}
-            id="email"
-            className={`${
-              submitted && errorStatus.emailError ? "border-red-700! border-2! text-red-700!" : ""
-            }`}
-            placeholder="请输入邮箱"
-            autoComplete="new-password"
-            value={email}
-            onInput={(e) => setEmail(e.currentTarget.value || "")}
-          />
-          {submitted && errorStatus.emailErrorMessage ? (
-            <span className="text-red-600">{errorStatus.emailErrorMessage}</span>
-          ) : null}
-          <InputField
-            disabled={loading}
-            prefix={<Icon icon="lock" size="lg" />}
-            id="password"
-            className={`${
-              submitted && errorStatus.passwordError
-                ? "border-red-700! border-2! text-red-700!"
-                : ""
-            } mt-4`}
-            placeholder="请输入密码"
-            type="password"
-            value={password}
-            onInput={(e) => setPassword(e.currentTarget.value || "")}
-          />
-          {submitted && errorStatus.passwordErrorMessage ? (
-            <span className="text-red-600">{errorStatus.passwordErrorMessage}</span>
-          ) : null}
-          <span className="mt-4">
-            还没有账号,
-            <StyledLink href="/register">点击注册</StyledLink>
-          </span>
-
-          <Link className="mt-4" href={"/forgot-password"}>
-            忘记密码?
-          </Link>
-          <Button
-            loading={loading}
-            disabled={loading}
-            variant="primary"
-            className="mt-4 px-4! py-2! text-xl!"
-            type="submit"
-            size="lg"
-          >
-            <TextGap text="登录" gap={4} />
-          </Button>
-        </NeuSurface>
-      </form>
-    </Content>
-  );
+      const { browser, flow } = await currentFlow(name => store.get(name)?.value, ["created", "exchanging", "pending_choice", "pending_confirmation"]);
+      cancelProof = flowProof("cancel", browser, flow);
+    } catch { /* A stale flow cannot authorize a cancellation. */ }
+  }
+  return <AuthFrame title="登录 neon cat"><p>使用用户中心登录，保留属于你的博客与工具数据。</p><ActionForm endpoint="/api/auth/user-center/start" label="使用用户中心登录" values={{ intent: "login", destination: "home" }} /><Link href="/register">新用户到用户中心注册</Link>
+    <details><summary className="cursor-pointer py-3">旧账号登录</summary><p>尚未绑定的旧账号可以继续使用原密码。登录后可主动绑定，两边邮箱无需相同。</p><ActionForm endpoint="/api/auth/login" label="登录旧账号" fields={[{ name: "email", label: "原博客邮箱", type: "email", maxLength: 254 }, { name: "password", label: "原博客密码", type: "password" }]} /><p>已绑定或忘记中心密码，请使用用户中心的密码恢复入口；本轮不提供遗失旧密码后的账号认领。</p></details>
+    {cancelProof ? <ActionForm endpoint="/api/auth/user-center/cancel" label="取消当前未完成流程" values={{ flowProof: cancelProof }} /> : null}
+  </AuthFrame>;
 }

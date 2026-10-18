@@ -1,5 +1,6 @@
 "use client";
 
+import { useSyncExternalStore } from "react";
 import { THEMES, useTheme, type Theme } from "@/components/theme-provider";
 import { cn } from "@/lib/utils";
 
@@ -19,6 +20,7 @@ const SWATCHES: Record<Theme, { bg: string; ring: string }> = {
 
 export function ThemeSwitcher() {
   const { theme, setTheme } = useTheme();
+  const ready = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   return (
     <div
@@ -32,6 +34,7 @@ export function ThemeSwitcher() {
           <button
             key={themeName}
             type="button"
+            disabled={!ready}
             role="radio"
             aria-checked={active}
             title={LABELS[themeName]}

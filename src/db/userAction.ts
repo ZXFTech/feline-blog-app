@@ -1,5 +1,3 @@
-"use server";
-
 import db from "@/db/client";
 
 const checkUser = async (identifier: "id" | "email", payload: string, password = false) => {
@@ -15,6 +13,8 @@ const checkUser = async (identifier: "id" | "email", payload: string, password =
       avatar: true,
       createdAt: true,
       password,
+      authMode: true,
+      authVersion: true,
     },
   });
   return user;

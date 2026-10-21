@@ -1,139 +1,106 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useId, useLayoutEffect, useState, type MouseEvent } from "react";
+import { useBlogToc } from "@/components/Blog/BlogReading";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { NeuPanel } from "@/components/ui/neu-panel";
+import { cn } from "@/lib/utils";
+import type { ReadingHeading } from "@/lib/blog/reading";
 
-interface TocItem {
-  id: string;
-  text: string;
-  level: number;
+interface TocViewProps {
+  headings: Pick<ReadingHeading, "id" | "text" | "level">[];
+  activeId: string | null;
+  onNavigate?: (id: string) => void;
+  isolated?: boolean;
 }
 
-function TOC() {
-  const articleRef = useRef<HTMLElement | null>(null);
-  const [toc, setToc] = useState<TocItem[]>([]);
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [progress, setProgress] = useState(0);
-  const containerRef = useRef<Element | null>(null);
-
-  useEffect(() => {
-    const article = document.getElementById("blog-container");
-
-    if (!article) {
+export function TocView({ headings, activeId, onNavigate, isolated }: TocViewProps) {
+  function activate(event: MouseEvent<HTMLAnchorElement>, id: string) {
+    if (
+      !onNavigate ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey ||
+      event.currentTarget.target === "_blank"
+    )
       return;
-    }
-
-    articleRef.current = article;
-
-    const container = document.getElementById("content");
-    if (container) {
-      containerRef.current = container;
-    }
-
-    const headings = Array.from(article.querySelectorAll("h1,h2,h3"));
-
-    const nextToc = headings.map((el) => ({
-      id: el.id,
-      text: el.textContent || "",
-      level: Number(el.tagName[1]),
-    }));
-
-    const id = requestAnimationFrame(() => {
-      setToc(nextToc);
-    });
-
-    return () => cancelAnimationFrame(id);
-  }, []);
-
-  useEffect(() => {
-    if (!articleRef.current) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entries) => {
-          if (entries.isIntersecting) {
-            setActiveId(entries.target.id);
-          }
-        });
-      },
-      {
-        rootMargin: "-80px 0px -70% 0px",
-        threshold: 0,
-      }
-    );
-
-    toc.forEach((item) => {
-      const el = document.getElementById(item.id);
-      if (el) {
-        observer.observe(el);
-      }
-    });
-
-    return () => observer.disconnect();
-  });
-
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) {
-      return;
-    }
-
-    let ticking = false;
-
-    const onScroll = () => {
-      if (ticking) {
-        return;
-      }
-      ticking = true;
-      requestAnimationFrame(() => {
-        const total = container?.scrollHeight - container.clientHeight;
-        const top = container.scrollTop;
-        const current = top;
-        setProgress(total > 0 ? current / total : 0);
-        ticking = false;
-      });
-    };
-
-    container.addEventListener("scroll", onScroll);
-    return () => container.removeEventListener("scroll", onScroll);
-  }, []);
-
+    event.preventDefault();
+    onNavigate(id);
+  }
   return (
-    <div className="">
-      {/* 进度条 */}
-      <div className="sticky-header fixed top-22 left-0 right-0 h-2 bg-white z-100">
-        <div
-          className="progress-bar bg-black h-full"
-          style={{ transform: `scaleX(${progress})`, transformOrigin: "left" }}
-        />
-      </div>
-      {/* 目录 */}
-      <aside className="toc">
-        <div className=" rounded-lg border border-gray-200 p-4">
-          <h3 className="font-bold text-sm mb-4">本文内容</h3>
-          <nav className="space-y-1 text-sm">
-            {toc.map((heading, i) => (
-              <button
-                key={heading.id + "_" + i}
-                onClick={() =>
-                  document.getElementById(heading.id)?.scrollIntoView({ behavior: "smooth" })
-                }
-                className={`w-full text-left px-3 py-2 rounded transition ${
-                  activeId === heading.id
-                    ? "bg-blue-100 text-blue-700 font-medium"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
-                style={{ paddingLeft: `${12 + (heading.level - 1) * 12}px` }}
-              >
-                {heading.text}
-              </button>
-            ))}
-          </nav>
-        </div>
-      </aside>
-    </div>
+    <nav aria-label="本文目录" className="min-w-0 p-0">
+      <ol className="m-0 flex min-w-0 list-none flex-col gap-[var(--spacing-panel-gap-compact)] p-0">
+        {headings.map((heading) => (
+          <li
+            key={heading.id}
+            className="min-w-0 p-0"
+            style={{
+              paddingInlineStart: `calc(${heading.level - 1} * var(--spacing-panel-inset-compact))`,
+            }}
+          >
+            <a
+              href={
+                isolated
+                  ? `#${encodeURIComponent(heading.id)}`
+                  : `${typeof window === "undefined" ? "" : window.location.pathname + window.location.search}#${encodeURIComponent(heading.id)}`
+              }
+              onClick={(event) => activate(event, heading.id)}
+              aria-current={activeId === heading.id ? "location" : undefined}
+              aria-label={`${heading.text}，${heading.level} 级标题`}
+              className={cn(
+                buttonVariants({ size: "md" }),
+                "blog-toc-link h-auto w-full min-w-0 justify-start whitespace-normal border-s-2 border-transparent text-start text-foreground shadow-none hover:bg-muted [overflow-wrap:anywhere]",
+                activeId === heading.id && "border-foreground bg-muted font-bold"
+              )}
+            >
+              <span className="sr-only">{heading.level} 级标题：</span>
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ol>
+    </nav>
   );
 }
 
-export default TOC;
+export default function TOC({ compact = false }: { compact?: boolean }) {
+  const state = useBlogToc();
+  const [expanded, setExpanded] = useState(false);
+  const id = useId();
+  useLayoutEffect(() => () => setExpanded(false), []);
+  if (!state?.headings.length) return null;
+  const active = state.headings.find((item) => item.id === state.activeId);
+  const view = (
+    <TocView
+      {...state}
+      onNavigate={(target) => {
+        setExpanded(false);
+        state.navigate(target);
+      }}
+    />
+  );
+  if (!compact)
+    return (
+      <NeuPanel className="blog-toc-desktop min-w-0">
+        <p className="font-bold text-sm">本文目录</p>
+        {view}
+      </NeuPanel>
+    );
+  return (
+    <NeuPanel className="blog-toc-compact min-w-0">
+      <Button
+        aria-expanded={expanded}
+        aria-controls={id}
+        onClick={() => setExpanded((value) => !value)}
+        className="h-auto min-w-0 justify-start whitespace-normal text-start [overflow-wrap:anywhere]"
+      >
+        本文目录{active ? `：${active.text}` : ""}
+      </Button>
+      <div id={id} hidden={!expanded} className="min-w-0 p-0">
+        {view}
+      </div>
+    </NeuPanel>
+  );
+}

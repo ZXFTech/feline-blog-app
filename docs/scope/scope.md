@@ -38,6 +38,12 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 25  | 确认清单核心闭环         | Slice 10    | in-progress |
 | 26  | Album 组件展示中心 | Maintenance | done |
 | 27  | 本地 PostgreSQL 开发与迁移隔离 | Maintenance | in-progress |
+| 28  | Blog 正文与代码块展示修复 | Blog P1 | done |
+| 29  | Blog 阅读操作与可访问性修复 | Blog P1 | planned |
+| 30  | Blog 目录与阅读进度修复 | Blog P1 | done |
+| 31  | Blog 空状态与错误恢复修复 | Blog P2 | planned |
+| 32  | Blog 容器间距与窄屏布局修复 | Blog P2 | planned |
+| 33  | Blog 编辑预览与操作修复 | Blog P2 | planned |
 
 ## Current product
 
@@ -351,6 +357,78 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 - [x] Verify it: `/check verify 本地 PostgreSQL 开发与迁移隔离`
 - [x] Test it: `/test 本地 PostgreSQL 开发与迁移隔离`
 
+## Blog 修复 P1：阅读核心体验
+
+本轮按 2026-10-20 的设计审查规划已有 Blog 功能的修复。建议先完成 P1，再推进 P2，同一优先级按条目顺序执行。继续沿用项目的 Tracer Bullet 和 Beta 流程，每项都以真实页面及其内容组件可用为交付边界。
+
+前次审查只完成源码检查。当前已准备项目锁定版本的依赖、安全本地 Docker PostgreSQL 与测试账号，并完成条目 28 的开发自检；正式逐项验收仍待执行。目录在窄屏下的进度更新、长标题、多标签及阴影裁剪继续按所属条目验证。各项验收覆盖 light、dark、sugar、warm、桌面与窄屏、键盘和减少动态效果偏好；组件展示使用安全本地样例，实际读写流程使用测试账号。
+
+修复以当前设计规范和共享组件为边界，内容容器默认内边距与显式例外保持可审查。共享组件若确需调整，建议验证其他调用页面。文章发现能力和基础 SEO 仍分别由条目 10、13 承接，本轮不扩展数据库、认证或全站重设计，也不将 Blog 的基础可访问性和窄屏修复等同于全站移动端或 WCAG 认证。
+
+### 28. Blog 正文与代码块展示修复 · done
+
+先恢复文章阅读所需的排版层级和代码展示，让同一篇文章在四主题下都有一致且清晰的阅读体验。已确定紧凑阅读密度、四主题克制语法配色、逐块换行开关，以及详情和预览共享的展示规则，最终参数见 spec 0012 的排版表与验收清单。
+**Done when:** 文章标题、各级标题、段落、列表、引用、链接、表格、图片和行内代码具有清晰的层级与留白；有、无语言标记的代码块均按一致规则展示且可复制原始内容，不出现 `test` 占位标题；正文与代码区域遵守现有主题和字体规范，并形成编辑预览可以复用的展示规则。
+
+- [x] Design it (spec): `/architect Blog 正文与代码块展示修复`
+      spec [0012](../specs/0012-blog-content-codeblock/index.md)（2026-10-20 已确认，经另一模型只读复核）
+- [x] Build it: `/develop Blog 正文与代码块展示修复`
+      code in `src/components/Blog/`, `src/components/CopyButton/`, `src/components/MarkdownEditor/`, `src/components/NotionBlock/`, `src/app/blog/[id]/page.tsx`, `src/app/globals.css`, `src/app/album/_components/`, `e2e/blog-markdown.spec.ts`, `e2e/blog-author-rendering.spec.ts`（桌面、手机、四主题及本地作者闭环自检通过；4 篇既有文章共 34 个代码块验证通过，按用户要求保留本地导入副本；控件沿用共享 Button 图标默认尺寸，复制成功显示勾选并于 1 秒后恢复；正文字号 .9rem、行高 1.5、块间距 .25rem，标题下方 8px、上方 12px；代码行高 1.4，内部间距 .25rem、按钮间距 .5rem、上下 margin 各 .5rem，语言使用 Tag，容器阴影 inset-sm；外链图片下载未验证）
+  - [x] 打通真实文章到共享正文的服务端阅读路径，保留标题锚点与业务边界，covers `AC-1`、`AC-2`、`AC-3`、`AC-10`、`AC-11`
+  - [x] 完成代码语言回退、空白保持、逻辑行号、逐块换行和复制结果隔离，covers `AC-3`、`AC-4`、`AC-5`、`AC-7`、`AC-8`
+  - [x] 完成正文排版、四主题语法色、局部溢出及代码控件可访问性，covers `AC-1`、`AC-6`、`AC-7`、`AC-9`、`AC-10`
+  - [x] 接入现有编辑预览、兼容代码块导出和安全 Album 场景，补齐相应回归覆盖，covers `AC-2`、`AC-3`、`AC-10`、`AC-11`、`AC-12`、`AC-13`
+- [x] Verify it: `/check verify Blog 正文与代码块展示修复`
+- [x] Test it: `/test Blog 正文与代码块展示修复`
+      2026-10-21：补齐 9 项组件回归和 1 个浏览器场景，测试按 spec 0012 的 AC 标注。全量 Vitest 105 文件、565 项通过；桌面 Chrome 与手机 WebKit 共 10 项浏览器回归通过（新增场景修正按钮定位后定向复跑 2 项通过）；类型、测试文件 ESLint、格式和数据库依赖边界检查通过。四篇本地导入文章及标签只读核对通过，文章页 HTTP 200；视觉判断与外链图片可用性仍按既有 verify 记录区分。
+
+### 29. Blog 阅读操作与可访问性修复 · needs a decision
+
+让读者能理解并通过触控、键盘和辅助技术使用搜索、复制、互动及相邻文章导航。控件沿用共享 Button 默认尺寸与内边距，分享入口的实际行为仍需确认。
+**Done when:** 阅读控件沿用共享组件的尺寸与内边距，不额外要求 44×44 点击区域，搜索、复制、点赞、收藏和分享具有明确中文名称及可见焦点；互动状态不只依赖颜色，并有提交中与结果反馈；导航保持链接语义，标签列表语义正确；分享入口按已确认的行为提供真实结果，未实现的操作不再表现为可用功能。
+
+- [ ] Design it (spec): `/architect Blog 阅读操作与可访问性修复`
+
+### 30. Blog 目录与阅读进度修复 · done
+
+让目录和阅读进度与正文使用同一主题，并在桌面及窄屏的实际滚动方式下反映阅读位置。进度仅计算 Markdown 正文，短文隐藏进度条；目录收录正文 H1 至 H6，桌面保留右栏，窄屏在正文前默认收起。
+**Done when:** 目录文字、选中项、边框和进度使用现有主题语义；点击目录能到达对应标题，当前章节和进度随实际阅读位置更新，切换文章不残留旧状态；无标题或无需滚动的文章状态合理，键盘和减少动态效果偏好可用；窄屏进度问题经实际复现后修复或记录排除依据。
+
+- [x] Design it (spec): `/architect Blog 目录与阅读进度修复`
+      spec [0013](../specs/0013-blog-toc-reading-progress/index.md)（2026-10-21 已确认，经另一模型只读复核；历史恢复缺口已按用户选择明确为沿用原生位置，未恢复时从文章顶部重算，不新增位置缓存）
+- [x] Build it: `/develop Blog 目录与阅读进度修复`
+      code in `src/components/Blog/BlogReading.tsx`, `src/components/Blog/TOC.tsx`, `src/lib/blog/`, `src/app/blog/[id]/page.tsx`, `src/app/layout.tsx`, `src/components/ui/progress-bar.tsx`, `src/app/globals.css`, `src/app/album/_components/demos/BlogReadingDemo.tsx`, `src/app/album/_components/catalog.ts`, `e2e/blog-reading.spec.ts`
+  - [x] 打通真实文章的统一目录、正文进度、桌面主题与章节跳转，记录窄屏旧行为的复现或排除依据，covers `AC-1`、`AC-3`、`AC-4`、`AC-5`、`AC-8`、`AC-9`、`AC-10`
+  - [x] 完成窄屏折叠目录、当前章节摘要、选中后收起和目标焦点及跨断点重绑定，covers `AC-2`、`AC-4`、`AC-5`、`AC-8`
+  - [x] 补齐正文动态高度、文章切换、原生历史恢复边界、片段兼容及空白和短文状态，covers `AC-1`、`AC-3`、`AC-5`、`AC-6`、`AC-7`
+  - [x] 接入安全 Album 与覆盖审计，完成组件回归和真实文章的四主题、桌面、手机、键盘及减少动态效果验证，covers `AC-1` 至 `AC-10`
+      2026-10-21：真实文章复现窄屏 window 滚动后旧进度停滞；统一正文阅读实例并修复客户端后退的旧片段重复定位。lint、typecheck、build、108 文件 573 项 Vitest 及数据库边界通过；桌面 Chrome 与手机 WebKit 的 Blog 和 Album 相关回归 39 项通过、1 项按既有移动端键盘策略跳过，其中本次阅读场景 10 项通过。验收步骤与范围边界见 [verify](../specs/0013-blog-toc-reading-progress/verify.md)。
+- [x] Verify it: `/check verify Blog 目录与阅读进度修复`
+- [x] Test it: `/test Blog 目录与阅读进度修复`
+
+## Blog 修复 P2：状态、布局与作者体验
+
+### 31. Blog 空状态与错误恢复修复 · needs a decision
+
+补齐列表、文章详情和相邻文章导航的加载、空状态与失败反馈，让读者能区分没有内容、文章不存在和暂时读取失败。需要确认各类状态的恢复入口。
+**Done when:** 列表具有可识别的页面标题与结果上下文，空列表和搜索无结果给出不同且可操作的提示；文章不存在与读取失败分别呈现明确状态和恢复入口；相邻文章加载失败不会显示为已经到达首尾；各状态保留稳定布局，反馈可被辅助技术感知。
+
+- [ ] Design it (spec): `/architect Blog 空状态与错误恢复修复`
+
+### 32. Blog 容器间距与窄屏布局修复
+
+在条目 28 至 31 的内容和状态确定后，收口列表、正文、目录及阅读工具栏的留白与溢出边界。按现有设计规范修复，不扩大为全站容器迁移。
+**Done when:** 内容容器使用默认内边距或在调用处显式指定例外，面板内部与相邻面板间距职责清晰；滚动边界不裁切内部阴影，滚动可用且默认隐藏原生滚动条；桌面和窄屏下的长标题、多标签、长代码及宽表格可阅读，局部溢出不撑宽整页，关键控件始终可达；待复现的布局问题均有实际观察依据。
+
+- [ ] Build it: `/develop Blog 容器间距与窄屏布局修复`
+
+### 33. Blog 编辑预览与操作修复 · needs a decision
+
+在条目 28 的正文展示规则确定后，让作者预览与发布结果一致，并收口编辑器中含义不清或没有实际行为的操作。需要先明确保存与提交的区别及反馈。
+**Done when:** 编辑预览与公开详情使用一致的正文和代码展示规则；退出编辑保持单一导航语义；保存和提交按已确认的含义真实生效，未实现操作不伪装为可用；提交期间防止重复操作，失败后能继续编辑并重试；窄屏及全屏下输入、预览和操作均可达，作者保存后能在公开详情看到一致结果。
+
+- [ ] Design it (spec): `/architect Blog 编辑预览与操作修复`
+
 ## Deferred
 
 当前开发轮次不包含这些能力，保留在这里避免它们悄悄扩大主线。
@@ -362,6 +440,7 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 - **实验页面产品化**: `formatter` 和 `playground` 暂不进入正式产品范围
 - **InputField 尺寸契约修复**: 让 `fieldSize` 真正传递到内部输入组件（from spec 0008）
 - **Icon 主题颜色契约**: 评估并收口硬编码颜色与四主题语义 token 的偏移（from spec 0008）
+- **全站字体设计基线对齐**: 独立核对 `design.md` 字体名称与现行字体 token 的差异；Blog 本轮沿用现行 token，不引入字体下载（from spec 0012）
 - **商业化**: 广告、赞助、会员和付费内容暂不规划
 
 ## References

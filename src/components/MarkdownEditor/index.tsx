@@ -3,13 +3,11 @@
 import { ChangeEventHandler, useEffect, useState } from "react";
 import { NeuSurface } from "@/components/ui/neu-surface";
 import { Button } from "@/components/ui/button";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import { CodeBlock } from "../NotionBlock";
+import { BlogMarkdown } from "@/components/Blog/BlogMarkdown";
 import Link from "next/link";
 import { InputField } from "@/components/ui/input-field";
 import { getOptionTagsById } from "@/db/tagAction";
-import TagEditor, { TagData } from "../TagEditor";
+import TagEditor, { TagData } from "@/components/TagEditor";
 
 interface Props {
   handleSubmit: () => void;
@@ -94,33 +92,13 @@ const MarkdownEditor = ({
           onChange={onContentChange as ChangeEventHandler}
         />
         <NeuSurface
-          className={`preview-part m-0! overflow-scroll hide-scrollbar break-all! text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
+          className={`preview-part m-0! min-w-0 overflow-auto hide-scrollbar text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
             preview
-              ? "p-3! ml-3! grow! w-full md:w-[49%]"
+              ? "p-[var(--spacing-panel-inset-default)]! ml-3! grow! w-full md:w-[49%]"
               : "w-0 p-0! overflow-hidden! border-none! "
           }`}
         >
-          <ReactMarkdown
-            components={{
-              code({ className, children, ...props }) {
-                const match = /language-(\w+)/.exec(className || "");
-                return match ? (
-                  <CodeBlock
-                    title="test"
-                    code={children ? children.toString() : ""}
-                    language={match[1]}
-                  ></CodeBlock>
-                ) : (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                );
-              },
-            }}
-            remarkPlugins={[remarkGfm]}
-          >
-            {blog.content}
-          </ReactMarkdown>
+          <BlogMarkdown content={blog.content} />
         </NeuSurface>
       </div>
     </div>

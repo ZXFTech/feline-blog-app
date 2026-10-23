@@ -3,6 +3,7 @@ import { access, writeFile } from "node:fs/promises";
 import { pathToFileURL } from "node:url";
 import bcrypt from "bcryptjs";
 import { Client } from "pg";
+import { validateEmail, validatePassword } from "@/utils/auth";
 
 const stagingOrigin = "https://feline-blog-staging-3ec51f95bf630efc-2918s-projects.vercel.app";
 
@@ -30,6 +31,23 @@ export function assertIsolatedE2eEnvironment(
   return url;
 }
 
+export function createE2eAccounts() {
+  return [
+    {
+      id: randomUUID(),
+      email: "c06-primary@example.test",
+      role: "ROOT",
+      password: "Aa1" + randomBytes(24).toString("hex"),
+    },
+    {
+      id: randomUUID(),
+      email: "c06-other@example.test",
+      role: "USER",
+      password: "Aa1" + randomBytes(24).toString("hex"),
+    },
+  ];
+}
+
 async function prepare(): Promise<void> {
   const adminUrl = assertIsolatedE2eEnvironment(process.env);
   const files = [".env.development", ".env.e2e.local"];
@@ -42,20 +60,14 @@ async function prepare(): Promise<void> {
   }
   const runtimePassword = randomBytes(32).toString("hex");
   const jwtSecret = randomBytes(48).toString("hex");
-  const accounts = [
-    {
-      id: randomUUID(),
-      email: "c06-primary@example.test",
-      role: "ROOT",
-      password: randomBytes(24).toString("hex"),
-    },
-    {
-      id: randomUUID(),
-      email: "c06-other@example.test",
-      role: "USER",
-      password: randomBytes(24).toString("hex"),
-    },
-  ];
+  const accounts = createE2eAccounts();
+  if (
+    accounts.some(
+      ({ email, password }) => !validateEmail(email) || !validatePassword(password).isValid
+    )
+  ) {
+    throw new Error("Disposable E2E accounts must satisfy the registration policy.");
+  }
   for (const secret of [runtimePassword, jwtSecret, ...accounts.map(({ password }) => password)]) {
     console.log("::add-mask::" + secret);
   }

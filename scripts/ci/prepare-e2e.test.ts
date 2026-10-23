@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from "vitest";
-import { assertIsolatedE2eEnvironment } from "./prepare-e2e";
+import { assertIsolatedE2eEnvironment, createE2eAccounts } from "./prepare-e2e";
+import { validateEmail, validatePassword } from "@/utils/auth";
 
 const isolated = {
   CI: "true",
@@ -41,5 +42,18 @@ describe("C-06 disposable database guard", () => {
         STAGING_SMOKE_ORIGIN: "https://unrelated.example.test",
       })
     ).toThrow();
+  });
+});
+
+describe("C-06 account contracts", () => {
+  it("generates credentials accepted by the actual registration policy", () => {
+    for (const account of createE2eAccounts()) {
+      expect(validateEmail(account.email)).toBe(true);
+      expect(validatePassword(account.password).isValid).toBe(true);
+    }
+  });
+
+  it("keeps the secondary account unprivileged for forbidden-route coverage", () => {
+    expect(createE2eAccounts().map(({ role }) => role)).toEqual(["ROOT", "USER"]);
   });
 });

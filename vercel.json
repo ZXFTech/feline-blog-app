@@ -4,5 +4,10 @@
       "path": "/api/cron/checklists/purge",
       "schedule": "0 3 * * *"
     }
-  ]
+  ],
+  "git": {
+    "deploymentEnabled": {
+      "codex/c06-actions-verify": false
+    }
+  }
 }

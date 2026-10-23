@@ -1,0 +1,80 @@
+name: C-06 complete E2E
+
+on:
+  push:
+    branches: [codex/c06-actions-verify]
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  complete-e2e:
+    if: github.ref == 'refs/heads/codex/c06-actions-verify'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      C06_COMPLETE_E2E: "true"
+      STAGING_SMOKE_ORIGIN: https://feline-blog-staging-3ec51f95bf630efc-2918s-projects.vercel.app
+      STAGING_SMOKE_MODE: public
+    services:
+      postgres:
+        image: postgres:17-bookworm@sha256:639ab7ceb90e13123085b741fb31ef493fba25463002f6da665352e7b534b652
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_HOST_AUTH_METHOD: trust
+          POSTGRES_DB: feline_blog_dev
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d feline_blog_dev"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 22.21.1
+      - name: Enable locked pnpm
+        run: |
+          corepack enable
+          corepack prepare pnpm@10.28.1 --activate
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm prisma:generate
+      - name: Prepare disposable database and local accounts
+        env:
+          POSTGRES_MIGRATION_URL: postgresql://postgres@127.0.0.1:5432/feline_blog_dev
+          C06_ADMIN_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/feline_blog_dev
+        run: |
+          pnpm exec prisma migrate deploy --config ./prisma.postgres.config.ts
+          pnpm exec tsx scripts/ci/prepare-e2e.ts
+      - name: Install both browser engines
+        run: pnpm exec playwright install --with-deps chromium webkit
+      - name: Obtain short lived test OIDC
+        id: oidc
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          result-encoding: string
+          script: |
+            const token = await core.getIDToken();
+            core.setSecret(token);
+            return token;
+      - name: Run every E2E file
+        env:
+          VERCEL_OIDC_TOKEN: ${{ steps.oidc.outputs.result }}
+          PLAYWRIGHT_JSON_OUTPUT_NAME: .feline-blog/c06-actions/report.json
+        run: pnpm test:e2e --reporter=line,json --output=.feline-blog/c06-actions/browser-results
+      - name: Archive test report
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: c06-e2e-${{ github.sha }}-${{ github.run_attempt }}
+          path: .feline-blog/c06-actions/report.json
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 14

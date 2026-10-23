@@ -6,6 +6,7 @@
   "legacyGenerated": ["src/db/legacy-mysql/client.ts"],
   "legacyDriver": ["src/db/legacy-mysql/client.ts"],
   "postgresDriver": [
+    "scripts/ci/prepare-e2e.ts",
     "scripts/database/audit-postgres-connections.ts",
     "scripts/database/configure-postgres-roles.ts",
     "scripts/database/local-postgres/docker-test.ts",

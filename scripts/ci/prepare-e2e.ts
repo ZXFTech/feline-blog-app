@@ -46,11 +46,13 @@ async function prepare(): Promise<void> {
     {
       id: randomUUID(),
       email: "c06-primary@example.test",
+      role: "ROOT",
       password: randomBytes(24).toString("hex"),
     },
     {
       id: randomUUID(),
       email: "c06-other@example.test",
+      role: "USER",
       password: randomBytes(24).toString("hex"),
     },
   ];
@@ -84,7 +86,13 @@ async function prepare(): Promise<void> {
     for (const account of accounts) {
       await client.query(
         'INSERT INTO public.users (id, email, username, password, role, "updateAt") VALUES ($1, $2, $3, $4, $5, now())',
-        [account.id, account.email, "C06 fixture", await bcrypt.hash(account.password, 10), "ROOT"]
+        [
+          account.id,
+          account.email,
+          "C06 fixture",
+          await bcrypt.hash(account.password, 10),
+          account.role,
+        ]
       );
     }
     await client.query(

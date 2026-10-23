@@ -147,7 +147,7 @@ const pendingFamilies: ReadonlyArray<readonly [string, string, string, string, C
       "blog",
       "博客组件",
       "Blog / BlogList / RightSideBar",
-      "Blog/AdjacentBlogs.tsx|Blog/BlogOperationBar.tsx|BlogList/BlogEditor.tsx|BlogList/blogList.tsx|BlogList/BlogListOperationBar.tsx|BlogList/ListItem.tsx|RightSideBar/BlogEditBar.tsx",
+      "Blog/AdjacentBlogs.tsx|Blog/BlogRecovery.tsx|Blog/BlogOperationBar.tsx|BlogList/BlogEditor.tsx|BlogList/blogList.tsx|BlogList/BlogListOperationBar.tsx|BlogList/ListItem.tsx|RightSideBar/BlogEditBar.tsx",
       "business",
     ],
     [
@@ -565,6 +565,27 @@ export const catalogEntries: readonly CatalogEntry[] = [
       ),
     },
     () => import("@/app/album/_components/demos/BlogReadingDemo")
+  ),
+  ready(
+    {
+      ...base,
+      slug: "blog-status",
+      nameZh: "Blog 空状态与错误恢复",
+      codeName: "BlogStatusPanel / AdjacentBlogsView",
+      description: "加载、空列表、搜索无结果、404、空正文和手动恢复，使用固定本地数据。",
+      useCases: ["阅读状态", "失败恢复", "相邻导航"],
+      importPath: "@/components/Blog/BlogStatus · @/components/Blog/AdjacentBlogsView",
+      sourceFiles: ["Blog/BlogStatus.tsx", "Blog/AdjacentBlogsView.tsx"],
+      categoryId: "feedback",
+      order: 30,
+      keywords: ["blog", "空状态", "恢复", "错误", "404", "相邻文章"],
+      capabilities: capability(
+        ["默认面板"],
+        ["列表", "详情", "相邻导航"],
+        ["加载", "空列表", "搜索无结果", "读取失败", "404", "空正文", "相邻成功", "相邻失败"]
+      ),
+    },
+    () => import("@/app/album/_components/demos/BlogStatusDemo")
   ),
   ...pendingFamilies.map(([slug, nameZh, codeName, files, categoryId], index) =>
     pending({

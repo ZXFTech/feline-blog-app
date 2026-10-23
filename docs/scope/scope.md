@@ -41,8 +41,8 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 28  | Blog 正文与代码块展示修复 | Blog P1 | done |
 | 29  | Blog 阅读操作与可访问性修复 | Blog P1 | planned |
 | 30  | Blog 目录与阅读进度修复 | Blog P1 | done |
-| 31  | Blog 空状态与错误恢复修复 | Blog P2 | planned |
-| 32  | Blog 容器间距与窄屏布局修复 | Blog P2 | planned |
+| 31  | Blog 空状态与错误恢复修复 | Blog P2 | in-progress |
+| 32  | Blog 容器间距与窄屏布局修复 | Blog P2 | in-progress |
 | 33  | Blog 编辑预览与操作修复 | Blog P2 | planned |
 
 ## Current product
@@ -408,19 +408,35 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 
 ## Blog 修复 P2：状态、布局与作者体验
 
-### 31. Blog 空状态与错误恢复修复 · needs a decision
+### 31. Blog 空状态与错误恢复修复 · in-progress
 
-补齐列表、文章详情和相邻文章导航的加载、空状态与失败反馈，让读者能区分没有内容、文章不存在和暂时读取失败。需要确认各类状态的恢复入口。
+补齐列表、文章详情和相邻文章导航的加载、空状态与失败反馈，让读者能区分没有内容、文章不存在和暂时读取失败。已确定文字 404、保留当前条件的手动重试、清除搜索保留排序、空正文提示，以及整个 `/blog` 的中文加载与错误兜底，具体契约见 spec 0014。
 **Done when:** 列表具有可识别的页面标题与结果上下文，空列表和搜索无结果给出不同且可操作的提示；文章不存在与读取失败分别呈现明确状态和恢复入口；相邻文章加载失败不会显示为已经到达首尾；各状态保留稳定布局，反馈可被辅助技术感知。
 
-- [ ] Design it (spec): `/architect Blog 空状态与错误恢复修复`
+- [x] Design it (spec): `/architect Blog 空状态与错误恢复修复`
+      spec [0014](../specs/0014-blog-empty-error-recovery/index.md)（2026-10-22 已确认，2026-10-23 导航与焦点约定原位同步并再次确认，均经另一模型只读复核；保留流式缺页与未保存草稿的既定边界，排序时同时提交当前搜索输入）
+- [ ] Build it: `/develop Blog 空状态与错误恢复修复`
+      code in `src/app/blog/`、`src/components/Blog/`、`src/components/BlogList/BlogListOperationBar.tsx`、`src/app/album/_components/demos/BlogStatusDemo.tsx`、`e2e/blog-status.spec.ts`（2026-10-23 标准 Turbopack 构建、完整 Vitest 与 Blog 专项已有通过记录，见 `.feline-blog/debug-0014-boundaries/report.md`；你已确认在 Vercel 添加 staging 配置，完整 E2E 尚待按实际运行环境复验）
+  - [x] 打通真实列表的结果上下文、空态、保留条件的失败重试，以及搜索清除和排序合并提交，covers `AC-1`、`AC-2`、`AC-3`、`AC-7`、`AC-11`
+  - [x] 完成详情文字 404、重新检查、临时失败恢复与空正文提示，保留正文与阅读辅助契约，covers `AC-3`、`AC-4`、`AC-5`、`AC-7`、`AC-11`
+  - [x] 完成相邻导航局部恢复、正确边界与请求隔离，接入整个 Blog 的中文加载及崩溃兜底并回归作者路径，covers `AC-6`、`AC-7`、`AC-8`、`AC-11`
+  - [ ] 接入安全 Album 与来源审计，完成四主题、宽窄屏、键盘和真实故障恢复验收及自动化检查，covers `AC-1` 至 `AC-12`
+- [ ] Verify it: `/check verify Blog 空状态与错误恢复修复`
+- [x] Test it: `/test Blog 空状态与错误恢复修复`
 
-### 32. Blog 容器间距与窄屏布局修复
+### 32. Blog 容器间距与窄屏布局修复 · in-progress
 
 在条目 28 至 31 的内容和状态确定后，收口列表、正文、目录及阅读工具栏的留白与溢出边界。按现有设计规范修复，不扩大为全站容器迁移。
 **Done when:** 内容容器使用默认内边距或在调用处显式指定例外，面板内部与相邻面板间距职责清晰；滚动边界不裁切内部阴影，滚动可用且默认隐藏原生滚动条；桌面和窄屏下的长标题、多标签、长代码及宽表格可阅读，局部溢出不撑宽整页，关键控件始终可达；待复现的布局问题均有实际观察依据。
 
+- [x] Design it (spec): `/architect Blog 容器间距与窄屏布局修复`
+      spec [0015](../specs/0015-blog-container-narrow-layout.md)（2026-10-23 已确认，经另一模型只读复核；从 320 CSS 像素开始，保留 default 内边距，标题与标签完整换行，操作区换行或堆叠）
 - [ ] Build it: `/develop Blog 容器间距与窄屏布局修复`
+  - [ ] 记录真实页面基线，打通列表到详情的首条修复路径，covers `AC-1`、`AC-2`、`AC-3`、`AC-4`、`AC-9`
+  - [ ] 收口正文、目录、阅读操作和相邻导航的间距、滚动及断点边界，covers `AC-2`、`AC-3`、`AC-4`、`AC-5`、`AC-6`、`AC-7`
+  - [ ] 完成状态界面、安全 Album 展示、共享影响检查与四主题回归证据，covers `AC-1`、`AC-4`、`AC-6`、`AC-8`、`AC-9`、`AC-10`
+- [ ] Verify it: `/check verify Blog 容器间距与窄屏布局修复`
+- [ ] Test it: `/test Blog 容器间距与窄屏布局修复`
 
 ### 33. Blog 编辑预览与操作修复 · needs a decision
 
@@ -441,6 +457,7 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 - **InputField 尺寸契约修复**: 让 `fieldSize` 真正传递到内部输入组件（from spec 0008）
 - **Icon 主题颜色契约**: 评估并收口硬编码颜色与四主题语义 token 的偏移（from spec 0008）
 - **全站字体设计基线对齐**: 独立核对 `design.md` 字体名称与现行字体 token 的差异；Blog 本轮沿用现行 token，不引入字体下载（from spec 0012）
+- **Blog 相关文章推荐**: 暂缓缺页推荐，后续先确定关联信息来源与排序规则，或明确选择标为“最新文章”的模块（from spec 0014）
 - **商业化**: 广告、赞助、会员和付费内容暂不规划
 
 ## References

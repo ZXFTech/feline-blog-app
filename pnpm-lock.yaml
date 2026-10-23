@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  next@16.3.3:
+    hash: 1d3fe70ea006afc2243c19e1d3799150790955f8915ad3d5491a95bd1d9c2882
+    path: patches/next@16.3.3.patch
+
 importers:
 
   .:
@@ -49,10 +54,10 @@ importers:
         version: 0.31.2
       next:
         specifier: 16.3.3
-        version: 16.3.3(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0)
+        version: 16.3.3(patch_hash=1d3fe70ea006afc2243c19e1d3799150790955f8915ad3d5491a95bd1d9c2882)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0)
       next-auth:
         specifier: ^4.24.13
-        version: 4.24.13(next@16.3.3(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+        version: 4.24.13(next@16.3.3(patch_hash=1d3fe70ea006afc2243c19e1d3799150790955f8915ad3d5491a95bd1d9c2882)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       openai:
         specifier: ^6.18.0
         version: 6.18.0(ws@8.21.3)(zod@3.25.76)
@@ -15067,13 +15072,13 @@ snapshots:
     dependencies:
       content-type: 2.1.0
 
-  next-auth@4.24.13(next@16.3.3(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
+  next-auth@4.24.13(next@16.3.3(patch_hash=1d3fe70ea006afc2243c19e1d3799150790955f8915ad3d5491a95bd1d9c2882)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0))(react-dom@19.2.4(react@19.2.4))(react@19.2.4):
     dependencies:
       '@babel/runtime': 7.27.0
       '@panva/hkdf': 1.2.1
       cookie: 0.7.2
       jose: 4.15.9
-      next: 16.3.3(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0)
+      next: 16.3.3(patch_hash=1d3fe70ea006afc2243c19e1d3799150790955f8915ad3d5491a95bd1d9c2882)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0)
       oauth: 0.9.15
       openid-client: 5.7.1
       preact: 10.28.1
@@ -15082,7 +15087,7 @@ snapshots:
       react-dom: 19.2.4(react@19.2.4)
       uuid: 8.3.2
 
-  next@16.3.3(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0):
+  next@16.3.3(patch_hash=1d3fe70ea006afc2243c19e1d3799150790955f8915ad3d5491a95bd1d9c2882)(@babel/core@7.29.7)(@playwright/test@1.62.1)(@types/node@20.17.32)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(sass@1.87.0):
     dependencies:
       '@next/env': 16.3.3
       '@swc/helpers': 0.5.23

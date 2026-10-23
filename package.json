@@ -149,6 +149,9 @@
     "onlyBuiltDependencies": [
       "@prisma/engines",
       "prisma"
-    ]
+    ],
+    "patchedDependencies": {
+      "next@16.3.3": "patches/next@16.3.3.patch"
+    }
   }
 }

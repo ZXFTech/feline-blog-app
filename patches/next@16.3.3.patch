@@ -1,0 +1,32 @@
+diff --git a/dist/client/components/router-reducer/create-initial-router-state.js b/dist/client/components/router-reducer/create-initial-router-state.js
+index 6c4aff6102f22a921e0885db37e70bf743128410..6ec8a1d733a01e45839abb4c45ba0d602f6a3cdc 100644
+--- a/dist/client/components/router-reducer/create-initial-router-state.js
++++ b/dist/client/components/router-reducer/create-initial-router-state.js
+@@ -51,8 +51,10 @@ function createInitialRouterState({ navigatedAt, initialRSCPayload, initialFligh
+     // The following only applies in the browser (location !== null) since neither
+     // route learning nor segment cache state persists from SSR to client.
+     if (location !== null && metadataVaryPath !== null) {
++        // Route cache entries are shared across fragments.
++        const cacheCanonicalUrl = (0, _createhreffromurl.createHrefFromUrl)(location, false);
+         // Learn the route pattern so we can predict it for future navigations.
+-        (0, _optimisticroutes.discoverKnownRoute)(Date.now(), location.pathname, location.search, null, null, initialRouteTree, metadataVaryPath, initialCouldBeIntercepted, canonicalUrl, initialSupportsPerSegmentPrefetching, false // hasDynamicRewrite
++        (0, _optimisticroutes.discoverKnownRoute)(Date.now(), location.pathname, location.search, null, null, initialRouteTree, metadataVaryPath, initialCouldBeIntercepted, cacheCanonicalUrl, initialSupportsPerSegmentPrefetching, false // hasDynamicRewrite
+         );
+         // TODO: Implement Shell extraction as part of Cached Navigations.
+         // Intentionally holding off on doing this until we decide how the Cached
+diff --git a/dist/esm/client/components/router-reducer/create-initial-router-state.js b/dist/esm/client/components/router-reducer/create-initial-router-state.js
+index 0f0a46f5a4219a01fd3540537c083fad48f5fe1b..ff66f887fc4e4d9487bd5705bc65cc4df4b86e68 100644
+--- a/dist/esm/client/components/router-reducer/create-initial-router-state.js
++++ b/dist/esm/client/components/router-reducer/create-initial-router-state.js
+@@ -41,8 +41,10 @@ export function createInitialRouterState({ navigatedAt, initialRSCPayload, initi
+     // The following only applies in the browser (location !== null) since neither
+     // route learning nor segment cache state persists from SSR to client.
+     if (location !== null && metadataVaryPath !== null) {
++        // Route cache entries are shared across fragments.
++        const cacheCanonicalUrl = createHrefFromUrl(location, false);
+         // Learn the route pattern so we can predict it for future navigations.
+-        discoverKnownRoute(Date.now(), location.pathname, location.search, null, null, initialRouteTree, metadataVaryPath, initialCouldBeIntercepted, canonicalUrl, initialSupportsPerSegmentPrefetching, false // hasDynamicRewrite
++        discoverKnownRoute(Date.now(), location.pathname, location.search, null, null, initialRouteTree, metadataVaryPath, initialCouldBeIntercepted, cacheCanonicalUrl, initialSupportsPerSegmentPrefetching, false // hasDynamicRewrite
+         );
+         // TODO: Implement Shell extraction as part of Cached Navigations.
+         // Intentionally holding off on doing this until we decide how the Cached

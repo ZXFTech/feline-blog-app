@@ -608,14 +608,21 @@ test("跨断点重绑定、动态正文重测及短文空文边界", async ({ pa
   const toc = await openToc(page);
   await expect(toc.getByRole("link")).toHaveCount(1);
   await expect(toc.getByRole("link")).toHaveText(/新的六级标题/);
-  for (const index of [1, 2, 3]) {
+  for (const [index, kind] of [
+    [1, "short"],
+    [2, "empty"],
+    [3, "nohead"],
+  ] as const) {
     await page.goto(`/blog/${ids[index]}#%broken`);
-    await expect(page.locator("#blog-content")).toBeAttached();
+    const title = page.getByRole("heading", { name: `${marker}-${kind}`, exact: true });
+    const article = page.locator("#blog-container").filter({ has: title });
+    await expect(title).toBeVisible();
+    await expect(article.locator("#blog-content")).toBeAttached();
     if (index === 3) {
       await expect(progress(page)).toBeVisible();
       await expect(page.getByRole("button", { name: /^本文目录/ })).toHaveCount(0);
     } else await expect(progress(page)).toHaveCount(0);
-    if (index === 2) await expect(page.locator(".blog-toc-compact")).toHaveCount(0);
+    if (index === 2) await expect(article.locator(".blog-toc-compact")).toHaveCount(0);
   }
 });
 

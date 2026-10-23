@@ -2,13 +2,13 @@
 
 import { StyledLink } from "@/components/ui/styled-link";
 import Head from "next/head";
-import { NeuSurface } from "@/components/ui/neu-surface";
 import Tag from "@/components/Tag";
 import { BlogMarkdown } from "@/components/Blog/BlogMarkdown";
 import { NeuPanel } from "@/components/ui/neu-panel";
-import Image from "next/image";
 import { getBlogById } from "@/db/blogAction";
-import { message } from "@/lib/message";
+import { notFound } from "next/navigation";
+import { BlogEmptyBody, BlogStatusPanel } from "@/components/Blog/BlogStatus";
+import { BlogRecovery } from "@/components/Blog/BlogRecovery";
 import BlogOperationBar from "@/components/Blog/BlogOperationBar";
 import TOC from "@/components/Blog/TOC";
 import { BlogReading } from "@/components/Blog/BlogReading";
@@ -17,38 +17,31 @@ import { PermissionAccess } from "@/components/Auth/PermissionAccess";
 import AdjacentBlogs from "@/components/Blog/AdjacentBlogs";
 
 interface Props {
-  params: Promise<{ id: number }>;
+  params: Promise<{ id: string }>;
 }
 
 const Blog = async ({ params }: Props) => {
   const { id } = await params;
   const result = await getBlogById(id);
-  if (result.status !== "success") throw new Error(result.message);
+  if (result.status === "invalid_input" || result.status === "not_found") notFound();
+  if (result.status !== "success") {
+    return (
+      <Content className="mx-auto max-w-[700px]">
+        <BlogStatusPanel
+          failure
+          pageTitle
+          title="暂时无法读取文章"
+          description="文章读取暂时失败，你可以在当前位置重试。"
+        >
+          <BlogRecovery />
+        </BlogStatusPanel>
+      </Content>
+    );
+  }
   const { blog, isLiked, isFavorite } = result.data;
 
   if (!blog) {
-    message.error("未找到博客");
-    // 暂时这么写 后续跳转到 404
-    // redirect("/blog");
-    return (
-      <div className="blog-empty-content">
-        <NeuSurface className="blog-empty-title">
-          这篇博客没有内容, 所以给你看看我的小猫吧~
-        </NeuSurface>
-        <NeuSurface className="blog-empty-image">
-          <div>
-            <Image
-              layout="responsive"
-              src="/myCat.jpg"
-              alt="my cat"
-              width={100}
-              height={100}
-              objectFit="cover"
-            />
-          </div>
-        </NeuSurface>
-      </div>
-    );
+    notFound();
   }
 
   return (
@@ -70,7 +63,7 @@ const Blog = async ({ params }: Props) => {
         <div className="flex min-w-0 flex-col" id="blog-container">
           <NeuPanel elevation="flat" className="blog-content-container min-w-0">
             <div className="flex min-w-0 flex-col gap-[var(--spacing-panel-gap-default)]">
-              <h1 className="blog-article-title" data-blog-title="">
+              <h1 tabIndex={-1} className="blog-article-title" data-blog-title="">
                 {blog.title}
               </h1>
               <div className="flex flex-wrap items-center justify-between">
@@ -92,6 +85,7 @@ const Blog = async ({ params }: Props) => {
               </div>
             </div>
             <TOC compact />
+            {blog.content.trim().length === 0 ? <BlogEmptyBody /> : null}
             <BlogMarkdown
               id="blog-content"
               className="blog-content flex-1"

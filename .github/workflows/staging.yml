@@ -121,7 +121,7 @@ jobs:
         run: echo "Candidate is superseded by the current master HEAD."
       - name: Check manual actor permission
         if: steps.select.outputs.current == 'true' && github.event_name == 'workflow_dispatch'
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           ACTOR: ${{ github.actor }}
         with:
@@ -153,7 +153,7 @@ jobs:
       - name: Create staging deployment record
         if: steps.select.outputs.current == 'true'
         id: deployment
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
           CANDIDATE_SHA: ${{ steps.select.outputs.candidate-sha }}
           RECORD_KEY: ${{ steps.select.outputs.record-key }}
@@ -227,7 +227,7 @@ jobs:
       - name: Probe Supavisor Session Pooler migration path
         run: pnpm db:staging:migration:probe
       - name: Record migration intent
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -249,7 +249,7 @@ jobs:
           pnpm ci:migrations reconcile-staging > migration-result.json
           pnpm ci:checkpoint phase checkpoint.json migrate succeeded
       - name: Record migration result
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -264,7 +264,7 @@ jobs:
           pnpm ci:checkpoint phase checkpoint.json migrate failed MIGRATION_FAILED || true
       - name: Record failed migration deployment status
         if: failure()
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -357,7 +357,7 @@ jobs:
           fi
           echo "UPLOAD_DIR=$upload" >> "$GITHUB_ENV"
       - name: Record deploy intent
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -385,7 +385,7 @@ jobs:
           echo "candidate-id=$candidate_id" >> "$GITHUB_OUTPUT"
           pnpm ci:checkpoint phase checkpoint.json deploy succeeded
       - name: Record deploy result
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -398,7 +398,7 @@ jobs:
         run: pnpm ci:checkpoint phase checkpoint.json deploy failed DEPLOY_TIMEOUT || true
       - name: Record failed deployment status
         if: failure()
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -453,7 +453,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
       - id: oidc
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           result-encoding: string
           script: |
@@ -517,7 +517,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm exec playwright install --with-deps chromium
       - id: oidc
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           result-encoding: string
           script: |
@@ -596,7 +596,7 @@ jobs:
           current_id=$(printf '%s' "$current" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).deploymentId))")
           test "$current_id" = "$PREVIOUS_ID"
       - name: Record promote intent
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -620,7 +620,7 @@ jobs:
           test "$current_id" = "$CANDIDATE_ID"
           pnpm ci:checkpoint phase checkpoint.json promote succeeded
       - name: Record promote result
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -633,7 +633,7 @@ jobs:
         run: pnpm ci:checkpoint phase checkpoint.json promote failed ALIAS_CHANGED || true
       - name: Record failed promotion status
         if: failure()
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -698,7 +698,7 @@ jobs:
           test "$deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
           test "$commit_sha" = "$CANDIDATE_SHA"
       - id: oidc
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           result-encoding: string
           script: |
@@ -768,7 +768,7 @@ jobs:
           corepack prepare "pnpm@$PNPM_VERSION" --activate
           pnpm install --frozen-lockfile
       - name: Record restore intent
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -806,7 +806,7 @@ jobs:
           echo 'restored=true' >> "$GITHUB_OUTPUT"
       - name: Record restore result
         if: success()
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -819,7 +819,7 @@ jobs:
         run: pnpm ci:checkpoint phase checkpoint.json restore failed RESTORE_FAILED || true
       - name: Record failed restore result
         if: failure()
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({
@@ -880,7 +880,7 @@ jobs:
           test "$deployment_id" = "$EXPECTED_DEPLOYMENT_ID"
           test "$commit_sha" = "$EXPECTED_COMMIT_SHA"
       - id: oidc
-        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           result-encoding: string
           script: |
@@ -930,7 +930,7 @@ jobs:
           corepack prepare "pnpm@$PNPM_VERSION" --activate
           pnpm install --frozen-lockfile
           pnpm ci:checkpoint summary checkpoint.json >> "$GITHUB_STEP_SUMMARY"
-      - uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         with:
           script: |
             await github.rest.repos.createDeploymentStatus({

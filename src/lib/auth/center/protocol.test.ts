@@ -7,7 +7,7 @@ import { exchange, freshAuth, validateGrant } from "./protocol";
 const pair = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const other = generateKeyPairSync("rsa", { modulusLength: 2048 });
 const issuer = authTestEnv.USER_CENTER_ISSUER;
-const protocol = { state: "state-a", nonce: "nonce-a", verifier: "verifier-a" };
+const protocol = { state: "state-a", nonce: "nonce-a", verifier: "verifier-a", transport: "form_post-v1" as const };
 const now = Math.floor(Date.now() / 1000);
 let claims: Record<string, unknown>, invalidSignature: boolean, missingToken: boolean;
 function token() {
@@ -34,13 +34,20 @@ beforeEach(() => {
 });
 afterEach(() => { vi.unstubAllEnvs(); vi.unstubAllGlobals(); });
 describe("0003 OIDC library verification", () => {
-  const url = () => new URL("http://localhost:13000/api/auth/callback/user-center?code=one-use-code&state=state-a");
+  const url = () => new URL("http://localhost:13000/api/auth/callback/user-center?code=one-use-code&state=state-a&iss=" + encodeURIComponent(issuer));
+  const post = (url: URL) => new Request(url.origin + url.pathname, { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body: url.searchParams });
+  it("0009 treats a lost token response as unknown and does not replay exchange", async () => {
+    const original=vi.mocked(fetch).getMockImplementation()!;let exchanges=0;
+    vi.mocked(fetch).mockImplementation(async(input,options)=>{if(new URL(String(input)).pathname.endsWith('/token')){exchanges++;throw Object.assign(new Error('private network context'),{code:'ECONNRESET'});}return original(input,options);});
+    await expect(exchange(post(url()),protocol,null)).rejects.toMatchObject({code:'CENTER_UNAVAILABLE',status:503});
+    expect(exchanges).toBe(1);
+  });
   it("AC-10 verifies a signed token using the real openid-client implementation", async () => {
-    expect(await exchange(url(), protocol, new Date(now * 1000))).toMatchObject({ sub: "center-a", sid: "sid-a", email: "verified@unit.test" });
+    expect(await exchange(post(url()), protocol, new Date(now * 1000))).toMatchObject({ sub: "center-a", sid: "sid-a", email: "verified@unit.test" });
   });
   it("AC-10 AC-11 exchanges proxy callbacks using the registered public redirect URI", async () => {
     const internal = url(); internal.host = "0.0.0.0:3000";
-    await exchange(internal, protocol, new Date(now * 1000));
+    await exchange(post(internal), protocol, new Date(now * 1000));
     const request = vi.mocked(fetch).mock.calls.find(([input]) => new URL(String(input)).pathname.endsWith("/token"));
     const body = new URLSearchParams(String(request?.[1]?.body));
     expect(body.get("redirect_uri")).toBe(authTestEnv.FELINE_PUBLIC_ORIGIN + "/api/auth/callback/user-center");
@@ -49,7 +56,7 @@ describe("0003 OIDC library verification", () => {
   });
   it("AC-10 rejects a callback on another path before contacting the provider", async () => {
     const wrong = url(); wrong.pathname = "/another-callback";
-    await expect(exchange(wrong, protocol, null)).rejects.toMatchObject({ code: "INVALID_CALLBACK" });
+    await expect(exchange(post(wrong), protocol, null)).rejects.toMatchObject({ code: "INVALID_CALLBACK" });
     expect(fetch).not.toHaveBeenCalled();
   });
   it.each(["signature", "issuer", "audience", "nonce", "expired", "auth-time", "missing-token", "state", "duplicate"])("AC-10 rejects %s without any persistence", async scenario => {
@@ -63,7 +70,7 @@ describe("0003 OIDC library verification", () => {
     if (scenario === "missing-token") missingToken = true;
     if (scenario === "state") target.searchParams.set("state", "wrong");
     if (scenario === "duplicate") target.searchParams.append("state", "state-a");
-    await expect(exchange(target, protocol, new Date(now * 1000))).rejects.toBeInstanceOf(Error);
+    await expect(exchange(post(target), protocol, new Date(now * 1000))).rejects.toBeInstanceOf(Error);
   });
   it("AC-13 requires sid even if the provider claims the token is active", () => {
     expect(() => validateGrant({ active: true, sub: "a", client_id: "feline-blog", exp: now + 300, scope: "openid email profile" })).toThrow("SESSION_REVOKED");

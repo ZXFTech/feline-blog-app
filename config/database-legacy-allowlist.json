@@ -6,6 +6,8 @@
   "legacyGenerated": ["src/db/legacy-mysql/client.ts"],
   "legacyDriver": ["src/db/legacy-mysql/client.ts"],
   "postgresDriver": [
+    "e2e/oauth-post.spec.ts",
+    "e2e/email-otp.spec.ts",
     "e2e/user-center.spec.ts",
     "e2e/auth-helpers.ts",
     "scripts/auth/install-permissions.ts",

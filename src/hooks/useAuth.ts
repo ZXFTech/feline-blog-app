@@ -26,6 +26,7 @@ export function useAuth() {
           const { data } = await res.json();
           setUser(data?.user ?? null);
         } else {
+          await res.arrayBuffer();
           setAuthUnavailable(res.status === 503);
           setUser(null);
         }

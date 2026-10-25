@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { beforeEach, afterEach, describe, expect, it, vi } from "vitest";
 import { NextRequest } from "next/server";
-import { authTestEnv } from "@/test/auth-center";
+import { authTestEnv, integrationTestEnv } from "@/test/auth-center";
 const mocks = vi.hoisted(() => ({ checkUser: vi.fn(), createUser: vi.fn(), query: vi.fn() }));
 vi.mock("@/db/userAction", () => ({ checkUser: mocks.checkUser }));
 vi.mock("@/db/postgres/runtime", () => ({ postgresPool: { query: mocks.query } }));
@@ -44,6 +44,7 @@ describe("0003 migrated authentication routes", () => {
     expect(mocks.query.mock.calls.some(([sql]) => sql.includes("feline_auth_browser"))).toBe(false);
   });
   it("AC-16 sets private production CSRF cookies and disables caching", async () => {
+    for (const [key, value] of Object.entries(integrationTestEnv)) vi.stubEnv(key, value);
     vi.stubEnv("NODE_ENV", "production"); vi.stubEnv("FELINE_PUBLIC_ORIGIN", "https://blog.zhaosie.com"); vi.stubEnv("USER_CENTER_ISSUER", "https://auth.zhaosie.com/api/auth");
     const response = await csrf(new NextRequest("https://blog.zhaosie.com/api/auth/csrf", { headers: { Origin: "https://blog.zhaosie.com", Cookie: `__Host-feline-browser=${"b".repeat(43)}` } }));
     expect(response.status).toBe(200);

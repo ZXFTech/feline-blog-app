@@ -7,6 +7,7 @@ import { actionResponse } from "@/lib/response/ApiResponse";
 import { AuthError, centerConfig, destination } from "./config";
 import { randomToken, sign } from "./crypto";
 import { callback, csrfToken, passwordProof, startFlow, submitFlow, trustedIp, verifyCsrf } from "./flows";
+import { callbackOrigin, postFormResponse } from "./post-transport";
 import { resolveIdentity } from "./session";
 import { browserState, cookieNames, query, rateLimit, type CookieReader } from "./store";
 import { ensureAuthReady } from "./readiness";
@@ -24,6 +25,7 @@ export const authMessages: Record<string, string> = {
   RATE_LIMITED: "尝试过于频繁，请按提示稍后再试。",
   CSRF_REJECTED: "页面已更新，请刷新后重新操作。",
   ENTRY_UNAVAILABLE: "此入口暂未开放，请稍后重试。",
+  IDENTITY_NOT_BOUND: "此中心身份尚未绑定博客账号。请先使用原博客账号登录，再从个人资料页明确绑定。",
 };
 export function requestCookies(headers: Headers): CookieReader {
   const values = new Map<string, string>();
@@ -91,14 +93,9 @@ export async function authHttp(request: Request, operation: Operation) {
     if (e.retryAfter) response.headers.set("Retry-After", String(e.retryAfter));
     // Deliberately fixed metadata only, never the exception, URL or request body.
     console.info(JSON.stringify({ event: "feline_auth", operation, code: e.code, status: e.status, requestId }));
-    if (operation === "callback") {
-      const location = new URL("/auth/user-center/error", process.env.FELINE_PUBLIC_ORIGIN ?? "http://localhost:3000");
-      location.searchParams.set("code", e.code); location.searchParams.set("requestId", requestId);
-      response = NextResponse.redirect(location, 303);
-    }
   }
   response.headers.set("Cache-Control", "no-store");
-  response.headers.set("Referrer-Policy", "no-referrer");
+  response.headers.set("Referrer-Policy", response.headers.get("Content-Type")?.startsWith("text/html") && response.status === 200 ? "strict-origin" : "no-referrer");
   response.headers.set("X-Robots-Tag", "noindex, nofollow");
   response.headers.set("X-Request-Id", requestId);
   return response;
@@ -107,8 +104,9 @@ async function dispatch(request: Request, operation: Operation): Promise<NextRes
   const read = requestCookies(request.headers), names = cookieNames();
   const config = centerConfig();
   if (operation === "callback") {
-    if (request.method !== "GET") throw new AuthError("METHOD_NOT_ALLOWED", 405);
-    const result = await callback(read, new URL(request.url));
+    if (request.method !== "POST") throw new AuthError("METHOD_NOT_ALLOWED", 405);
+    callbackOrigin(request);
+    const result = await callback(read, request);
     // Pending pages still need their one time flow cookie.
     if (!("token" in result)) return NextResponse.redirect(new URL(result.location, config.origin), 303);
     return success(request, result, read);
@@ -125,9 +123,11 @@ async function dispatch(request: Request, operation: Operation): Promise<NextRes
     return response;
   }
   if (request.method !== "POST") throw new AuthError("METHOD_NOT_ALLOWED", 405);
-  if (operation === "register") return actionResponse.error("新用户请从用户中心注册，原本地注册入口已关闭。", 409);
+  if (operation === "register") return actionResponse.error("当前暂不开放博客账号注册。", 409);
+  if (operation === "onboarding") throw new AuthError("ENTRY_UNAVAILABLE", 503);
   const fields = { login: ["email", "password"], logout: [], start: ["intent", "destination"], "bind-start": ["password"], onboarding: ["flowProof", "choice", "confirm", "username"], confirm: ["flowProof", "confirm"], cancel: ["flowProof"] }[operation];
   const input = await body(request, fields);
+  if (operation === "start" && input.intent === "register") throw new AuthError("ENTRY_UNAVAILABLE", 503);
   const browser = await verifyCsrf(read, input.csrfToken);
   if (!["login", "bind-start"].includes(operation)) await rateLimit("entry", trustedIp(request.headers), 60, 20);
   if (operation === "logout") {
@@ -163,12 +163,11 @@ async function dispatch(request: Request, operation: Operation): Promise<NextRes
       const password = parseString(input.password, { label: "密码", max: 128, trim: false });
       if (!password) throw new AuthError("INVALID_INPUT", 400);
       legacy = await passwordProof(user.email, password, request.headers);
-    } else if (!["login", "register"].includes(String(input.intent))) throw new AuthError("INVALID_INPUT", 400);
-    if (operation === "start" && input.intent === "register" && config.registration !== "center") throw new AuthError("ENTRY_UNAVAILABLE", 503);
+    } else if (input.intent !== "login") throw new AuthError("INVALID_INPUT", 400);
     const to = operation === "bind-start" ? "/profile" : destination(input.destination ?? "home");
     if (!to) throw new AuthError("INVALID_INPUT", 400);
     const result = await startFlow(read, browser, operation === "bind-start" ? "bind" : "login", to, legacy);
-    const response = request.headers.get("accept")?.includes("application/json") ? actionResponse.success({ location: result.url }) : NextResponse.redirect(result.url, 303);
+    const response = request.headers.get("accept")?.includes("application/json") ? actionResponse.success({ navigation: result.navigation }) : postFormResponse(result.navigation);
     response.cookies.set(names.flow, result.flow.id, { ...options(), expires: result.flow.expires_at });
     response.cookies.set(names.browser, read(names.browser)!, { ...options(), maxAge: 604800 });
     return response;

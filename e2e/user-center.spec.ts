@@ -2,7 +2,7 @@ import { expect, test, type Page, type APIRequestContext } from "@playwright/tes
 import { readFileSync } from "node:fs";
 import { createHash, randomUUID } from "node:crypto";
 import { Pool } from "pg";
-import { authPost } from "./auth-helpers";
+import { authPost, capturedCenterFlow } from "./auth-helpers";
 const enabled = !!process.env.FELINE_AUTH_FIXTURE_FILE;
 const fixture = enabled ? JSON.parse(readFileSync(process.env.FELINE_AUTH_FIXTURE_FILE!, "utf8")) : null;
 const mailpitOrigin = fixture?.mailpitOrigin;
@@ -10,9 +10,9 @@ test.skip(!enabled, "Requires the dedicated isolated fixture runner");
 test.describe.configure({ mode: "serial" });
 let blog: Pool, center: Pool;
 test.beforeAll(async () => { if (enabled) {
-  if (mailpitOrigin !== "http://localhost:18026") throw new Error("Dedicated isolated mail fixture required");
+  if (mailpitOrigin !== "http://localhost:18249") throw new Error("Dedicated isolated mail fixture required");
   for (const value of [fixture.blogAdmin, fixture.centerAdmin]) {
-    const url = new URL(value); if (url.hostname !== "127.0.0.1" || url.port !== "54341") throw new Error("Dedicated isolated fixture required");
+    const url = new URL(value); if (url.hostname !== "127.0.0.1" || url.port !== "54346") throw new Error("Dedicated isolated fixture required");
   }
   blog = new Pool({ connectionString: fixture.blogAdmin, max: 1 }); center = new Pool({ connectionString: fixture.centerAdmin, max: 1 });
 } });
@@ -49,17 +49,17 @@ async function businessSnapshot(user: string) {
   return result;
 }
 async function centerLogin(page: Page, email: string, password = fixture.fixtures.password) {
-  await page.waitForURL(url => url.origin === "http://localhost:18080" && url.pathname === "/auth/sign-in");
+  await page.waitForURL(url => url.origin === "https://auth.zhaosie.com" && url.pathname === "/auth/sign-in");
   await expect(page.locator("form")).toHaveAttribute("method", "post");
   await page.getByLabel("邮箱", { exact: true }).fill(email);
   await page.getByLabel("密码", { exact: true }).fill(password);
   await page.getByRole("button", { name: "登录", exact: true }).click();
-  await page.waitForURL(url => url.pathname === "/auth/consent" || (url.origin === "http://localhost:13000" && !url.pathname.includes("callback")));
+  await page.waitForURL(url => url.pathname === "/auth/consent" || (url.origin === "https://blog.zhaosie.com" && !url.pathname.includes("callback")));
   if (new URL(page.url()).pathname === "/auth/consent") {
     await expect(page.getByText("授权给feline-blog", { exact: true })).toBeVisible();
     await page.getByRole("button", { name: "批准并继续" }).click();
   }
-  await page.waitForURL(url => url.origin === "http://localhost:13000" && !url.pathname.includes("callback"));
+  await page.waitForURL(url => url.origin === "https://blog.zhaosie.com" && !url.pathname.includes("callback"));
 }
 for (const sameEmail of [false, true]) test(`0003 AC-1 AC-5 AC-7 AC-8 AC-9 AC-14 binds the original ROOT (${sameEmail ? "same email" : "different email"}) and forces fresh login after logout`, async ({ page, browser }, info) => {
   let callbackNavigations = 0;
@@ -79,14 +79,14 @@ for (const sameEmail of [false, true]) test(`0003 AC-1 AC-5 AC-7 AC-8 AC-9 AC-14
     // The canonical HTTPS fixture runs production builds. The localhost fixture
     // uses Next dev, which overrides page Cache-Control to no-cache.
     const cacheDirective = fixture.blogEnv.FELINE_PUBLIC_ORIGIN === "https://blog.zhaosie.com" ? "no-store" : "no-cache";
-    expect(profile?.headers()["cache-control"]).toContain(cacheDirective); expect(profile?.headers()["referrer-policy"]).toBe("no-referrer");
+    expect(profile?.headers()["cache-control"]).toContain(cacheDirective); expect(profile?.headers()["referrer-policy"]).toBe("strict-origin");
     await page.getByLabel("原博客密码").fill(fixture.fixtures.password);
     await page.getByRole("button", { name: "验证旧密码并前往用户中心" }).click();
     await centerLogin(page, person.centerEmail);
     await expect(page.getByRole("heading", { name: "确认绑定用户中心" })).toBeVisible();
     const before = (await blog.query('SELECT id,email,username,role,avatar,work,password FROM users WHERE id=$1', [person.user])).rows[0];
     expect(before.password).not.toBeNull();
-    await expect(page.getByText(/原密码散列将被清除/)).toBeVisible();
+    await expect(page.getByRole("main").getByText(/原密码散列将被清除/)).toBeVisible();
     const confirmButton = page.getByRole("button", { name: "确认绑定并停用旧密码" });
     await expect(confirmButton).toBeEnabled();
     expect((await confirmButton.boundingBox())?.height).toBeGreaterThanOrEqual(44);
@@ -101,13 +101,13 @@ for (const sameEmail of [false, true]) test(`0003 AC-1 AC-5 AC-7 AC-8 AC-9 AC-14
     expect(businessAfter).toEqual(businessBefore);
     const checksum = (value: unknown) => createHash("sha256").update(JSON.stringify(value)).digest("hex");
     await info.attach("preserved-business", { body: JSON.stringify({ relations: Object.keys(businessBefore).length, before: checksum(businessBefore), after: checksum(businessAfter), sameEmail }), contentType: "application/json" });
-    expect((await stale.request.get("http://localhost:13000/api/auth/me")).status()).toBe(401);
+    expect((await stale.request.get("https://blog.zhaosie.com/api/auth/me")).status()).toBe(401);
     expect((await authPost(stale.request, "login", { email: person.email, password: fixture.fixtures.password })).status()).toBe(401);
     await page.goto(`/blog/${person.article}`); await expect(page.getByRole("heading", { name: "绑定验收文章", exact: true })).toBeVisible();
     await page.goto("/profile"); await page.getByRole("button", { name: "退出当前浏览器" }).click();
     await page.waitForURL(url => url.pathname === "/login");
     await page.getByRole("button", { name: "使用用户中心登录" }).click();
-    await page.waitForURL(url => url.origin === "http://localhost:18080" && url.pathname === "/auth/sign-in");
+    await page.waitForURL(url => url.origin === "https://auth.zhaosie.com" && url.pathname === "/auth/sign-in");
     await expect(page.getByLabel("密码", { exact: true })).toBeVisible();
     await centerLogin(page, person.centerEmail);
     expect((await page.request.get("/api/auth/me")).status()).toBe(200);
@@ -150,7 +150,7 @@ test("0003 AC-6 AC-9 an occupied email never claims or merges an old account", a
   expect((await blog.query('SELECT "authMode",password IS NOT NULL AS has_password FROM users WHERE id=$1', [person.user])).rows[0]).toEqual({ authMode: "legacy", has_password: true });
   expect((await blog.query("SELECT count(*)::int n FROM feline_auth_identity WHERE subject=$1", [person.subject])).rows[0].n).toBe(0);
   await page.getByRole("button", { name: "绑定已有账号" }).click();
-  await page.waitForURL(url => url.pathname === "/login" && url.searchParams.get("legacy") === "1");
+  await page.waitForURL(url => url.pathname === "/login" && url.search === "");
 });
 
 test("0003 AC-12 AC-13 center password recovery revokes both browsers and a new login never revives old grants", async ({ page, browser }) => {
@@ -163,14 +163,14 @@ test("0003 AC-12 AC-13 center password recovery revokes both browsers and a new 
   const peer = await browser.newContext();
   try {
     const second = await peer.newPage();
-    await second.goto("http://localhost:13000/login"); await second.getByRole("button", { name: "使用用户中心登录" }).click();
+    await second.goto("https://blog.zhaosie.com/login"); await second.getByRole("button", { name: "使用用户中心登录" }).click();
     await centerLogin(second, person.centerEmail);
-    expect((await peer.request.get("http://localhost:13000/api/auth/me")).status()).toBe(200);
+    expect((await peer.request.get("https://blog.zhaosie.com/api/auth/me")).status()).toBe(200);
     expect((await blog.query("SELECT count(DISTINCT center_session_id)::int n, count(DISTINCT grant_encrypted)::int grants FROM feline_auth_session WHERE user_id=$1 AND revoked_at IS NULL", [oldId])).rows[0]).toEqual({ n: 2, grants: 2 });
     const old = await browser.newContext(); await old.addCookies(await page.context().cookies());
     try {
-      const reset = await page.request.post("http://localhost:18080/api/auth/request-password-reset", { headers: { Origin: "http://localhost:18080" }, data: { email: person.centerEmail } });
-      expect(reset.status()).toBe(200);
+      const reset = await page.request.post("https://auth.zhaosie.com/api/v1/auth/otp/reset/request", { headers: { Origin: "https://auth.zhaosie.com" }, data: { email: person.centerEmail } });
+      expect(reset.status()).toBe(202);
       let mailId = "";
       await expect.poll(async () => {
         const list = await (await page.request.get(`${mailpitOrigin}/api/v1/messages`)).json();
@@ -178,17 +178,20 @@ test("0003 AC-12 AC-13 center password recovery revokes both browsers and a new 
         return !!mailId;
       }).toBe(true);
       const mail = await (await page.request.get(`${mailpitOrigin}/api/v1/message/` + mailId)).json();
-      const link = new URL(mail.Text.match(/http:\/\/localhost:18080\/auth\/reset-password\?[^\s]+/)[0]);
+      const link = new URL(mail.Text.match(/https:\/\/auth.zhaosie.com\/auth\/reset-password\?[^\s]+/)[0]);
+      expect([...link.searchParams.keys()]).toEqual(["app"]);
+      const otp = mail.Text.match(/\b[0-9]{6}\b/)?.[0];
+      expect(otp?.length).toBe(6);
       const newPassword = fixture.fixtures.password + "changed!";
-      const changed = await page.request.post("http://localhost:18080/api/auth/reset-password", { headers: { Origin: "http://localhost:18080" }, data: { token: link.searchParams.get("token"), newPassword } });
+      const changed = await page.request.post("https://auth.zhaosie.com/api/v1/auth/otp/reset/confirm", { headers: { Origin: "https://auth.zhaosie.com" }, data: { email: person.centerEmail, otp, newPassword, flowContext: { kind: "none" } } });
       expect(changed.status()).toBe(200);
       expect((await page.request.get("/api/auth/me")).status()).toBe(401);
-      expect((await peer.request.get("http://localhost:13000/api/auth/me")).status()).toBe(401);
+      expect((await peer.request.get("https://blog.zhaosie.com/api/auth/me")).status()).toBe(401);
       await page.goto("/login"); await page.getByRole("button", { name: "使用用户中心登录" }).click();
       await centerLogin(page, person.centerEmail, newPassword);
       expect((await (await page.request.get("/api/auth/me")).json()).data.user.id).toBe(oldId);
-      expect((await old.request.get("http://localhost:13000/api/auth/me")).status()).toBe(401);
-      expect((await peer.request.get("http://localhost:13000/api/auth/me")).status()).toBe(401);
+      expect((await old.request.get("https://blog.zhaosie.com/api/auth/me")).status()).toBe(401);
+      expect((await peer.request.get("https://blog.zhaosie.com/api/auth/me")).status()).toBe(401);
     } finally { await old.close(); }
   } finally { await peer.close(); }
 });
@@ -210,8 +213,8 @@ test("0003 AC-16 rejects sibling origins and cross browser callbacks without cre
   expect(rejected.status()).toBe(403);
   const other = await browser.newContext();
   try {
-    const response = await other.request.get("http://localhost:13000/api/auth/callback/user-center?code=fixture&state=fixture", { maxRedirects: 0 });
-    expect(response.status()).toBe(303); expect((await other.request.get("http://localhost:13000/api/auth/me")).status()).toBe(401);
+    const response = await other.request.get("https://blog.zhaosie.com/api/auth/callback/user-center?code=fixture&state=fixture", { maxRedirects: 0 });
+    expect(response.status()).toBe(405); expect((await other.request.get("https://blog.zhaosie.com/api/auth/me")).status()).toBe(401);
   } finally { await other.close(); }
 });
 
@@ -223,14 +226,15 @@ test("0003 AC-15 center outage preserves public reading, blocks identity with 50
   await page.waitForURL(url => url.pathname === "/");
   const before = (await (await page.request.get("/api/auth/me")).json()).data.user.id;
   // Fault only this task's center database, never an existing service/container.
-  await center.query('REVOKE SELECT ON oauth_access_token FROM center_runtime');
+  if (new URL(fixture.centerEnv.DATABASE_URL).username !== "https_runtime") throw Error("OWNED_RUNTIME_ROLE_REQUIRED");
+  await center.query('REVOKE SELECT ON oauth_access_token FROM https_runtime');
   try {
     expect((await page.request.get("/api/auth/me")).status()).toBe(503);
     await page.goto(`/blog/${person.article}`);
     await expect(page.getByRole("heading", { name: "绑定验收文章", exact: true })).toBeVisible();
     await expect(page.getByText("身份暂时不可用，你仍可阅读这篇公开文章。登录和互动请稍后重试。")).toBeVisible();
     await page.screenshot({ path: `.feline-blog/${info.project.name}-public-during-center-outage.png` });
-  } finally { await center.query('GRANT SELECT ON oauth_access_token TO center_runtime'); }
+  } finally { await center.query('GRANT SELECT ON oauth_access_token TO https_runtime'); }
   const recovered = await page.request.get("/api/auth/me"); expect(recovered.status()).toBe(200);
   expect((await recovered.json()).data.user.id).toBe(before);
   await blog.query('ALTER ROLE app_runtime NOLOGIN');
@@ -249,10 +253,10 @@ test("0003 AC-19 password limits are shared by browser contexts and return a ret
   const statuses: number[] = [];
   for (let n = 0; n < 6; n++) statuses.push((await authPost(page.request, "login", { email: person.email, password: "deliberately wrong fixture password" })).status());
   expect(statuses).toEqual([401, 401, 401, 401, 401, 429]);
-  const peer = await browser.newContext({ baseURL: "http://localhost:13000" });
+  const peer = await browser.newContext({ baseURL: "https://blog.zhaosie.com" });
   try {
     const csrf = (await (await peer.request.get("/api/auth/csrf")).json()).data.csrfToken;
-    const limited = await peer.request.post("/api/auth/login", { headers: { Origin: "http://localhost:13000" }, data: { email: person.email, password: "deliberately wrong fixture password", csrfToken: csrf } });
+    const limited = await peer.request.post("/api/auth/login", { headers: { Origin: "https://blog.zhaosie.com" }, data: { email: person.email, password: "deliberately wrong fixture password", csrfToken: csrf } });
     expect(limited.status()).toBe(429); expect(Number(limited.headers()["retry-after"])).toBeGreaterThan(0);
   } finally { await peer.close(); }
 });
@@ -260,7 +264,7 @@ test("0003 AC-19 password limits are shared by browser contexts and return a ret
 test("0003 AC-3 AC-4 AC-18 registers and verifies at the center, then explicitly creates the blog profile", async ({ page }) => {
   const email = `signup-${randomUUID()}@user-center.test`;
   await page.goto("/register"); await page.getByRole("button", { name: "前往用户中心注册" }).click();
-  await page.waitForURL(url => url.origin === "http://localhost:18080" && url.pathname === "/auth/sign-in");
+  await page.waitForURL(url => url.origin === "https://auth.zhaosie.com" && url.pathname === "/auth/sign-in");
   await page.getByRole("link", { name: "注册账号", exact: true }).click();
   await page.getByLabel("称呼", { exact: true }).fill("邮件注册用户");
   await page.getByLabel("邮箱", { exact: true }).fill(email);
@@ -269,7 +273,7 @@ test("0003 AC-3 AC-4 AC-18 registers and verifies at the center, then explicitly
   await page.getByRole("button", { name: "注册账号", exact: true }).click();
   await page.waitForURL(url => url.pathname === "/auth/verify-pending");
   expect((await page.request.get("/api/auth/me")).status()).toBe(401);
-  expect((await page.request.get("http://localhost:18080/api/v1/session")).status()).toBe(401);
+  expect((await page.request.get("https://auth.zhaosie.com/api/v1/session")).status()).toBe(401);
   expect((await blog.query("SELECT count(*)::int n FROM users WHERE email=$1", [email])).rows[0].n).toBe(0);
   let mailId = "";
   await expect.poll(async () => {
@@ -278,15 +282,22 @@ test("0003 AC-3 AC-4 AC-18 registers and verifies at the center, then explicitly
     return !!mailId;
   }).toBe(true);
   const mail = await (await page.request.get(`${mailpitOrigin}/api/v1/message/` + mailId)).json();
-  const link = new URL(mail.Text.match(/http:\/\/localhost:18080\/auth\/verify-email\?[^\s]+/)[0]);
-  expect(link.searchParams.get("resume_target")).toBe("feline-blog");
-  await page.goto(link.href); await page.getByRole("button", { name: "验证并继续" }).click();
+  const link = new URL(mail.Text.match(/https:\/\/auth.zhaosie.com\/auth\/verify-email\?[^\s]+/)[0]);
+  expect([...link.searchParams.keys()]).toEqual(["app"]);
+  expect(link.searchParams.get("app")).toBe("feline-blog");
+  const otp = mail.Text.match(/\b[0-9]{6}\b/)?.[0];
+  expect(otp?.length).toBe(6);
+  await page.goto(link.href);
+  expect((await page.request.get("https://auth.zhaosie.com/api/v1/session")).status()).toBe(401);
+  await page.getByLabel("邮箱", { exact: true }).fill(email);
+  await page.getByLabel("六位验证码", { exact: true }).fill(otp!);
+  await page.getByRole("button", { name: "验证并继续" }).click();
   await page.waitForURL(url => url.pathname === "/auth/consent");
   await page.getByRole("button", { name: "批准并继续" }).click();
   await expect(page.getByRole("heading", { name: "选择你的博客账号" })).toBeVisible();
   expect((await blog.query("SELECT count(*)::int n FROM users WHERE email=$1", [email])).rows[0].n).toBe(0);
   await page.getByRole("button", { name: "确认创建新账号" }).click();
-  await page.waitForURL(url => url.origin === "http://localhost:13000" && url.pathname === "/profile");
+  await page.waitForURL(url => url.origin === "https://blog.zhaosie.com" && url.pathname === "/profile");
   expect((await (await page.request.get("/api/auth/me")).json()).data.user).toMatchObject({ email, role: "USER", username: "邮件注册用户", authMode: "center" });
 });
 
@@ -303,26 +314,26 @@ test("0003 AC-13 AC-17 refuses final onboarding when its center session was revo
 });
 
 async function authorizationCode(request: APIRequestContext, email: string) {
-  const centerOrigin = "http://localhost:18080";
+  const centerOrigin = "https://auth.zhaosie.com";
   const started = await authPost(request, "user-center/start", { intent: "login" }); expect(started.status()).toBe(200);
-  const authorize = (await started.json()).data.location;
-  let response = await request.get(authorize, { maxRedirects: 0, headers: { Accept: "text/html" } });
-  let location = response.headers().location;
-  if (new URL(location, centerOrigin).pathname === "/auth/sign-in") {
-    expect((await request.get(new URL(location, centerOrigin).href)).status()).toBe(200);
-    const login = await request.post(centerOrigin + "/api/auth/sign-in/email", { headers: { Origin: centerOrigin }, data: { email, password: fixture.fixtures.password } }); expect(login.status()).toBe(200);
-    const continuation = await request.get(centerOrigin + "/auth/continue", { maxRedirects: 0 });
-    expect(continuation.status()).toBe(307);
-    response = await request.get(new URL(continuation.headers().location, centerOrigin).href, { maxRedirects: 0, headers: { Accept: "text/html" } });
-    location = response.headers().location;
+  const initial = (await started.json()).data.navigation;
+  expect(initial.kind).toBe("post");
+  let response = await request.post(initial.action, { form: initial.fields, headers: { Origin: "https://blog.zhaosie.com", Accept: "application/json" }, maxRedirects: 0 });
+  expect(response.status()).toBe(200);
+  let navigation = (await response.json()).navigation;
+  if (navigation.kind === "page" && navigation.path === "/auth/sign-in") {
+    const flowContext = await capturedCenterFlow(request);
+    response = await request.post(centerOrigin + "/api/auth/sign-in/email", { headers: { Origin: centerOrigin, Accept: "application/json" }, data: { email, password: fixture.fixtures.password, flowContext } });
+    expect(response.status()).toBe(200); navigation = (await response.json()).navigation;
   }
-  if (new URL(location, centerOrigin).pathname === "/auth/consent") {
-    const consent = await request.post(centerOrigin + "/api/auth/oauth2/consent", { headers: { Origin: centerOrigin }, data: { accept: true, oauth_query: new URL(location, centerOrigin).searchParams.toString() } });
-    expect(consent.status()).toBe(200); location = (await consent.json()).url;
+  if (navigation.kind === "page" && navigation.path === "/auth/consent") {
+    const flowContext = await capturedCenterFlow(request);
+    response = await request.post(centerOrigin + "/api/auth/oauth2/consent", { headers: { Origin: centerOrigin, Accept: "application/json" }, data: { accept: true, flowContext } });
+    expect(response.status()).toBe(200); navigation = (await response.json()).navigation;
   }
-  const callback = new URL(location, centerOrigin);
-  expect(callback.origin).toBe("http://localhost:13000"); expect(callback.pathname).toBe("/api/auth/callback/user-center");
-  return callback;
+  expect(navigation.kind).toBe("post"); expect(navigation.action).toBe("https://blog.zhaosie.com/api/auth/callback/user-center");
+  expect(Object.keys(navigation.fields).sort()).toEqual(["code", "iss", "state"]);
+  return navigation;
 }
 
 test("0003 AC-10 real provider refuses the wrong PKCE verifier", async ({ page, browser }) => {
@@ -331,28 +342,26 @@ test("0003 AC-10 real provider refuses the wrong PKCE verifier", async ({ page, 
   try {
     const encoded = (value: string) => encodeURIComponent(value).replaceAll("%20", "+");
     const basic = Buffer.from(encoded("feline-blog") + ":" + encoded(fixture.blogEnv.USER_CENTER_CLIENT_SECRET)).toString("base64");
-    const response = await client.request.post("http://localhost:18080/api/auth/oauth2/token", { headers: { Authorization: "Basic " + basic }, form: { grant_type: "authorization_code", code: callback.searchParams.get("code")!, redirect_uri: "http://localhost:13000/api/auth/callback/user-center", code_verifier: "wrong-verifier-".repeat(4) } });
+    const response = await client.request.post("https://auth.zhaosie.com/api/auth/oauth2/token", { headers: { Authorization: "Basic " + basic }, form: { grant_type: "authorization_code", code: callback.fields.code, redirect_uri: "https://blog.zhaosie.com/api/auth/callback/user-center", code_verifier: "wrong-verifier-".repeat(4) } });
     expect(response.status()).toBe(401); expect((await response.json()).error).toBe("invalid_request");
     expect((await page.request.get("/api/auth/me")).status()).toBe(401);
     expect((await blog.query("SELECT count(*)::int n FROM feline_auth_identity WHERE subject=$1", [person.subject])).rows[0].n).toBe(0);
   } finally { await client.close(); }
 });
 
-test("0003 AC-10 AC-18 genuine callback rejects wrong state, wrong issuer, invalid code and replay", async ({ page }) => {
+test("0003 AC-10 AC-18 genuine POST callback rejects wrong state, wrong issuer, invalid code and replay", async ({ page }) => {
   const person = await account();
   const callback = await authorizationCode(page.request, person.centerEmail);
-  const wrongState = new URL(callback); wrongState.searchParams.set("state", "wrong-state");
-  const denied = await page.request.get(wrongState.href, { maxRedirects: 0 });
-  expect(new URL(denied.headers().location).searchParams.get("code")).toBe("INVALID_STATE");
-  const pending = await page.request.get(callback.href, { maxRedirects: 0 });
+  const submit = (navigation: typeof callback) => page.request.post(navigation.action, { form: navigation.fields, maxRedirects: 0, headers: { Origin: "https://auth.zhaosie.com", "Sec-Fetch-Mode": "navigate", "Sec-Fetch-Dest": "document" } });
+  const denied = await submit({ ...callback, fields: { ...callback.fields, state: "wrong-state" } });
+  expect(denied.status()).toBe(409); expect((await denied.json()).code).toBe("INVALID_STATE");
+  const pending = await submit(callback);
   expect(new URL(pending.headers().location).pathname).toBe("/auth/user-center/onboarding");
-  const replay = await page.request.get(callback.href, { maxRedirects: 0 });
-  expect(new URL(replay.headers().location).pathname).toBe("/auth/user-center/error");
+  const replay = await submit(callback); expect(replay.status()).toBe(409); expect(replay.headers().location).toBeUndefined();
   for (const mutation of ["issuer", "code"]) {
     const next = await authorizationCode(page.request, person.centerEmail);
-    next.searchParams.set(mutation === "issuer" ? "iss" : "code", mutation === "issuer" ? "https://wrong.invalid/api/auth" : "invalid-one-use-code");
-    const response = await page.request.get(next.href, { maxRedirects: 0 });
-    expect(new URL(response.headers().location).pathname).toBe("/auth/user-center/error");
+    next.fields[mutation === "issuer" ? "iss" : "code"] = mutation === "issuer" ? "https://wrong.invalid/api/auth" : "invalid-one-use-code";
+    const response = await submit(next); expect(response.status()).toBeGreaterThanOrEqual(400); expect(response.headers().location).toBeUndefined();
     expect((await page.request.get("/api/auth/me")).status()).toBe(401);
   }
   expect((await blog.query("SELECT count(*)::int n FROM feline_auth_identity WHERE subject=$1", [person.subject])).rows[0].n).toBe(0);

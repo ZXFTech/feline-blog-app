@@ -33,7 +33,7 @@ describe("0003 credentials", () => {
   });
   it("AC-11 AC-16 fixes production domains, client and secure origins", () => {
     expect(centerConfig()).toMatchObject({ clientId: "feline-blog", production: false });
-    for (const patch of [{ USER_CENTER_CLIENT_ID: "other" }, { USER_CENTER_ISSUER: "http://attacker.invalid/api/auth" }, { FELINE_REGISTRATION_MODE: "legacy" }, { FELINE_SESSION_SECRET: "small" }]) expect(() => centerConfig({ ...authTestEnv, ...patch })).toThrow("CONFIGURATION_INVALID");
+    for (const patch of [{ USER_CENTER_CLIENT_ID: "other" }, { USER_CENTER_ISSUER: "http://attacker.invalid/api/auth" }, { FELINE_SESSION_SECRET: "small" }]) expect(() => centerConfig({ ...authTestEnv, ...patch })).toThrow("CONFIGURATION_INVALID");
     expect(() => centerConfig({ ...authTestEnv, NODE_ENV: "production" })).toThrow("CONFIGURATION_INVALID");
   });
 });

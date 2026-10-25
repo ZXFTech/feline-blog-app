@@ -13,7 +13,7 @@ export const UserMenu = ({ prefetch }: { prefetch?: boolean }) => {
   if (!user) {
     return (
       <StyledLink href="/login" prefetch={prefetch}>
-        登录/注册
+        登录
       </StyledLink>
     );
   }

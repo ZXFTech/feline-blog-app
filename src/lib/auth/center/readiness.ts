@@ -1,7 +1,9 @@
 import { AuthError } from "./config";
 import { query } from "./store";
 import {opsReady} from "./ops-readiness";
-export async function ensureAuthReady() {
+import type {OpsDiagnostic} from '@/lib/auth/center/ops-diagnostics';
+export async function ensureAuthReady(diagnostic?:OpsDiagnostic) {
+  diagnostic?.enter('auth_safe_sql');
   const [result] = await query<{ safe: boolean }>(`SELECT
     NOT r.rolsuper AND NOT r.rolbypassrls AND NOT r.rolcreaterole
     AND NOT pg_has_role(current_user,'feline_auth_owner','MEMBER')
@@ -23,7 +25,7 @@ export async function ensureAuthReady() {
       CROSS JOIN pg_roles actor WHERE actor.rolname IN ('anon','authenticated','service_role') AND n.nspname='public'
       AND f.proname IN ('feline_auth_complete','complete_legacy_binding','complete_new_profile','complete_center_login','logout_browser','commit_legacy_login','revoke_local_session','cleanup_auth_rows','cleanup_auth_rows_at','feline_auth_guard_user','feline_auth_guard_flow')
       AND has_function_privilege(actor.oid,f.oid,'EXECUTE'))
-    AS safe FROM pg_roles r WHERE r.rolname=current_user`);
-  if (result?.safe !== true) throw new AuthError("AUTH_STORAGE_NOT_READY", 503);
-  if ((process.env.VERCEL === "1" || process.env.APP_ENV === "production" || process.env.OPS_STATUS_READ_SECRET) && !await opsReady()) throw new AuthError("AUTH_STORAGE_NOT_READY", 503);
+    AS safe FROM pg_roles r WHERE r.rolname=current_user`).catch(error=>{diagnostic?.reject('database_unavailable');throw error;});
+  if (result?.safe !== true) {diagnostic?.reject('privilege_check_failed');throw new AuthError("AUTH_STORAGE_NOT_READY", 503);}
+  if ((process.env.VERCEL === "1" || process.env.APP_ENV === "production" || process.env.OPS_STATUS_READ_SECRET) && !await opsReady(diagnostic)) throw new AuthError("AUTH_STORAGE_NOT_READY", 503);
 }

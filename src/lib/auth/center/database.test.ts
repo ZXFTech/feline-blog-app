@@ -14,7 +14,7 @@ beforeAll(async () => {
   if (!enabled) return;
   for (const value of [adminUrl, runtimeUrl]) {
     const url = new URL(value!);
-    if (url.hostname !== "127.0.0.1" || url.port !== "54341" || url.pathname !== "/feline_blog_dev") throw new Error("Only the dedicated isolated fixture is permitted");
+    if (url.hostname !== "127.0.0.1" || !(url.port === "54341" || url.port === "54346" && process.env.FELINE_AUTH_TEST_OWNER === "oauth-post-20261019") || url.pathname !== "/feline_blog_dev") throw new Error("Only the dedicated isolated fixture is permitted");
   }
   admin = new Pool({ connectionString: adminUrl, max: 4 }); runtime = new Pool({ connectionString: runtimeUrl, max: 4 });
 });

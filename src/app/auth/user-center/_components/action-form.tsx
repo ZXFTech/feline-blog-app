@@ -2,9 +2,10 @@
 import { useId, useState, useSyncExternalStore, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { navigateAuthentication, type PublicRoutes } from "@/lib/auth-navigation";
 const subscribe = () => () => {};
 
-export default function ActionForm({ endpoint, label, values = {}, fields = [] }: { endpoint: string; label: string; values?: Record<string, string | boolean>; fields?: { name: string; label: string; type?: string; defaultValue?: string; maxLength?: number }[] }) {
+export default function ActionForm({ endpoint, label, values = {}, fields = [], routes }: { endpoint: string; label: string; values?: Record<string, string | boolean>; fields?: { name: string; label: string; type?: string; defaultValue?: string; maxLength?: number }[]; routes?: PublicRoutes }) {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const errorId = useId();
@@ -16,10 +17,17 @@ export default function ActionForm({ endpoint, label, values = {}, fields = [] }
       const csrfResponse = await fetch("/api/auth/csrf", { cache: "no-store" });
       const csrf = await csrfResponse.json();
       if (!csrfResponse.ok) throw new Error(csrf.message ?? "暂时无法开始认证，请稍后重试。");
-      const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify({ ...input, ...values, csrfToken: csrf.data.csrfToken }) });
+      const response = await fetch(endpoint, { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, mode: "cors", credentials: "same-origin", redirect: "error", body: JSON.stringify({ ...input, ...values, csrfToken: csrf.data.csrfToken }) });
       const result = await response.json();
       if (!response.ok) throw new Error(result.message + (response.status === 429 ? ` 请等待 ${response.headers.get("Retry-After") ?? "60"} 秒。` : ""));
-      window.location.assign(result.data?.location ?? "/profile");
+      if (result.data?.navigation) {
+        if (!routes) throw Error("登录流程已失效，请从应用重新开始。");
+        await navigateAuthentication(result.data.navigation, routes);
+      } else {
+        const path = result.data?.location ?? "/profile";
+        if (!["/", "/profile", "/dashboard", "/login", "/auth/user-center/confirm"].includes(path)) throw Error("登录流程已失效，请从应用重新开始。");
+        window.location.assign(path);
+      }
     } catch (error) { setError(error instanceof Error ? error.message : "网络暂时不可用，请稍后重试。"); }
     finally { setPending(false); }
   }

@@ -32,6 +32,18 @@ function opaque() {
   mocks.checkUser.mockResolvedValue({ ...legacy, authMode: "center", authVersion: 1 });
 }
 describe("0003 protected identity resolution", () => {
+  it.each(["closed", "probe", "owner"])("uses center introspection and the local mapping regardless of stale local phase %s", async phase => {
+    opaque();
+    vi.stubEnv("USER_CENTER_ONBOARDING_ENABLED", "false"); vi.stubEnv("FELINE_REGISTRATION_MODE", "closed");
+    vi.stubEnv("PERSONAL_TRIAL_POLICY", JSON.stringify([1, phase, "https://auth.zhaosie.com/api/auth", "other-subject", "other-blog", "probe-subject", "probe-blog"]));
+    expect(await resolveIdentity(read)).toMatchObject({ id: legacy.id, role: "ROOT" }); expect(mocks.introspect).toHaveBeenCalledOnce(); expect(mocks.verifyToken).not.toHaveBeenCalled();
+  });
+  it("takes the local account from the real mapping instead of stale trial metadata", async () => {
+    opaque();
+    vi.stubEnv("USER_CENTER_ONBOARDING_ENABLED", "false"); vi.stubEnv("FELINE_REGISTRATION_MODE", "closed");
+    vi.stubEnv("PERSONAL_TRIAL_POLICY", JSON.stringify([1, "owner", "https://auth.zhaosie.com/api/auth", "subject-a", "wrong-blog", "", ""]));
+    expect(await resolveIdentity(read)).toMatchObject({ id: legacy.id }); expect(mocks.verifyToken).not.toHaveBeenCalled();
+  });
   it("AC-2 AC-9 accepts pre-migration version zero and uses the live database role", async () => {
     expect(await legacyIdentity(read)).toMatchObject({ id: legacy.id, role: "ROOT" });
   });

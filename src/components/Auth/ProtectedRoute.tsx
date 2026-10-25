@@ -11,12 +11,12 @@ interface Props {
 }
 
 export const ProtectRoute = ({ children, requiredRole }: Props) => {
-  const { authLoading, isAuthenticated, user } = useAuth();
+  const { authLoading, isAuthenticated, user, authUnavailable } = useAuth();
 
   const router = useRouter();
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
+    if (!authLoading && !authUnavailable && !isAuthenticated) {
       message.warning("未登录或登录过期, 请先登录.");
       router.push("/login");
     }
@@ -27,7 +27,7 @@ export const ProtectRoute = ({ children, requiredRole }: Props) => {
         router.push("/unauthorized");
       }
     }
-  }, [authLoading, isAuthenticated, user, router, requiredRole]);
+  }, [authLoading, authUnavailable, isAuthenticated, user, router, requiredRole]);
 
   if (authLoading) {
     return (
@@ -37,11 +37,12 @@ export const ProtectRoute = ({ children, requiredRole }: Props) => {
     );
   }
 
+  if (authUnavailable) return <p role="alert">认证服务暂时不可用，请稍后刷新重试。</p>;
   if (!isAuthenticated) {
     return null;
   }
 
-  if (requiredRole && requiredRole.includes(user!.role)) {
+  if (requiredRole && !requiredRole.includes(user!.role)) {
     return null;
   }
 

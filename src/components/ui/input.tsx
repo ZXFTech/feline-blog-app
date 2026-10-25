@@ -2,6 +2,7 @@ import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 
 import { cn } from "@/lib/utils";
+import { InputControl } from "@/components/ui/hydration-controls";
 
 const inputVariants = cva(
   "w-full min-w-0 bg-background text-foreground shadow-neu-inset-sm outline-none transition-shadow placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-primary/50 disabled:cursor-not-allowed disabled:opacity-50 aria-[invalid=true]:ring-2 aria-[invalid=true]:ring-destructive/60",
@@ -31,7 +32,7 @@ function Input({ className, size = "lg", type = "text", ...props }: InputProps) 
   const nativeSize = typeof size === "number" ? size : undefined;
 
   return (
-    <input
+    <InputControl
       type={type}
       data-slot="input"
       size={nativeSize}

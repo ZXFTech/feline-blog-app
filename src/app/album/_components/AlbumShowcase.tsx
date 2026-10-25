@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type ComponentType } from "react";
+import { useCallback, useEffect, useState, useSyncExternalStore, type ComponentType } from "react";
 import { Search } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 
@@ -107,6 +107,7 @@ function CatalogNavigation({
   onSelect: (entry: CatalogEntry) => void;
 }) {
   const results = searchCatalog(query, entries);
+  const ready = useSyncExternalStore(() => () => {}, () => true, () => false);
 
   return (
     <div className="space-y-5 p-1">
@@ -146,6 +147,7 @@ function CatalogNavigation({
                     <li key={entry.slug}>
                       <button
                         type="button"
+                        disabled={!ready}
                         aria-current={selected ? "page" : undefined}
                         className={cn(
                           "flex min-h-11 w-full cursor-pointer items-center justify-between gap-2 rounded-lg px-3 py-2 text-left text-sm outline-none transition-shadow motion-reduce:transition-none hover:shadow-neu-inset-sm focus-visible:ring-2 focus-visible:ring-primary/50",

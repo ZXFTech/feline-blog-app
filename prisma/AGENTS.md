@@ -39,6 +39,8 @@ pnpm prisma-migrate-build
 - 请先修改 `schema.prisma`，再生成并检查迁移。不要手工修改 `generated/prisma`。
 - PostgreSQL 只修改 `prisma/postgres/schema.prisma`，并显式使用 `prisma.postgres.config.ts`。不要把 legacy migration SQL 用到 PostgreSQL。
 - 所有业务模型与后续变更只加到 PostgreSQL。旧 MySQL schema 只允许迁移源的必要维护和安全修复。
+- `auth_ops` 迁移只建立本库认证清理与去敏状态结构，不会自动启用 Cron。新增函数显式撤销 PUBLIC、anon、authenticated、service_role 和应用运行角色的清理执行权，仅按签名授予限定内部身份。
+- 计划清理必须先用实际 jobid、当前后端 PID 和运行中的 Cron 明细唯一关联 runid；无法确认时在删除前停止。保留固定 cutoff、浏览器锁和有效引用保护，运行明细仅清理本任务超过七天的记录。
 - 请提交迁移目录，生产部署会在服务器上运行 `prisma migrate deploy`。
 - 涉及计数器、关联表或多个模型的一致性修改时，请使用 Prisma 事务。
 - 请保留用户范围内的唯一约束，例如标签的 `userId + content` 和番茄记录的 `userId + eventId` 组合。

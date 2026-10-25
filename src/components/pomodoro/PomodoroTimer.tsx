@@ -35,7 +35,7 @@ export default function PomodoroTimer({
   const isBreak = state.phase === "short_break" || state.phase === "long_break";
   return (
     <main
-      className="my-auto flex shrink-0 flex-col items-center space-y-4"
+      className="my-auto flex min-w-0 w-full shrink-0 flex-col items-center space-y-4"
       aria-labelledby="pomodoro-title"
     >
       <h1 id="pomodoro-title" className="sr-only">
@@ -52,7 +52,7 @@ export default function PomodoroTimer({
           {recoveryNotice}
         </NeuSurface>
       ) : null}
-      <NeuSurface className="flex h-[30rem] w-[28rem] shrink-0 flex-col justify-center space-y-5 p-6">
+      <NeuSurface className="flex h-[30rem] w-[28rem] max-w-full shrink-0 flex-col justify-center space-y-5 p-6">
         <div className="text-center">
           <p className="text-sm opacity-70">{phaseLabel(state)}</p>
           <div className="my-8" aria-label={`剩余时间 ${formatMs(state.remainingMs)}`}>

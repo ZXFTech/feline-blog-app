@@ -1,0 +1,10 @@
+import { spawnSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { config as loadEnv } from "dotenv";
+loadEnv({ path: ".env.local", quiet: true });
+const file = resolve(process.env.FELINE_AUTH_FIXTURE_FILE ?? "../../artifacts/local/feline-integration/environment.json");
+const fixture = JSON.parse(readFileSync(file, "utf8"));
+if (fixture.blogEnv.FELINE_PUBLIC_ORIGIN !== "http://localhost:13000" || new URL(fixture.blogAdmin).port !== "54341") throw new Error("Isolated fixture required");
+const result = spawnSync(process.execPath, ["node_modules/@playwright/test/cli.js", "test", "--config=playwright.isolated.config.ts", ...process.argv.slice(2)], { stdio: "inherit", windowsHide: true, env: { ...process.env, ...fixture.blogEnv, FELINE_AUTH_TEST_DATABASE_URL: fixture.blogAdmin, FELINE_AUTH_TEST_RUNTIME_URL: fixture.blogEnv.POSTGRES_DATABASE_URL, FELINE_AUTH_FIXTURE_FILE: file, PLAYWRIGHT_BASE_URL: "http://localhost:13000", E2E_USER_EMAIL: fixture.fixtures.e2eRoot.email, E2E_USER_PASSWORD: fixture.fixtures.password, E2E_OTHER_USER_EMAIL: fixture.fixtures.e2eOther.email, E2E_OTHER_USER_PASSWORD: fixture.fixtures.password } });
+process.exitCode = result.status ?? 1;

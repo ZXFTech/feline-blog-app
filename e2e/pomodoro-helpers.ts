@@ -1,4 +1,5 @@
 import { expect, type Page } from "@playwright/test";
+import { authPost } from "./auth-helpers";
 
 export interface TestAccount {
   email: string;
@@ -11,9 +12,7 @@ export interface AuthenticatedUser {
 }
 
 export async function login(page: Page, account: TestAccount) {
-  const response = await page.request.post("/api/auth/login", {
-    data: account,
-  });
+  const response = await authPost(page.request, "login", account);
   expect(response.ok()).toBe(true);
   await page.goto("/tomato");
 
@@ -32,7 +31,7 @@ export async function currentUser(page: Page): Promise<AuthenticatedUser> {
 }
 
 export async function logout(page: Page) {
-  const response = await page.request.post("/api/auth/logout");
+  const response = await authPost(page.request, "logout");
   expect(response.ok()).toBe(true);
   await page.goto("/login");
   await expect(page).toHaveURL(/\/login$/);

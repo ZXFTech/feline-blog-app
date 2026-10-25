@@ -10,12 +10,15 @@ export interface CtxUser {
   email: string;
   role: Role;
   avatar?: string | null;
+  authMode?: string;
 }
 
 type AuthContextType = {
   authEnabled: boolean;
   user: CtxUser | null;
   setUser: (u: CtxUser | null) => void;
+  authUnavailable: boolean;
+  setAuthUnavailable: (value: boolean) => void;
 };
 
 const authCtx = createContext<AuthContextType | null>(null);
@@ -30,6 +33,7 @@ function AuthProviders({
   const pathname = usePathname();
   const authEnabled = pathname !== "/album";
   const [sessionUser, setUser] = useState<CtxUser | null>(initialUser);
+  const [authUnavailable, setAuthUnavailable] = useState(false);
   const user = authEnabled ? sessionUser : null;
 
   const Provider = authCtx.Provider;
@@ -40,6 +44,8 @@ function AuthProviders({
         authEnabled,
         user,
         setUser,
+        authUnavailable,
+        setAuthUnavailable,
       }}
     >
       {children}

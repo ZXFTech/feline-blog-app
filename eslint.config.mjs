@@ -10,6 +10,9 @@ const eslintConfig = defineConfig([
     ".next/**",
     "out/**",
     "build/**",
+    ".feline-blog/**",
+    "test-results/**",
+    "playwright-report/**",
     "next-env.d.ts",
     "generated/prisma/**", // ignore legacy Prisma generate
     "generated/prisma-postgres/**", // ignore PostgreSQL Prisma generate

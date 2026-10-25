@@ -189,7 +189,7 @@ test.describe("Album 组件展示中心", () => {
   test("清单卡片使用本地样例并可恢复", async ({ page }) => {
     await page.goto("/album?component=checklist");
 
-    await expect(page.locator("#component-title")).toHaveText("清单卡片");
+    await expect(page.getByRole("heading", { level: 2, name: "清单卡片", exact: true })).toBeVisible();
     await expect(page.getByText("sm", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("md", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("lg", { exact: true }).first()).toBeVisible();
@@ -242,6 +242,7 @@ test.describe("Album 组件展示中心", () => {
     await page.goto("/album?component=button");
     const catalog = page.getByRole("complementary", { name: "组件目录" });
     const inputEntry = catalog.getByRole("button", { name: /输入、复选框与字段Input/ });
+    await expect(inputEntry).toBeEnabled();
     await inputEntry.focus();
     await expect(inputEntry).toBeFocused();
     await inputEntry.press("Enter");

@@ -1,8 +1,4 @@
-import { actionResponse } from "@/lib/response/ApiResponse";
-
-export async function POST() {
-  const response = actionResponse.success(null, "登出成功");
-  response.cookies.delete("token");
-
-  return response;
-}
+import { authHttp } from "@/lib/auth/center/http";
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+export const POST = (request: Request) => authHttp(request, "logout");

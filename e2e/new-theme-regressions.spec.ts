@@ -8,7 +8,7 @@ const account = {
 };
 
 test("clearable InputField clears its value and restores focus", async ({ page }) => {
-  await page.goto("/album");
+  await page.goto("/album?component=input-field");
 
   const clearButton = page.getByRole("button", { name: "清空输入" }).first();
   await clearButton.evaluate((element) => {
@@ -16,7 +16,7 @@ test("clearable InputField clears its value and restores focus", async ({ page }
   });
   const group = page.locator('[data-clear-test-target="true"]');
   const input = group.locator("input");
-  await expect(input).toHaveValue("这是一段默认文字");
+  await expect(input).toHaveValue("可清空的搜索词");
   await clearButton.click();
 
   await expect(input).toHaveValue("");
@@ -24,15 +24,26 @@ test("clearable InputField clears its value and restores focus", async ({ page }
 });
 
 test("formatter does not log an error for its initial empty state", async ({ page }) => {
-  const errors: string[] = [];
-  page.on("console", (message) => {
-    if (message.type() === "error") errors.push(message.text());
+  const errors: { text: string; url: string }[] = [];
+  const pageErrors: string[] = [];
+  page.on("pageerror", error => pageErrors.push(error.message));
+  page.on("console", message => {
+    if (message.type() === "error") errors.push({ text: message.text(), url: message.location().url });
   });
-
+  const anonymousRead = page.waitForResponse(response => new URL(response.url()).pathname === "/api/auth/me");
   await page.goto("/formatter");
+  const response = await anonymousRead;
+  expect(response.status()).toBe(401);
   await expect(page.getByText("列表", { exact: true })).toBeVisible();
-
-  expect(errors).toEqual([]);
+  await page.getByRole("button", { name: "清空", exact: true }).click();
+  await expect(page.locator("textarea")).toHaveValue("");
+  expect(pageErrors).toEqual([]);
+  // Chromium reports the separately asserted anonymous 401 as a resource error.
+  const unexpectedErrors = errors.filter(error => !(
+    error.url === response.url() &&
+    error.text === "Failed to load resource: the server responded with a status of 401 (Unauthorized)"
+  ));
+  expect(unexpectedErrors).toEqual([]);
 });
 
 test("tomato page fits a narrow viewport", async ({ page }, testInfo) => {

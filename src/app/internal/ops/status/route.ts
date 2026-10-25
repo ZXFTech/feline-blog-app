@@ -1,0 +1,11 @@
+import { opsStatus } from "@/lib/auth/center/ops";
+export const runtime="nodejs";
+export const dynamic="force-dynamic";
+export const maxDuration=5;
+export const GET=opsStatus;
+export const POST=opsStatus;
+export const PUT=opsStatus;
+export const PATCH=opsStatus;
+export const DELETE=opsStatus;
+export const HEAD=opsStatus;
+export const OPTIONS=opsStatus;

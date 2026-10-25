@@ -22,10 +22,10 @@ export default async function NewChecklistPage() {
           </NeuPanel>
         ) : (
           <NeuPanel density="comfortable">
-            <h2 className="text-lg font-semibold">请先登录</h2>
-            <p className="text-sm text-muted-foreground">登录后才能把清单保存到你的账号。</p>
-            <StyledLink href="/login" variant="primary">
-              前往登录
+            <h2 className="text-lg font-semibold">{auth.status === "temporary_failure" ? "认证服务暂时不可用" : "请先登录"}</h2>
+            <p className="text-sm text-muted-foreground">{auth.status === "temporary_failure" ? auth.message : "登录后才能把清单保存到你的账号。"}</p>
+            <StyledLink href={auth.status === "temporary_failure" ? "/checklists/new" : "/login"} variant="primary">
+              {auth.status === "temporary_failure" ? "重试" : "前往登录"}
             </StyledLink>
           </NeuPanel>
         )}

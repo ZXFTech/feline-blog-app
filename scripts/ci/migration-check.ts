@@ -66,12 +66,10 @@ export async function verifyPullRequestMigrations(baseSha: string): Promise<void
     "prisma/postgres/migrations",
   ]);
   const addedPaths = assertImmutableMigrationChanges(parseNameStatus(output));
-  const directories = new Set(
-    addedPaths.filter((file) => file.endsWith("/migration.sql")).map((file) => path.dirname(file))
-  );
-  for (const directory of directories) {
-    const sql = await readFile(path.join(repositoryRoot, directory, "migration.sql"), "utf8");
-    assertSafeMigrationSql(sql, path.basename(directory));
+  const migrationPaths = new Set(addedPaths.filter((file) => file.endsWith("/migration.sql")));
+  for (const migrationPath of migrationPaths) {
+    const sql = await readFile(path.join(repositoryRoot, migrationPath), "utf8");
+    assertSafeMigrationSql(sql, path.basename(path.dirname(migrationPath)), migrationPath);
   }
 }
 

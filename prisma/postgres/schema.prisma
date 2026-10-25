@@ -27,7 +27,9 @@ model User {
   email           String           @unique @db.Citext
   phone           String?          @unique @db.Citext
   username        String           @db.VarChar(191)
-  password        String           @db.VarChar(191)
+  password        String?          @db.VarChar(191)
+  authMode        String           @default("legacy") @db.VarChar(10)
+  authVersion     Int              @default(0)
   avatar          String?          @db.VarChar(191)
   work            String?          @db.VarChar(191)
   role            Role             @default(USER)
@@ -41,8 +43,106 @@ model User {
   blogFavorites   BlogFavorite[]
   pomodoroRecords PomodoroRecord[]
   checklists      Checklist[]
+  centerIdentity  UserCenterIdentity?
+  centerSessions  UserCenterSession[]
+  centerFlows     UserCenterFlow[]
 
   @@map("users")
+}
+
+model UserCenterIdentity {
+  id              String @id @db.Uuid
+  issuer          String
+  subject         String
+  userId          String @unique @map("user_id") @db.VarChar(191)
+  user            User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  verifiedEmail   String @map("verified_email")
+  emailVerifiedAt DateTime @map("email_verified_at") @db.Timestamptz(3)
+  boundAt         DateTime @default(now()) @map("bound_at") @db.Timestamptz(3)
+  createdFrom     String @map("created_from")
+  legacyVerifiedAt DateTime? @map("legacy_verified_at") @db.Timestamptz(3)
+  sessions        UserCenterSession[]
+  @@unique([issuer, subject])
+  @@unique([id, userId])
+  @@map("feline_auth_identity")
+}
+
+model BrowserAuthState {
+  id               String @id @db.Uuid
+  browserTokenHash String @unique @map("browser_token_hash")
+  epoch            Int @default(0)
+  currentFlowId    String? @map("current_flow_id") @db.Uuid
+  currentFlow      UserCenterFlow? @relation("CurrentFlow", fields: [currentFlowId, id], references: [id, browserStateId], onDelete: NoAction, onUpdate: NoAction)
+  requireFreshAuth Boolean @default(false) @map("require_fresh_auth")
+  lastLogoutAt     DateTime? @map("last_logout_at") @db.Timestamptz(3)
+  expiresAt        DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt        DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  updatedAt        DateTime @default(now()) @map("updated_at") @db.Timestamptz(3)
+  flows            UserCenterFlow[] @relation("BrowserFlows")
+  sessions         UserCenterSession[]
+  @@index([expiresAt])
+  @@map("feline_auth_browser")
+}
+
+model UserCenterFlow {
+  id                 String @id @db.Uuid
+  purpose            String
+  stateHash          String @unique @map("state_hash")
+  browserStateId     String @map("browser_state_id") @db.Uuid
+  browser            BrowserAuthState @relation("BrowserFlows", fields: [browserStateId], references: [id], onDelete: Restrict)
+  currentFor         BrowserAuthState[] @relation("CurrentFlow")
+  browserEpoch       Int @map("browser_epoch")
+  protocolEncrypted  String? @map("protocol_encrypted")
+  candidateEncrypted String? @map("candidate_encrypted")
+  candidateDigest    String? @map("candidate_digest")
+  confirmationRevision Int @default(0) @map("confirmation_revision")
+  createdAt          DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  expiresAt          DateTime @map("expires_at") @db.Timestamptz(3)
+  status             String @default("created")
+  legacyUserId       String? @map("legacy_user_id") @db.VarChar(191)
+  legacyUser         User? @relation(fields: [legacyUserId], references: [id], onDelete: Restrict)
+  legacyAuthVersion  Int? @map("legacy_auth_version")
+  legacyVerifiedAt   DateTime? @map("legacy_verified_at") @db.Timestamptz(3)
+  requireFreshAuth   Boolean @default(false) @map("require_fresh_auth")
+  reauthAfter        DateTime? @map("reauth_after") @db.Timestamptz(3)
+  destination        String
+  @@unique([id, browserStateId])
+  @@index([expiresAt])
+  @@map("feline_auth_flow")
+}
+
+model UserCenterSession {
+  id                   String @id @db.Uuid
+  tokenHash            String @unique @map("token_hash")
+  userId               String @map("user_id") @db.VarChar(191)
+  user                 User @relation(fields: [userId], references: [id], onDelete: Restrict)
+  identityId           String @map("identity_id") @db.Uuid
+  identity             UserCenterIdentity @relation(fields: [identityId, userId], references: [id, userId], onDelete: Restrict)
+  authVersion          Int @map("auth_version")
+  browserStateId       String @map("browser_state_id") @db.Uuid
+  browser              BrowserAuthState @relation(fields: [browserStateId], references: [id], onDelete: Restrict)
+  browserEpoch         Int @map("browser_epoch")
+  grantEncrypted       String? @map("grant_encrypted")
+  grantKeyId           String? @map("grant_key_id")
+  centerSessionId      String @map("center_session_id")
+  centerTokenExpiresAt DateTime @map("center_token_expires_at") @db.Timestamptz(3)
+  expiresAt            DateTime @map("expires_at") @db.Timestamptz(3)
+  createdAt            DateTime @default(now()) @map("created_at") @db.Timestamptz(3)
+  revokedAt            DateTime? @map("revoked_at") @db.Timestamptz(3)
+  @@index([expiresAt])
+  @@index([browserStateId])
+  @@map("feline_auth_session")
+}
+
+model AuthRateBucket {
+  keyHash     String @map("key_hash")
+  operation   String
+  windowStart DateTime @map("window_start") @db.Timestamptz(3)
+  count       Int @default(0)
+  expiresAt   DateTime @map("expires_at") @db.Timestamptz(3)
+  @@id([keyHash, operation, windowStart])
+  @@index([expiresAt])
+  @@map("feline_auth_rate")
 }
 
 model Checklist {

@@ -193,6 +193,19 @@ export function reconcileMigrationHistory(
   return { applied, pending, rolledBack };
 }
 
+// Whole-file classifications reviewed in docs/database/reviewed-auth-migrations.md.
+// These are fixed digests, never derived from the candidate at runtime.
+const REVIEWED_PROCEDURAL_MIGRATIONS: Readonly<Record<string, { name: string; sha256: string }>> = {
+  "prisma/postgres/migrations/20261015000000_user_center/migration.sql": {
+    name: "20261015000000_user_center",
+    sha256: "f2763bf80fe1d86da2faecdb9068be6a9902bf2d11af40dffe76add69b727600",
+  },
+  "prisma/postgres/migrations/20261016000000_auth_ops/migration.sql": {
+    name: "20261016000000_auth_ops",
+    sha256: "0441c416a6375be21928c792b91808263326c477b5559a861fe4dfa69f3847b9",
+  },
+};
+
 const UNSAFE_SQL: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
   { pattern: /\bDROP\b/i, reason: "DROP is not forward compatible" },
   { pattern: /\bTRUNCATE\b/i, reason: "TRUNCATE is destructive" },
@@ -217,7 +230,27 @@ const UNSAFE_SQL: ReadonlyArray<{ pattern: RegExp; reason: string }> = [
   },
 ];
 
-export function assertSafeMigrationSql(sql: string, migrationName: string): void {
+export function assertSafeMigrationSql(
+  sql: string,
+  migrationName: string,
+  migrationPath?: string
+): void {
+  const reviewed =
+    migrationPath && Object.hasOwn(REVIEWED_PROCEDURAL_MIGRATIONS, migrationPath)
+      ? REVIEWED_PROCEDURAL_MIGRATIONS[migrationPath]
+      : undefined;
+  if (reviewed) {
+    // Git checkouts may use CRLF. No other content or whitespace is normalized.
+    const checksum = createHash("sha256").update(sql.replace(/\r\n/g, "\n"), "utf8").digest("hex");
+    if (migrationName !== reviewed.name || checksum !== reviewed.sha256) {
+      throw new StagingContractError(
+        "MIGRATION_DIVERGENT",
+        "Migration " + migrationName + " does not match its reviewed path identity or checksum."
+      );
+    }
+    return;
+  }
+
   const withoutComments = sql.replace(/\/\*[\s\S]*?\*\//g, " ").replace(/--[^\r\n]*/g, " ");
   if (/\$[A-Za-z0-9_]*\$/.test(withoutComments)) {
     throw new StagingContractError(

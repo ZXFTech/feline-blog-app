@@ -7,7 +7,7 @@ import { useCtxAuth } from "@/providers/AuthProviders";
 
 export function useAuth() {
   const router = useRouter();
-  const { authEnabled, setUser, user } = useCtxAuth();
+  const { authEnabled, setUser, user, authUnavailable, setAuthUnavailable } = useCtxAuth();
   const [authLoading, setAuthLoading] = useState(authEnabled);
 
   useEffect(() => {
@@ -22,13 +22,17 @@ export function useAuth() {
         const res = await fetch("/api/auth/me");
 
         if (res.ok) {
+          setAuthUnavailable(false);
           const { data } = await res.json();
           setUser(data?.user ?? null);
         } else {
+          await res.arrayBuffer();
+          setAuthUnavailable(res.status === 503);
           setUser(null);
         }
-      } catch (error) {
-        logger.error("认证检查失败:", error);
+      } catch {
+        setAuthUnavailable(true);
+        logger.error({ operation: "authSessionRead", code: "AUTH_UNAVAILABLE" });
         setUser(null);
       } finally {
         setAuthLoading(false);
@@ -36,14 +40,15 @@ export function useAuth() {
     };
 
     checkAuth();
-  }, [authEnabled, setUser]);
+  }, [authEnabled, setUser, setAuthUnavailable]);
 
   const login = async function (email: string, password: string) {
     try {
+      const csrf = await fetch("/api/auth/csrf").then(response => response.json());
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, csrfToken: csrf.data?.csrfToken }),
       });
 
       const { data, message } = await res.json();
@@ -59,48 +64,31 @@ export function useAuth() {
     }
   };
 
-  const register = async function (email: string, password: string, username: string) {
-    try {
-      const res = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email,
-          username,
-          password,
-        }),
-      });
-      const { data, message } = await res.json();
-      if (res.ok) {
-        setUser(data.user);
-        return { success: true };
-      } else {
-        setUser(null);
-        return { success: false, message: message };
-      }
-    } catch (error) {
-      logger.error("网络错误,", error);
-      return { success: false, message: "网络错误" };
-    }
-  };
-
   const logout = async function () {
     try {
-      await fetch("/api/auth/logout", {
+      const csrfResponse = await fetch("/api/auth/csrf");
+      const csrf = await csrfResponse.json();
+      if (!csrfResponse.ok) throw new Error(csrf.message);
+      const response = await fetch("/api/auth/logout", {
         method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ csrfToken: csrf.data.csrfToken }),
       });
+      if (!response.ok) throw new Error((await response.json()).message);
       setUser(null);
+      setAuthUnavailable(false);
       router.push("/login");
     } catch (error) {
-      logger.error("登出失败." + error);
+      setAuthUnavailable(true);
+      throw error;
     }
   };
 
   return {
     user,
     authLoading,
+    authUnavailable,
     login,
-    register,
     logout,
     isAuthenticated: !!user,
     isAdmin: user?.role === "ADMIN",

@@ -41,11 +41,13 @@ Stored in `docs/specs/`. Format: `docs/specs/NNNN-title.md`.
 - 请用 `@/*` 导入 `src` 中的模块，并保持 TypeScript 严格类型。
 - 请把页面和路由放在 `src/app`，默认使用服务端组件，只有浏览器状态或事件需要时才添加 `"use client"`。
 - 请把数据库操作放在 `src/db` 的服务端操作或 `src/app/api` 中，不要让客户端组件直接访问 Prisma。
-- 请用 `requireAuth`、`hasTodoRoles` 或 `hasBlogRoles` 保护写操作，并沿用 `token` HttpOnly Cookie 的 JWT 认证流程。
+- 请用 `requireAuth`、`hasTodoRoles` 或 `hasBlogRoles` 保护写操作。未绑定用户使用带实时模式与版本核验的 `token` JWT，中心用户使用可撤销服务端会话并逐请求在线核验中心凭证；不能回退到旧 JWT 或旧密码。
 - 请不要编辑 `generated/prisma-postgres` 或 `generated/prisma`，修改模式后重新生成客户端。
 - 请复用 `src/components/ui` 中的基础组件、`NeuSurface`、`NeuPanel`、`cn` 和主题变量，不要另建平行的组件体系。
 - 所有内容容器在未显式指定内边距时，默认使用 `default`（`--spacing-panel-inset-default`），为内部组件阴影保留空间；优先使用默认密度的 `NeuPanel`，普通容器使用对应 padding token。无内边距或其他密度必须在调用处显式指定，并检查滚动、裁剪边界不会截断内部阴影。
 - 请把本地配置放在被忽略的环境文件中，不要提交或复制密钥。
+- 认证清理使用限定维护身份；`scripts/auth/cleanup.ts` 必须显式读取 `POSTGRES_MIGRATION_URL` 和可信 CA，不得回退到应用运行连接。应用运行角色只读 `auth_ops` 去敏摘要，不得执行清理或管理 Cron。
+- 云端认证清理与独立监测默认关闭。实际部署、资源创建、生产迁移及受控故障验收等待单独授权；免费套餐和共享额度未核实前不启用，不自动购买或升级。
 - 提交前请运行 lint、build、Vitest 和需要安全测试账号环境变量的 Playwright；Husky 的推送脚本仍含旧工作区路径，不要把它当作完整验证。
 
 ## Agent skills

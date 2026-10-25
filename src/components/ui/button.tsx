@@ -1,4 +1,5 @@
-import { Button as ButtonPrimitive } from "@base-ui/react/button";
+import type { Button as ButtonPrimitive } from "@base-ui/react/button";
+import { ButtonControl } from "@/components/ui/hydration-controls";
 import { cva, type VariantProps } from "class-variance-authority";
 import { Loader2Icon } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,7 +60,7 @@ function Button({
     materialIconAfter?: IconType;
   }) {
   return (
-    <ButtonPrimitive
+    <ButtonControl
       data-slot="button"
       disabled={disabled || loading}
       className={cn(buttonVariants({ variant, size, className }))}
@@ -69,7 +70,7 @@ function Button({
       {!loading && materialIcon ? <Icon icon={materialIcon} /> : null}
       {children}
       {materialIconAfter ? <Icon icon={materialIconAfter} /> : null}
-    </ButtonPrimitive>
+    </ButtonControl>
   );
 }
 

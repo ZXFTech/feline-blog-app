@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 
 export const useClock = () => {
-  const [time, setTime] = useState(new Date());
+  const [time, setTime] = useState<Date | null>(null);
 
   useEffect(() => {
     let timer: number;

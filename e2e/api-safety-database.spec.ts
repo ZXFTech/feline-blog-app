@@ -51,7 +51,10 @@ test("covers: AC-3, private Todo reads and Blog mutations enforce resource owner
     await expect(page.getByText(`${marker}-foreign`, { exact: true })).toHaveCount(0);
 
     await page.goto(`/blog/edit/${foreignBlog.id}`);
-    await page.getByPlaceholder("无标题").fill(`${marker}-attempted-update`);
+    await page
+      .getByPlaceholder("无标题")
+      .and(page.locator(":enabled"))
+      .fill(`${marker}-attempted-update`);
     await page.getByRole("button", { name: /提交/ }).click();
     await expect(page.getByText("文章不存在", { exact: true })).toBeVisible({ timeout: 30_000 });
 
@@ -190,7 +193,11 @@ test("covers: AC-1 AC-2 AC-6 AC-7, live routes preserve safe projections and sta
     await userContext.dispose();
   }
 
-  const duplicate = await authPost(request, "register", { email: primary.email, password: primary.password, username: "duplicate" });
+  const duplicate = await authPost(request, "register", {
+    email: primary.email,
+    password: primary.password,
+    username: "duplicate",
+  });
   expect(duplicate.status()).toBe(409);
 
   const publicBlogs = await request.get("/api/blog");

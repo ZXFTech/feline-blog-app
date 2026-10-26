@@ -94,7 +94,7 @@
     "material-symbols": "^0.31.2",
     "next": "16.3.3",
     "next-auth": "^4.24.13",
-    "openai": "^6.18.0",
+    "openai": "^7.42.0",
     "openid-client": "6.8.8",
     "pg": "8.16.3",
     "postcss": "^8.5.6",

@@ -1,17 +1,14 @@
-import { NextRequest } from "next/server";
+// @vitest-environment node
 import { describe, expect, it } from "vitest";
-
+import { NextRequest } from "next/server";
 import { proxy } from "./proxy";
-
-describe("proxy route context", () => {
-  it("covers: Album AC-1, forwards the real Album pathname to the root layout", async () => {
-    const request = new NextRequest("http://localhost/album?component=button", {
-      headers: { "x-feline-pathname": "/spoofed" },
-    });
-
-    const response = await proxy(request);
-
-    expect(response.headers.get("x-middleware-request-x-feline-pathname")).toBe("/album");
-    expect(response.headers.get("x-middleware-override-headers")).toContain("x-feline-pathname");
+describe("0003 private authentication response policy", () => {
+  it.each(["/login", "/register", "/profile", "/auth/user-center/confirm", "/api/auth/me"])("AC-16 AC-19 marks %s private and strips client identity headers", path => {
+    const result = proxy(new NextRequest("https://blog.zhaosie.com" + path, { headers: { "x-user-id": "forged", "x-user-role": "ROOT" } }));
+    expect(result.headers.get("Cache-Control")).toBe("no-store");
+    expect(result.headers.get("Referrer-Policy")).toBe(["/login", "/register", "/profile"].includes(path) ? "strict-origin" : "no-referrer");
+    expect(result.headers.get("X-Robots-Tag")).toBe("noindex, nofollow");
+    expect(result.headers.get("x-middleware-request-x-user-id")).toBeNull();
+    expect(result.headers.get("x-middleware-request-x-user-role")).toBeNull();
   });
 });

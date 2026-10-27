@@ -1,3 +1,4 @@
+import { authPost } from "./auth-helpers";
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import db from "../src/db/postgres/runtime";
@@ -27,7 +28,7 @@ async function expectContained(page: Page) {
     };
   });
   for (const side of padding.sides) expect(side).toBeCloseTo(padding.expected, 1);
-  const form = page.locator("form.checklist-form-fill");
+  const form = page.locator("form.checklist-form-fill:visible");
   if (await form.count()) await expect(form).toHaveAttribute("data-short", /true|false/);
   const shortForm = page.locator('form[data-short="true"]');
   const isShort = (await shortForm.count()) > 0;
@@ -70,7 +71,7 @@ async function expectContained(page: Page) {
 }
 
 async function expectStackedFields(page: Page) {
-  const name = await page.getByLabel("清单名", { exact: true }).boundingBox();
+  const name = await page.getByRole("textbox", { name: "清单名", exact: true }).boundingBox();
   const themeGroup = page.getByRole("group", { name: "主题色", exact: true });
   const deadlineGroup = page.getByRole("group", { name: "截止时间", exact: true });
   const theme = await themeGroup.boundingBox();
@@ -113,7 +114,7 @@ test("detail adds at the front, cancels drafts and confines scrolling to item li
     },
   });
   try {
-    const signedIn = await page.request.post("/api/auth/login", { data: account });
+    const signedIn = await authPost(page.request, "login", account);
     expect(signedIn.ok()).toBe(true);
     await page.goto(`/checklists?expiry=expired&q=${encodeURIComponent(marker)}`);
     await expect(page.getByRole("heading", { name: "没有已过期的清单" })).toBeVisible();
@@ -139,8 +140,10 @@ test("detail adds at the front, cancels drafts and confines scrolling to item li
       exact: true,
     });
     await completingItem.click();
+    const firstToggleAt = await page.evaluate(() => performance.now());
     await expect(completingItem).toHaveCount(0);
     await expect(page.locator(".checklist-item-grid > *")).toHaveCount(19);
+    await expect(page.getByRole("status").filter({ hasText: "“测试项目 10”已标记为已完成" })).toBeVisible();
     await expect(page.locator(":focus")).toHaveAttribute(
       "aria-label",
       /^切换清单项状态：测试项目 /
@@ -151,6 +154,8 @@ test("detail adds at the front, cancels drafts and confines scrolling to item li
       name: "切换清单项状态：测试项目 10",
       exact: true,
     });
+    // The confirmed UI contract ignores repeated toggles inside 600 ms.
+    await page.waitForFunction(at => performance.now() - at >= 650, firstToggleAt);
     await revertingItem.click();
     await expect(revertingItem).toHaveCount(0);
     await expect(page.locator(".checklist-item-grid > *")).toHaveCount(10);
@@ -222,7 +227,7 @@ test("detail adds at the front, cancels drafts and confines scrolling to item li
     ).toBeGreaterThan(0);
     await page.screenshot({ path: `test-results/checklist-detail-fill-${info.project.name}.png` });
     await page.getByRole("link", { name: "编辑清单", exact: true }).click();
-    await expect(page.getByLabel("清单名", { exact: true })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: "清单名", exact: true })).toBeVisible();
     await expectStackedFields(page);
     await expectContained(page);
     await page.getByRole("button", { name: "选择截止日期时间" }).click();
@@ -242,8 +247,8 @@ test("detail adds at the front, cancels drafts and confines scrolling to item li
     await page.goto("/checklists/new");
     await expectStackedFields(page);
     await expectContained(page);
-    const form = page.locator("form.checklist-form-fill");
-    await page.getByLabel("清单名", { exact: true }).fill("高度切换保留草稿");
+    const form = page.locator("form.checklist-form-fill:visible");
+    await page.getByRole("textbox", { name: "清单名", exact: true }).fill("高度切换保留草稿");
     const width = page.viewportSize()!.width;
     await page.setViewportSize({ width, height: 1100 });
     await expect(form).toHaveAttribute("data-short", "false");
@@ -251,7 +256,7 @@ test("detail adds at the front, cancels drafts and confines scrolling to item li
     await page.setViewportSize({ width, height: 620 });
     await expect(form).toHaveAttribute("data-short", "true");
     await expectContained(page);
-    await expect(page.getByLabel("清单名", { exact: true })).toHaveValue("高度切换保留草稿");
+    await expect(page.getByRole("textbox", { name: "清单名", exact: true })).toHaveValue("高度切换保留草稿");
   } finally {
     await db.checklist.deleteMany({ where: { id: list.id, userId: user.id, name: marker } });
   }

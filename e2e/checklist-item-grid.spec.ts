@@ -50,84 +50,87 @@ async function expectGeometry(grid: Locator) {
   }).toPass({ timeout: 3000, intervals: [50] });
 }
 
-for (const mode of ["创建模式", "编辑模式"] as const) {
-  test(`AC-19/25 ${mode} uses square auto-fit tracks and contains narrow overflow`, async ({
-    page,
-  }) => {
-    test.setTimeout(60_000);
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.setViewportSize({ width: 1920, height: 1080 });
-    await page.goto("/album?component=checklist-workflows");
-    const sandbox = page.getByTestId("checklist-form-sandbox");
-    await sandbox.getByRole("button", { name: mode, exact: true }).click();
-    const grid = sandbox.locator(".checklist-item-grid");
-    await expect(grid).toBeVisible();
+// Each font-size matrix keeps the same assertions and sixty-second deadline.
+// A fresh case prevents the whole two-size matrix from exhausting one mobile budget.
+for (const mode of ["创建模式", "编辑模式"] as const)
+  for (const rootSize of [16, 20]) {
+    test(`AC-19/25 ${mode} at ${rootSize}px uses square auto-fit tracks and contains narrow overflow`, async ({
+      page,
+    }, info) => {
+      test.setTimeout(60_000);
+      await page.emulateMedia({ reducedMotion: "reduce" });
+      await page.setViewportSize({ width: 1920, height: 1080 });
+      await page.goto("/album?component=checklist-workflows");
+      const sandbox = page.getByTestId("checklist-form-sandbox");
+      await sandbox.getByRole("button", { name: mode, exact: true }).click();
+      const grid = sandbox.locator(".checklist-item-grid");
+      await expect(grid).toBeVisible();
 
-    // Exercise the production form with one/two items before filling multiple rows.
-    await expectGeometry(grid);
-    if (mode === "创建模式") {
-      await grid.getByRole("button", { name: "删除清单项" }).click();
-      await page.getByRole("button", { name: "确认删除", exact: true }).click();
-      await expect(grid.locator(":scope > li")).toHaveCount(0);
+      // Exercise the production form with one/two items before filling multiple rows.
       await expectGeometry(grid);
-    }
-    const initialCount = await grid.locator(":scope > li").count();
-    for (let index = initialCount; index < 7; index += 1) {
-      await sandbox
-        .getByRole("textbox", { name: "清单项详情", exact: true })
-        .fill(
-          index === 6
-            ? "https://example.com/" + "long-content".repeat(80)
-            : `网格验收项目 ${index + 1}`
-        );
-      await sandbox.getByRole("button", { name: "添加", exact: true }).click();
-      await expectGeometry(grid);
-    }
-    await expect(grid.locator(":scope > li")).toHaveCount(7);
-
-    for (const rootSize of [16, 20]) {
-      await page.evaluate((size) => {
-        document.documentElement.style.fontSize = `${size}px`;
-      }, rootSize);
-      const minimum = rootSize * 12;
-      const gap = rootSize * 0.75;
-      for (const columns of [4, 3, 2]) {
-        const threshold = columns * minimum + (columns - 1) * gap;
-        for (const width of [threshold + 24, threshold, threshold - 1]) {
-          await grid.evaluate((element, value) => {
-            const wrapper = element.parentElement!;
-            const style = getComputedStyle(wrapper);
-            const padding =
-              Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
-            wrapper.style.width = `${value + padding}px`;
-          }, width);
-          await expectGeometry(grid);
-        }
+      if (mode === "创建模式") {
+        await grid.getByRole("button", { name: "删除清单项" }).click();
+        await page.getByRole("button", { name: "确认删除", exact: true }).click();
+        await expect(grid.locator(":scope > li")).toHaveCount(0);
+        await expectGeometry(grid);
       }
-      await grid.evaluate((element, width) => {
-        element.parentElement!.style.width = `${width}px`;
-      }, minimum - 20);
-      await expectGeometry(grid);
-      const narrow = await measureGrid(grid);
-      expect(narrow.wrapperScrollWidth).toBeGreaterThan(narrow.wrapperWidth);
-      expect(narrow.cards[0].width).toBeCloseTo(minimum, 1);
-    }
+      const initialCount = await grid.locator(":scope > li").count();
+      for (let index = initialCount; index < 7; index += 1) {
+        await sandbox
+          .getByRole("textbox", { name: "清单项详情", exact: true })
+          .fill(
+            index === 6
+              ? "https://example.com/" + "long-content".repeat(80)
+              : `网格验收项目 ${index + 1}`
+          );
+        await sandbox.getByRole("button", { name: "添加", exact: true }).click();
+        await expectGeometry(grid);
+      }
+      await expect(grid.locator(":scope > li")).toHaveCount(7);
 
-    await page.evaluate(() => {
-      document.documentElement.style.fontSize = "16px";
+      {
+        await page.evaluate((size) => {
+          document.documentElement.style.fontSize = `${size}px`;
+        }, rootSize);
+        const minimum = rootSize * 12;
+        const gap = rootSize * 0.75;
+        for (const columns of [4, 3, 2]) {
+          const threshold = columns * minimum + (columns - 1) * gap;
+          for (const width of [threshold + 24, threshold, threshold - 1]) {
+            await grid.evaluate((element, value) => {
+              const wrapper = element.parentElement!;
+              const style = getComputedStyle(wrapper);
+              const padding =
+                Number.parseFloat(style.paddingLeft) + Number.parseFloat(style.paddingRight);
+              wrapper.style.width = `${value + padding}px`;
+            }, width);
+            await expectGeometry(grid);
+          }
+        }
+        await grid.evaluate((element, width) => {
+          element.parentElement!.style.width = `${width}px`;
+        }, minimum - 20);
+        await expectGeometry(grid);
+        const narrow = await measureGrid(grid);
+        expect(narrow.wrapperScrollWidth).toBeGreaterThan(narrow.wrapperWidth);
+        expect(narrow.cards[0].width).toBeCloseTo(minimum, 1);
+      }
+
+      await page.evaluate(() => {
+        document.documentElement.style.fontSize = "16px";
+      });
+      await grid.evaluate((element) => {
+        element.parentElement!.style.width = "";
+      });
+      await page.setViewportSize({ width: 390, height: 844 });
+      for (const theme of ["light", "dark", "sugar", "warm"]) {
+        await page.evaluate((value) => {
+          document.documentElement.className = value;
+        }, theme);
+        await expectGeometry(grid);
+      }
+      await grid.locator("..").screenshot({
+        path: `test-results/checklist-grid-${mode === "创建模式" ? "create" : "edit"}-${rootSize}-${info.project.name}.png`,
+      });
     });
-    await grid.evaluate((element) => {
-      element.parentElement!.style.width = "";
-    });
-    await page.setViewportSize({ width: 390, height: 844 });
-    for (const theme of ["light", "dark", "sugar", "warm"]) {
-      await page.evaluate((value) => {
-        document.documentElement.className = value;
-      }, theme);
-      await expectGeometry(grid);
-    }
-    await grid.locator("..").screenshot({
-      path: `test-results/checklist-grid-${mode === "创建模式" ? "create" : "edit"}.png`,
-    });
-  });
-}
+  }

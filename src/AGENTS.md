@@ -17,6 +17,7 @@
 | `src/db/postgres/**`       | PostgreSQL runtime、配置和探针仓储      |
 | `src/db/*Action.ts`        | 带有 `"use server"` 的领域数据操作     |
 | `src/lib/auth/userAuth.ts` | 当前用户和角色权限检查                 |
+| `src/lib/auth/center/ops.ts` | 独立凭证鉴权、部署身份核验及去敏运行摘要 |
 | `src/app/globals.css`      | 唯一全局样式入口、主题 token 和通用工具 |
 | `src/providers/PomodoroProvider.tsx` | 登录会话内唯一的番茄钟控制器与共享状态 |
 
@@ -25,10 +26,12 @@
 - 页面默认保持服务端组件。需要 Hook、浏览器 API 或事件处理时，才把交互部分拆成客户端组件。
 - 数据写操作放在 `src/db`，先校验用户或角色，再调用 Prisma。多个相关写入请使用事务。
 - 所有业务模块不得导入 legacy MySQL 客户端或旧生成类型；只有精确允许名单中的迁移基础设施可以使用。
-- PostgreSQL 是本地开发的唯一业务数据源，认证继续使用现有 JWT Cookie 流程并在同一 PostgreSQL 中核验用户。
+- PostgreSQL 是本地开发的唯一业务数据源，也保存旧账号登录模式、中心映射、浏览器版本、流程和可撤销会话。中心身份通过固定 OIDC 发行者核验，不直连中心数据库。
 - HTTP 路由统一使用 `actionResponse` 返回成功或错误响应，并用项目 logger 记录异常。
 - Server Action 统一返回 `ActionResult` 判别联合；错误日志使用 `safeErrorContext`，不得记录令牌、密码、正文、完整请求体或数据库内部信息。
-- 当前认证流程是自定义 JWT 和名为 `token` 的 HttpOnly Cookie。不要假设已安装的 `next-auth` 已接入运行时。
+- 认证入口统一经过 `src/lib/auth/userAuth.ts` 和 `src/lib/auth/center/`。只有 legacy 用户接受实时版本匹配的 `token` JWT；center 用户只接受本次浏览器的随机会话与在线中心核验。`next-auth` 未接入运行时。
+- `/internal/ops/status` 先校验独立 `OPS_STATUS_READ_SECRET`，再读取数据库。仅允许精确路径、无查询参数且无 Origin 的 GET；未授权返回 404，已授权的其他方法返回 405，故障只返回固定 503 结果码，不记录驱动错误原文。
+- Vercel 来源地址仅信任合法的 `x-real-ip`，忽略其他转发别名；缺失或非法地址使用共同的未知来源限流桶，不跳过限流。
 - 组件统一复用 `src/components/ui` 的基础组件、`NeuSurface` 和 `NeuPanel`，并用 `cn` 合并类名，不要恢复已删除的旧 Neu 组件家族。
 - 新增或调整可视组件时同步维护 Album 注册表、对应的安全本地演示和覆盖审计；展示样例不得调用生产 Action、API 或真实用户数据。
 - Blog 详情、编辑预览与 Album 展示共用 `src/components/Blog/BlogMarkdown.tsx` 和 `CodeBlock.tsx`；排版、间距及复制与换行控件遵循 [spec 0012](../docs/specs/0012-blog-content-codeblock/index.md)，不要在消费端维护另一套正文或代码块规则。

@@ -8,17 +8,24 @@ function pad(n: number) {
 }
 
 const weekDayMap: { [key: number]: string } = {
-  0: "一",
-  1: "二",
-  2: "三",
-  3: "四",
-  4: "五",
-  5: "六",
-  6: "七",
+  0: "日",
+  1: "一",
+  2: "二",
+  3: "三",
+  4: "四",
+  5: "五",
+  6: "六",
 };
 
 export default function FlipClock() {
   const { time } = useClock();
+
+  if (!time)
+    return (
+      <div className="text-foreground" role="status">
+        正在加载时钟…
+      </div>
+    );
 
   const [y1, y2, y3, y4] = pad(time.getFullYear()).split("");
   const [M1, M2] = pad(time.getMonth() + 1).split("");

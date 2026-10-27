@@ -23,7 +23,7 @@ interface Props {
 const Blog = async ({ params }: Props) => {
   const { id } = await params;
   const result = await getBlogById(id);
-  if (result.status !== "success") throw new Error(result.message);
+  if (result.status !== "success") return <Content><section role="alert"><h1>文章暂时不可用</h1><p>{result.message}</p><a href={`/blog/${id}`}>重试</a></section></Content>;
   const { blog, isLiked, isFavorite } = result.data;
 
   if (!blog) {

@@ -133,7 +133,7 @@ test.describe("Album 组件展示中心", () => {
     await page.goto("/album?component=theme-switcher");
 
     await expect(page).toHaveURL(/component=theme-switcher/);
-    await expect(page.locator("#component-title")).toHaveText("反馈与状态");
+    await expect(page.locator("#component-title:visible")).toHaveText("反馈与状态");
     await expect(
       page.getByRole("heading", { name: "1. 徽章与标签 Badge / Tag", exact: true })
     ).toBeVisible();
@@ -152,7 +152,7 @@ test.describe("Album 组件展示中心", () => {
   test("选择器组件共享详情页并使用真实选项交互", async ({ page }) => {
     await page.goto("/album?component=select");
 
-    await expect(page.locator("#component-title")).toHaveText("选择器");
+    await expect(page.locator("#component-title:visible")).toHaveText("选择器");
     await expect(page.getByRole("heading", { name: "1. 固定选择 Select" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "2. 搜索选择 Combobox" })).toBeVisible();
 
@@ -166,7 +166,7 @@ test.describe("Album 组件展示中心", () => {
   test("对话框组件共享详情页且浮层只在当前主题打开", async ({ page }) => {
     await page.goto("/album?component=dialogs");
 
-    await expect(page.locator("#component-title")).toHaveText("对话框");
+    await expect(page.locator("#component-title:visible")).toHaveText("对话框");
     await expect(page.getByRole("heading", { name: "1. 通用对话框 Dialog" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "2. 确认对话框 AlertDialog" })).toBeVisible();
     await expect(page.getByRole("heading", { name: "3. 受控弹窗 Modal" })).toBeVisible();
@@ -189,7 +189,9 @@ test.describe("Album 组件展示中心", () => {
   test("清单卡片使用本地样例并可恢复", async ({ page }) => {
     await page.goto("/album?component=checklist");
 
-    await expect(page.locator("#component-title")).toHaveText("清单卡片");
+    await expect(
+      page.getByRole("heading", { level: 2, name: "清单卡片", exact: true })
+    ).toBeVisible();
     await expect(page.getByText("sm", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("md", { exact: true }).first()).toBeVisible();
     await expect(page.getByText("lg", { exact: true }).first()).toBeVisible();
@@ -206,7 +208,7 @@ test.describe("Album 组件展示中心", () => {
   test("清单工作流组件使用本地沙盒并打开真实详情弹窗", async ({ page }) => {
     await page.goto("/album?component=checklist-workflows");
 
-    await expect(page.locator("#component-title")).toHaveText("清单项、表单与详情");
+    await expect(page.locator("#component-title:visible")).toHaveText("清单项、表单与详情");
     await expect(
       page.getByRole("heading", { name: "1. 清单项卡片 ChecklistItemCard", exact: true })
     ).toBeVisible();
@@ -242,6 +244,7 @@ test.describe("Album 组件展示中心", () => {
     await page.goto("/album?component=button");
     const catalog = page.getByRole("complementary", { name: "组件目录" });
     const inputEntry = catalog.getByRole("button", { name: /输入、复选框与字段Input/ });
+    await expect(inputEntry).toBeEnabled();
     await inputEntry.focus();
     await expect(inputEntry).toBeFocused();
     await inputEntry.press("Enter");

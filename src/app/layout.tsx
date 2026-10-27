@@ -34,6 +34,7 @@ export default async function RootLayout({
         email: currentUser.email,
         role: currentUser.role,
         avatar: currentUser.avatar,
+        authMode: currentUser.authMode,
       }
     : null;
 

@@ -1,11 +1,9 @@
-import CopyButton from "@/components/CopyButton/copyButton";
 import { NeuSurface } from "@/components/ui/neu-surface";
-import Tag from "@/components/Tag";
+import { CodeBlock } from "@/components/Blog/CodeBlock";
+export { CodeBlock } from "@/components/Blog/CodeBlock";
 
 import Image from "next/image";
-import React, { FC } from "react";
-import { Prism as Highlighter } from "react-syntax-highlighter";
-import { dracula } from "react-syntax-highlighter/dist/cjs/styles/prism";
+import React from "react";
 
 export interface BlockFormatterProps {
   block: unknown;
@@ -38,39 +36,6 @@ export interface Block {
 
 const combineRichText = (richText: { plain_text: string }[]) => {
   return richText.map((item) => item.plain_text).join(" ");
-};
-
-export const CodeBlock: FC<{
-  title?: string;
-  code: string;
-  language: string;
-}> = ({ code, title, language }) => {
-  return (
-    <NeuSurface elevation="inset" className="w-full mx-0">
-      <div suppressHydrationWarning className="flex justify-between">
-        <div className="flex gap-1">
-          {title && (
-            <Tag>
-              <span className="font-bold">{title}</span>
-            </Tag>
-          )}
-          <Tag className="font-bold!">
-            <span className="font-bold">{language}</span>
-          </Tag>
-        </div>
-        <CopyButton code={code} />
-      </div>
-      <Highlighter
-        showLineNumbers
-        wrapLines
-        style={dracula}
-        wrapLongLines
-        language={language.toLowerCase()}
-      >
-        {code.trim()}
-      </Highlighter>
-    </NeuSurface>
-  );
 };
 
 const NotionBlock = {
@@ -130,7 +95,7 @@ const NotionBlock = {
       <CodeBlock
         key={block.id}
         title={combineRichText(block.code.caption)}
-        code={combineRichText(block.code.rich_text)}
+        code={block.code.rich_text.map((item) => item.plain_text).join("")}
         language={block.code.language}
       />
     );

@@ -10,6 +10,7 @@ import { getCurrentUser } from "@/lib/auth/userAuth";
 import { PomodoroProvider } from "@/providers/PomodoroProvider";
 import { ThemeProvider, ThemeScript } from "@/components/theme-provider";
 import { headers } from "next/headers";
+import { BlogReadingNavigation } from "@/lib/blog/navigation";
 
 export const metadata: Metadata = {
   title: "neon cat",
@@ -43,6 +44,7 @@ export default async function RootLayout({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       </Head>
       <body>
+        <BlogReadingNavigation />
         <ThemeScript />
         <ThemeProvider>
           <AuthProviders initialUser={initialUser}>

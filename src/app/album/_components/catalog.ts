@@ -147,7 +147,7 @@ const pendingFamilies: ReadonlyArray<readonly [string, string, string, string, C
       "blog",
       "博客组件",
       "Blog / BlogList / RightSideBar",
-      "Blog/AdjacentBlogs.tsx|Blog/BlogOperationBar.tsx|Blog/TOC.tsx|BlogList/BlogEditor.tsx|BlogList/blogList.tsx|BlogList/BlogListOperationBar.tsx|BlogList/ListItem.tsx|RightSideBar/BlogEditBar.tsx",
+      "Blog/AdjacentBlogs.tsx|Blog/BlogOperationBar.tsx|BlogList/BlogEditor.tsx|BlogList/blogList.tsx|BlogList/BlogListOperationBar.tsx|BlogList/ListItem.tsx|RightSideBar/BlogEditBar.tsx",
       "business",
     ],
     [
@@ -195,8 +195,8 @@ const pendingFamilies: ReadonlyArray<readonly [string, string, string, string, C
     [
       "utilities",
       "辅助组件",
-      "CopyButton / Floating / ToggleSwitch",
-      "CopyButton/copyButton.tsx|Floating/index.tsx|ToggleSwitch/index.tsx|ColorPanel/index.tsx|InfinityScrollBar/index.tsx|TextGap/index.tsx|Portal/index.tsx|component-example.tsx",
+      "Floating / ToggleSwitch",
+      "Floating/index.tsx|ToggleSwitch/index.tsx|ColorPanel/index.tsx|InfinityScrollBar/index.tsx|TextGap/index.tsx|Portal/index.tsx|component-example.tsx",
       "data",
     ],
     [
@@ -523,6 +523,49 @@ export const catalogEntries: readonly CatalogEntry[] = [
       ),
     },
     () => import("@/app/album/_components/demos/ChecklistWorkflowDemo")
+  ),
+  ready(
+    {
+      ...base,
+      slug: "blog-markdown",
+      nameZh: "Blog 正文与代码块",
+      codeName: "BlogMarkdown / CodeBlock / CopyButton",
+      description: "共享正文排版、语言回退、原始空白、逻辑行号与逐块换行，全部使用固定本地内容。",
+      useCases: ["公开文章阅读", "编辑预览", "代码复制"],
+      importPath:
+        "@/components/Blog/BlogMarkdown · @/components/Blog/CodeBlock · @/components/CopyButton/copyButton",
+      sourceFiles: ["Blog/BlogMarkdown.tsx", "Blog/CodeBlock.tsx", "CopyButton/copyButton.tsx"],
+      categoryId: "data",
+      order: 30,
+      keywords: ["blog", "markdown", "代码块", "正文", "复制", "换行", "纯文本"],
+      capabilities: capability(
+        ["标准阅读密度"],
+        ["Markdown", "有语言", "纯文本", "未知语言", "空代码"],
+        ["横向滚动", "自动换行", "复制反馈"]
+      ),
+    },
+    () => import("@/app/album/_components/demos/BlogMarkdownDemo")
+  ),
+  ready(
+    {
+      ...base,
+      slug: "blog-reading",
+      nameZh: "Blog 目录与阅读进度",
+      codeName: "BlogReading / TOC",
+      description: "正文六级目录、当前章节与阅读进度，使用固定本地样例和隔离导航。",
+      useCases: ["文章章节导航", "窄屏阅读", "正文进度"],
+      importPath: "@/components/Blog/BlogReading · @/components/Blog/TOC",
+      sourceFiles: ["Blog/BlogReading.tsx", "Blog/TOC.tsx"],
+      categoryId: "navigation",
+      order: 30,
+      keywords: ["blog", "目录", "阅读进度", "章节", "TOC"],
+      capabilities: capability(
+        ["标准阅读密度"],
+        ["长文", "短文", "无标题", "空正文"],
+        ["当前章节", "折叠目录", "正文进度"]
+      ),
+    },
+    () => import("@/app/album/_components/demos/BlogReadingDemo")
   ),
   ...pendingFamilies.map(([slug, nameZh, codeName, files, categoryId], index) =>
     pending({

@@ -16,6 +16,7 @@ export interface ProgressBarProps {
   title?: string;
   titleColor?: string | Exclude<ProgressTone, "default">;
   progressBarColor?: string;
+  "aria-label"?: string;
 }
 
 const toneColor: Record<ProgressTone, string> = {
@@ -36,6 +37,7 @@ export function ProgressBar({
   titleColor,
   progressBarColor,
   className,
+  "aria-label": ariaLabel,
 }: ProgressBarProps) {
   const percentage = Math.min(Math.max((value / max) * 100, 0), 100);
   const height = { sm: "h-1.5", md: "h-2.5", lg: "h-4" }[size];
@@ -49,6 +51,7 @@ export function ProgressBar({
   return (
     <div
       role="progressbar"
+      aria-label={ariaLabel}
       aria-valuenow={value}
       aria-valuemin={0}
       aria-valuemax={max}

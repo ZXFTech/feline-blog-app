@@ -44,6 +44,12 @@ Use semantic buttons for actions and links for navigation. Primary emphasis belo
 
 Do not introduce a parallel card or button system. Do not use emoji as interface icons. Do not animate continuously except for the timer behavior itself, and respect reduced motion for decorative transitions.
 
+## Blog reading and code blocks
+
+Public articles, editor previews, and the Album Blog showcase share `BlogMarkdown` and `CodeBlock`. Follow the confirmed typography and spacing contract in [spec 0012](docs/specs/0012-blog-content-codeblock/index.md). The CSS tokens remain the source of actual values.
+
+Keep code panels at `inset-sm` elevation with default inner padding. Their compact inner gap, default gap between action buttons, and explicit block margins are the Blog spacing exception. Preserve these separately from the surrounding Markdown gap. Use the shared `Tag` for the language label and the same shared `Button` shown in Album for copy and wrap actions. Both actions use the default icon size and padding, Chinese accessible names, and visible focus. Copy success shows a check before returning to the copy icon; failure remains visible and can be retried.
+
 ## Responsive and accessibility direction
 
-Start with a single column that keeps timer controls reachable on small screens, then allow the timer and record area to share wider space when the container permits. Preserve a minimum 44 by 44 interaction target, visible focus indicators, semantic heading order, and live regions for synchronization and blocking messages. Theme support includes the existing light, dark, sugar, and warm modes, so every new state must remain readable in each rather than assuming a single canvas.
+Start with a single column that keeps timer controls reachable on small screens, then allow the timer and record area to share wider space when the container permits. Use shared control sizes and padding without imposing a global minimum interaction target. Preserve visible focus indicators, semantic heading order, and live regions for synchronization and blocking messages. Theme support includes the existing light, dark, sugar, and warm modes, so every new state must remain readable in each rather than assuming a single canvas.

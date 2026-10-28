@@ -30,6 +30,7 @@
 - HTTP 路由统一使用 `actionResponse` 返回成功或错误响应，并用项目 logger 记录异常。
 - Server Action 统一返回 `ActionResult` 判别联合；错误日志使用 `safeErrorContext`，不得记录令牌、密码、正文、完整请求体或数据库内部信息。
 - 认证入口统一经过 `src/lib/auth/userAuth.ts` 和 `src/lib/auth/center/`。只有 legacy 用户接受实时版本匹配的 `token` JWT；center 用户只接受本次浏览器的随机会话与在线中心核验。`next-auth` 未接入运行时。
+- `APP_ENV=staging` 允许显式配置的固定 HTTPS `FELINE_PUBLIC_ORIGIN`，生产构建仍保留安全 Cookie；正式环境域名限制、严格 Origin 与 CSRF 校验不变，不从请求 Host 推导认证来源。完整用户中心 staging 接入仍需单独配置。
 - `/internal/ops/status` 先校验独立 `OPS_STATUS_READ_SECRET`，再读取数据库。仅允许精确路径、无查询参数且无 Origin 的 GET；未授权返回 404，已授权的其他方法返回 405，故障只返回固定 503 结果码，不记录驱动错误原文。
 - Vercel 来源地址仅信任合法的 `x-real-ip`，忽略其他转发别名；缺失或非法地址使用共同的未知来源限流桶，不跳过限流。
 - 组件统一复用 `src/components/ui` 的基础组件、`NeuSurface` 和 `NeuPanel`，并用 `cn` 合并类名，不要恢复已删除的旧 Neu 组件家族。

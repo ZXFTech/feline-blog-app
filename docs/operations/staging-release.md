@@ -4,6 +4,8 @@ This runbook owns the one time provider settings and the safe recovery path for 
 
 For the complete bilingual setup and operating procedure, see the [Chinese runbook](./ci-staging-release-runbook.zh-CN.md) and the [English runbook](./ci-staging-release-runbook.en.md).
 
+The automatic staging gate runs public smoke only. Login, Todo mutations, and cleanup are skipped and recorded as `skipped`; synthetic account credentials are no longer required by this workflow. The authenticated Playwright case remains available for separate full runs. Deployment sets `APP_ENV=staging` and the normalized `STAGING_BASE_URL` as `FELINE_PUBLIC_ORIGIN` for both build and runtime. Authentication continues to accept only that configured origin, not the random candidate host. This change does not enable the complete user center integration in staging.
+
 ## GitHub repository settings
 
 Protect `master` with a repository ruleset.
@@ -21,15 +23,12 @@ Create a GitHub Environment named `staging`. Limit it to `master` and trusted ma
 | Secret | `POSTGRES_MIGRATION_URL` | TLS staging migrator connection |
 | Secret | `POSTGRES_SSL_CA` | Supabase CA content |
 | Secret | `VERCEL_TOKEN` | Token limited to the staging project and team |
-| Secret | `E2E_USER_EMAIL` | Synthetic staging login |
-| Secret | `E2E_USER_PASSWORD` | Synthetic staging password |
 | Secret | `RELEASE_APP_PRIVATE_KEY` | Dedicated Release Please GitHub App key |
 | Variable | `VERCEL_ORG_ID` | Expected Vercel team ID |
 | Variable | `VERCEL_PROJECT_ID` | Expected `feline-blog-staging` project ID |
 | Variable | `STAGING_BASE_URL` | Stable HTTPS staging origin |
 | Variable | `STAGING_BASELINE_DEPLOYMENT_ID` | Manually verified deployment currently serving the stable origin before first activation |
 | Variable | `STAGING_BASELINE_COMMIT_SHA` | Full commit SHA that produced the baseline deployment |
-| Variable | `E2E_USER_ID` | Expected synthetic user ID |
 | Variable | `RELEASE_APP_ID` | Dedicated Release Please GitHub App Client ID, not the App slug or numeric App ID |
 
 Create `RELEASE_APP_LOGIN` as a repository variable containing the exact bot login, including `[bot]`. It is public identity data rather than a credential. The pull request eligibility workflow cannot read an Environment variable because `staging` accepts only protected branch refs, while pull request workflows run from `refs/pull/*/merge`.
@@ -42,7 +41,7 @@ Use the `feline-blog-staging` project Production environment as stable staging.
 
 * Disable automatic Production domain assignment for Git deployments.
 * Prevent Vercel Git Integration from independently moving the stable staging domains.
-* Keep `STAGING_SMOKE_API_ENABLED=true`, `E2E_USER_ID`, and `SMOKE_DATA_RETENTION_HOURS=24` in the Vercel Production runtime variables.
+* Synthetic account and smoke API variables are only needed for separate authenticated tests, not for the automatic staging gate.
 * Configure a Production Trusted Source for issuer `https://token.actions.githubusercontent.com`.
 * Limit claims to repository `ZXFTech/feline-blog-app`, ref `refs/heads/master`, GitHub Environment `staging`, the trusted workflow refs in this repository, and the `feline-blog-staging` project.
 * Keep SSO enabled for human access. Do not create a long lived protection bypass secret for Actions.

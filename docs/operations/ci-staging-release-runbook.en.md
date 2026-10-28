@@ -4,6 +4,8 @@
 
 This document covers the complete process from local development, pull request verification, Supabase migration, Vercel staged deployment, and stable-domain promotion through Release Please version publishing and failure recovery. In this document, `Production` means the stable staging environment of the Vercel project `feline-blog-staging`. It does not mean the product production environment.
 
+The current automatic gate runs public smoke only. Login, Todo mutations, and cleanup are recorded as `skipped`; synthetic account setup below is retained for separate full tests and is no longer a CI prerequisite. Deployment sets `APP_ENV=staging` and the normalized `STAGING_BASE_URL` as `FELINE_PUBLIC_ORIGIN` for both build and runtime. Authentication still requires that exact configured origin. Complete user center integration in staging is outside this change.
+
 ## 1. Objective and Process Overview
 
 ### Purpose
@@ -17,7 +19,7 @@ Ensure that only a `master` commit that passes code verification, database migra
 3. The pull request is squash merged into `master`.
 4. The `Staging` workflow verifies the candidate commit and applies Supabase migrations.
 5. The workflow creates a candidate deployment in Vercel without attaching the stable domain.
-6. The candidate deployment passes public and authenticated Todo smoke tests.
+6. The candidate deployment passes public smoke; authenticated Todo smoke is temporarily skipped.
 7. The workflow promotes that same deployment to the stable staging domain.
 8. The stable domain passes another smoke test, and the GitHub deployment is recorded as `staging:verified`.
 9. Release Please creates or updates the release pull request.
@@ -564,7 +566,7 @@ The workflow verifies that a manual actor has write, maintain, or admin permissi
 | Migration | Probe, reconcile, and run `prisma migrate deploy` | No unfinished, divergent, or destructive migration |
 | Stage deployment | Run `vercel deploy --prod --skip-domain` | One READY candidate deployment |
 | Candidate public smoke | Verify public pages and APIs | Green public smoke job |
-| Candidate login/Todo smoke | Log in, then create, edit, complete, and delete a Todo | Green full smoke job with exact cleanup |
+| Candidate login/Todo smoke | Skipped by automatic releases; retained for separate full tests | Authentication and cleanup checkpoints are skipped |
 | Promote | Point the stable domain at the same deployment | Deployment ID does not change |
 | Stable smoke | Check again from `STAGING_BASE_URL` | Stable origin points to the candidate |
 | Recovery | Restore the previous deployment under safe conditions after failure | Green restore and recovery smoke |
@@ -729,7 +731,7 @@ For a documentation-only pull request, still run at least `git diff --check` and
 5. `pnpm db:staging:migration:probe` verifies the certificate, password, role, 5-second lock timeout, and 120-second statement timeout.
 6. Vercel automatic Git deployment and automatic stable-domain assignment are disabled.
 7. Trusted Source claims exactly match the repository, branch, Environment, and workflow ref.
-8. The candidate deployment passes public and authenticated smoke tests before promotion.
+8. The candidate deployment passes public smoke before promotion; authentication and cleanup checkpoints are `skipped`.
 9. The stable domain points to the same candidate deployment, and the GitHub deployment is `staging:verified`.
 10. The release pull request author, label, base verification, and version files agree.
 11. The tag, GitHub Release, and successful Staging SHA are identical.

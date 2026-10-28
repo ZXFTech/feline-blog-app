@@ -7,6 +7,12 @@
 
 GitHub Actions 将成为 staging 发布的唯一编排入口。每次进入 `master` 的变更都先完成代码与迁移检查，再通过 IPv4 可达的 Supavisor Session Pooler 把已提交的 PostgreSQL migration 应用到 Supabase `feline_blog_staging`，随后发布到 Vercel `feline-blog-staging` 并运行真实 smoke test。Vercel SSO 保持开启，smoke 通过 GitHub Actions 的短期 OIDC 身份访问受保护部署，不共享长期绕过 secret。Release Please 只在 staging 验证成功后维护版本 PR、changelog、Git 标签和 GitHub Release。
 
+### 当前发布门禁调整（2026-10-27）
+
+按维护者要求，自动 staging 暂时只运行 candidate、stable 与 recovery 的公开页面冒烟，取消自动登录和 Todo 写入验收。`candidate-auth-smoke` 与 `candidate-cleanup` phase 保留以兼容 checkpoint，但在初始化时明确设为 `skipped`；promote 和 restore 消费 `checkpoint-candidate-public`。下文 AC-7、AC-8 及 full smoke、cleanup、合成账号相关流程在自动发布中的要求以本段为准，完整测试用例保留供独立运行。
+
+部署命令为构建与运行显式设置 `APP_ENV=staging`，并以现有 `STAGING_BASE_URL` 的规范 origin 设置 `FELINE_PUBLIC_ORIGIN`。该配置允许生产构建使用固定 staging HTTPS 来源，默认正式环境继续锁定原域名；Origin、CSRF 与 host Cookie 规则保持严格。此次不扩展用户中心客户端、回调登记和运维部署身份接入。
+
 ## Requirements
 
 **User stories**:

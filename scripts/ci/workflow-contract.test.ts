@@ -117,18 +117,44 @@ describe("CI and staging workflow contract", () => {
     expect(configurationStep).toContain("POSTGRES_SSL_CA: ${{ secrets.POSTGRES_SSL_CA }}");
   });
 
-  it("grants OIDC only to the four exact-origin smoke jobs", async () => {
+  it("grants OIDC only to the three public exact-origin smoke jobs", async () => {
     const workflow = await text(".github/workflows/staging.yml");
     const jobs = workflow.split(/^  (?=[a-z][a-z-]+:)/m).slice(1);
     const oidcJobs = jobs
       .filter((job) => job.includes("id-token: write"))
       .map((job) => job.match(/^([a-z][a-z-]+):/)?.[1]);
-    expect(oidcJobs).toEqual([
-      "candidate-smoke",
-      "candidate-auth-smoke",
-      "stable-smoke",
-      "recovery-smoke",
-    ]);
+    expect(oidcJobs).toEqual(["candidate-smoke", "stable-smoke", "recovery-smoke"]);
+  });
+
+  it("skips authenticated smoke and promotes from the public checkpoint", async () => {
+    const workflow = await text(".github/workflows/staging.yml");
+    expect(workflow).not.toMatch(/^  candidate-auth-smoke:/m);
+    expect(workflow).not.toContain("checkpoint-candidate-auth");
+    expect(workflow).not.toMatch(/E2E_USER_(EMAIL|PASSWORD|ID)|STAGING_SMOKE_MODE: full/);
+    for (const phase of ["candidate-auth-smoke", "candidate-cleanup"]) {
+      expect(workflow).toContain(`phase checkpoint.json ${phase} skipped`);
+      expect(workflow).not.toMatch(
+        new RegExp(`phase checkpoint\\.json ${phase} (running|succeeded)`)
+      );
+    }
+    const jobs = Object.fromEntries(
+      workflow
+        .split(/^  (?=[a-z][a-z-]+:)/m)
+        .slice(1)
+        .map((job) => [job.match(/^([a-z][a-z-]+):/)?.[1], job])
+    );
+    expect(jobs.promote).toContain("needs: [candidate, deploy, candidate-smoke]");
+    for (const name of ["promote", "restore"]) {
+      expect(jobs[name]).toContain("name: checkpoint-candidate-public");
+    }
+  });
+
+  it("deploys staging with an explicit application environment and stable auth origin", async () => {
+    const workflow = await text(".github/workflows/staging.yml");
+    expect(workflow).toContain("--env APP_ENV=staging --build-env APP_ENV=staging");
+    expect(workflow).toContain('--env "FELINE_PUBLIC_ORIGIN=$staging_origin"');
+    expect(workflow).toContain('--build-env "FELINE_PUBLIC_ORIGIN=$staging_origin"');
+    expect(workflow).toContain("new URL(process.env.STAGING_BASE_URL).origin");
   });
 
   it("disables retained browser media and blocks cross-origin token forwarding", async () => {

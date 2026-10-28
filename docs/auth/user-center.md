@@ -6,6 +6,8 @@
 
 生产固定 `FELINE_PUBLIC_ORIGIN=https://blog.zhaosie.com`、`USER_CENTER_ISSUER=https://auth.zhaosie.com/api/auth`、`USER_CENTER_CLIENT_ID=feline-blog`。回调固定为博客 origin 加 `/api/auth/callback/user-center`。中心使用独立数据库，显式配置 `AUTH_APPLICATION_PROFILE=feline-blog` 与本应用专用机密。
 
+`APP_ENV=staging` 时允许显式配置的规范 HTTPS `FELINE_PUBLIC_ORIGIN`，即使使用生产构建也保留 Secure 与 host Cookie。自动 staging 部署将其设为固定 `STAGING_BASE_URL` 的 origin；随机 candidate 域不属于认证来源。此调整适配现有旧账号登录，不启用完整用户中心接入；issuer、client、回调登记和运维部署身份约束未扩展。
+
 `USER_CENTER_CLIENT_SECRET` 与中心 `FELINE_OAUTH_CLIENT_SECRET` 使用同一个本应用专用值。`FELINE_SESSION_SECRET` 是至少 32 随机字节的 base64。`FELINE_GRANT_KEYRING` 格式为 `{"active":"key-id","keys":{"key-id":"32-byte-base64"}}`，值由部署机密注入，不放入文档或 Git。三个机密不复用。
 
 `USER_CENTER_LOGIN_ENABLED`、`USER_CENTER_BINDING_ENABLED`、`USER_CENTER_ONBOARDING_ENABLED` 只接受 `true` 或 `false`，缺省关闭。`FELINE_REGISTRATION_MODE` 只接受 `closed` 或 `center`，缺省 `closed`。本地注册 API 始终拒绝创建用户。

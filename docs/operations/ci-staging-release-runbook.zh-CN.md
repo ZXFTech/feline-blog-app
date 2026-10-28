@@ -4,6 +4,8 @@
 
 本文档覆盖从本地开发、Pull Request 验证、Supabase 迁移、Vercel staged deployment、稳定域名切换，到 Release Please 版本发布和故障恢复的完整流程。文中的 `Production` 指 Vercel 项目 `feline-blog-staging` 的稳定 staging 环境，不是产品生产环境。
 
+当前自动发布只运行公开页面冒烟。登录、Todo 写入与清理阶段记录为 `skipped`，下文合成账号配置仅供独立 full 测试参考，不再是 CI 前置条件。部署命令同时为构建和运行设置 `APP_ENV=staging`，并把规范化的 `STAGING_BASE_URL` 设为 `FELINE_PUBLIC_ORIGIN`；认证仍严格匹配这个固定来源。完整用户中心的 staging 接入不在本次调整范围。
+
 ## 1. 目标与流程总览
 
 ### 作用
@@ -17,7 +19,7 @@
 3. Pull Request 以 squash merge 合并到 `master`。
 4. `Staging` 工作流验证候选提交并执行 Supabase 迁移。
 5. 工作流在 Vercel 创建不绑定稳定域名的候选 deployment。
-6. 候选 deployment 通过公开与登录 Todo 冒烟测试。
+6. 候选 deployment 通过公开页面冒烟，登录与 Todo 冒烟暂时跳过。
 7. 工作流把同一个 deployment 提升到稳定 staging 域名。
 8. 稳定域名再次通过冒烟测试，GitHub deployment 记录为 `staging:verified`。
 9. Release Please 创建或更新版本 Pull Request。
@@ -564,7 +566,7 @@ gh run watch <run-id> --repo $repo --exit-status
 | Migration | probe、reconcile、`prisma migrate deploy` | 无 unfinished/divergent/destructive migration |
 | Stage deployment | `vercel deploy --prod --skip-domain` | 唯一 READY candidate deployment |
 | Candidate public smoke | 验证公开页面和 API | public smoke 绿色 |
-| Candidate login/Todo smoke | 登录并创建、编辑、完成、删除 Todo | full smoke 绿色且精确清理 |
+| Candidate login/Todo smoke | 自动发布暂不执行，保留独立 full 测试 | checkpoint 中认证与清理均为 skipped |
 | Promote | 把同一个 deployment 指向 stable domain | deployment ID 未改变 |
 | Stable smoke | 从 `STAGING_BASE_URL` 再次检查 | stable origin 指向 candidate |
 | Recovery | 失败时在安全前提下恢复 previous deployment | restore 和 recovery smoke 绿色 |
@@ -729,7 +731,7 @@ pnpm build
 5. `pnpm db:staging:migration:probe` 验证证书、密码、角色、5 秒 lock timeout 和 120 秒 statement timeout。
 6. Vercel Git 自动部署和自动 stable domain assignment 已关闭。
 7. Trusted Source claims 与仓库、分支、Environment 和 workflow ref 精确一致。
-8. 候选 deployment 在 promote 前通过公开与认证冒烟测试。
+8. 候选 deployment 在 promote 前通过公开页面冒烟，认证与清理 checkpoint 为 `skipped`。
 9. Stable domain 指向同一个 candidate deployment，GitHub deployment 为 `staging:verified`。
 10. Release Pull Request 的 author、label、base verification 和版本文件一致。
 11. Tag、GitHub Release 和成功 staging SHA 完全相同。

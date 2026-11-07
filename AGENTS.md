@@ -30,6 +30,11 @@ pnpm build
 # Test
 pnpm test
 pnpm test:e2e
+
+# SDK registry and CI checks
+pnpm auth:sdk:check-installed
+pnpm auth:sdk:test-registry
+pnpm test:ci
 ```
 
 ## Specs
@@ -66,6 +71,7 @@ MCP servers: `next-devtools` (recommended, connection pending)
 - [src/AGENTS.md](src/AGENTS.md): App Router、认证、服务端操作和界面约定
 - [prisma/AGENTS.md](prisma/AGENTS.md): Prisma 模式、迁移和生成客户端约定
 - [design.md](design.md): 全站界面设计系统、交互与可访问性方向
+- [docs/auth/user-center-registry-ci.md](docs/auth/user-center-registry-ci.md): SDK registry 安装、临时 CI 数据库回放与 Vercel 交付边界
 
 _Drafted by /audit from the repo, worth a quick human pass. Edit freely: once a line stops matching this draft, later runs treat it as curated and will flag rather than overwrite it._
 

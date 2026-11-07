@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   cleanDistDir: true,
+  distDir:
+    process.env.NODE_ENV === "development" && process.env.FELINE_SDK_DEV_TARGET === "production"
+      ? ".next-online-center"
+      : ".next",
+  allowedDevOrigins: ["blog.user-center.test"],
+  outputFileTracingIncludes: {
+    "/*": ["./config/user-center.production.profiles.json"],
+  },
   logging: { incomingRequests: false, browserToTerminal: false },
   images: {
     remotePatterns: [
@@ -12,6 +20,7 @@ const nextConfig = {
     ],
   },
   turbopack: {
+    root: import.meta.dirname,
     rules: {
       "*.svg": {
         loaders: ["@svgr/webpack"],

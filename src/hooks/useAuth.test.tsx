@@ -74,43 +74,68 @@ describe("useAuth", () => {
     mocks.pathname = "/todo";
     rerender();
 
-    await waitFor(() => expect(fetchSpy).toHaveBeenCalledWith("/api/auth/me"));
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledWith("/api/me", { cache: "no-store" }));
     await waitFor(() => expect(result.current.authLoading).toBe(false));
   });
 
   it("0003 AC-15 shows a temporary auth outage without claiming an anonymous success", async () => {
-    vi.spyOn(window, "fetch").mockResolvedValue(Response.json({ message: "retry" }, { status: 503 }));
+    vi.spyOn(window, "fetch").mockResolvedValue(
+      Response.json({ message: "retry" }, { status: 503 })
+    );
     const { result } = renderHook(() => useAuth(), { wrapper });
     await waitFor(() => expect(result.current.authLoading).toBe(false));
-    expect(result.current.authUnavailable).toBe(true); expect(result.current.isAuthenticated).toBe(false);
+    expect(result.current.authUnavailable).toBe(true);
+    expect(result.current.isAuthenticated).toBe(false);
+  });
+
+  it("recovers an unavailable identity only after an explicit successful recheck", async () => {
+    const fetchSpy = vi
+      .spyOn(window, "fetch")
+      .mockResolvedValueOnce(Response.json({ message: "unavailable" }, { status: 503 }))
+      .mockResolvedValueOnce(Response.json({ data: null }, { status: 401 }));
+    const { result } = renderHook(() => useAuth(), { wrapper });
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
+    expect(result.current.authUnavailable).toBe(true);
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    act(() => result.current.retry());
+    await waitFor(() => expect(fetchSpy).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(result.current.authLoading).toBe(false));
+    expect(result.current.authUnavailable).toBe(false);
+    expect(result.current.isAuthenticated).toBe(false);
   });
 
   it.each([
     { status: 401, unavailable: false },
     { status: 503, unavailable: true },
-    { status: 500, unavailable: false },
-  ])("consumes the $status session response without changing its signed-out state", async ({ status, unavailable }) => {
-    const response = new Response("private response text must not be logged", { status });
-    vi.spyOn(window, "fetch").mockResolvedValue(response);
+    { status: 500, unavailable: true },
+  ])(
+    "consumes the $status session response without changing its signed-out state",
+    async ({ status, unavailable }) => {
+      const response = new Response("private response text must not be logged", { status });
+      vi.spyOn(window, "fetch").mockResolvedValue(response);
 
-    const { result } = renderHook(() => useAuth(), { wrapper });
+      const { result } = renderHook(() => useAuth(), { wrapper });
 
-    await waitFor(() => expect(result.current.authLoading).toBe(false));
-    expect(response.bodyUsed).toBe(true);
-    expect(result.current.user).toBeNull();
-    expect(result.current.isAuthenticated).toBe(false);
-    expect(result.current.authUnavailable).toBe(unavailable);
-    expect(mocks.loggerError).not.toHaveBeenCalled();
-  });
+      await waitFor(() => expect(result.current.authLoading).toBe(false));
+      expect(response.bodyUsed).toBe(true);
+      expect(result.current.user).toBeNull();
+      expect(result.current.isAuthenticated).toBe(false);
+      expect(result.current.authUnavailable).toBe(unavailable);
+      expect(mocks.loggerError).not.toHaveBeenCalled();
+    }
+  );
 
   it("waits for the unauthorized response stream to finish before ending the session check", async () => {
     let controller!: ReadableStreamDefaultController<Uint8Array>;
-    const response = new Response(new ReadableStream<Uint8Array>({
-      start(stream) {
-        controller = stream;
-        stream.enqueue(new TextEncoder().encode("private response text"));
-      },
-    }), { status: 401 });
+    const response = new Response(
+      new ReadableStream<Uint8Array>({
+        start(stream) {
+          controller = stream;
+          stream.enqueue(new TextEncoder().encode("private response text"));
+        },
+      }),
+      { status: 401 }
+    );
     vi.spyOn(window, "fetch").mockResolvedValue(response);
     const { result } = renderHook(() => useAuth(), { wrapper });
     let closed = false;
@@ -132,11 +157,14 @@ describe("useAuth", () => {
   });
 
   it("treats an unreadable unauthorized response body as unavailable without logging its contents", async () => {
-    const response = new Response(new ReadableStream({
-      start(controller) {
-        controller.error(new Error("private response failure must not be logged"));
-      },
-    }), { status: 401 });
+    const response = new Response(
+      new ReadableStream({
+        start(controller) {
+          controller.error(new Error("private response failure must not be logged"));
+        },
+      }),
+      { status: 401 }
+    );
     vi.spyOn(window, "fetch").mockResolvedValue(response);
 
     const { result } = renderHook(() => useAuth(), { wrapper });
@@ -144,20 +172,22 @@ describe("useAuth", () => {
     await waitFor(() => expect(result.current.authLoading).toBe(false));
     expect(result.current.authUnavailable).toBe(true);
     expect(result.current.isAuthenticated).toBe(false);
-    expect(mocks.loggerError).toHaveBeenCalledExactlyOnceWith({ operation: "authSessionRead", code: "AUTH_UNAVAILABLE" });
+    expect(mocks.loggerError).not.toHaveBeenCalled();
   });
 
   it("0003 AC-14 keeps the current identity and page when local logout fails", async () => {
     const user = { id: "test", username: "Original", email: "local@unit.test", role: "USER" };
-    vi.spyOn(window, "fetch").mockImplementation(async input => {
-      if (input === "/api/auth/me") return Response.json({ data: { user } });
-      if (input === "/api/auth/csrf") return Response.json({ data: { csrfToken: "test-csrf" } });
+    vi.spyOn(window, "fetch").mockImplementation(async (input) => {
+      if (input === "/api/me") return Response.json({ data: { user } });
       return Response.json({ message: "退出未完成" }, { status: 503 });
     });
     const { result } = renderHook(() => useAuth(), { wrapper });
     await waitFor(() => expect(result.current.authLoading).toBe(false));
-    await act(async () => { await expect(result.current.logout()).rejects.toThrow("退出未完成"); });
-    expect(result.current.user?.id).toBe("test"); expect(result.current.authUnavailable).toBe(true);
+    await act(async () => {
+      await expect(result.current.logout()).rejects.toThrow("SIGN_OUT_UNCONFIRMED");
+    });
+    expect(result.current.user?.id).toBe("test");
+    expect(result.current.authUnavailable).toBe(true);
     expect(mocks.routerPush).not.toHaveBeenCalled();
   });
 });

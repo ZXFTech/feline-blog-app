@@ -8,6 +8,7 @@ const eslintConfig = defineConfig([
   globalIgnores([
     "dist/**",
     ".next/**",
+    ".next-online-center/**",
     "out/**",
     "build/**",
     ".feline-blog/**",

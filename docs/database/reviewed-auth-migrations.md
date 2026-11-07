@@ -1,11 +1,13 @@
 # 已审核认证迁移的 CI 分类
 
-CI 仅把下面两份完整 SQL 识别为已审核的程序化迁移。路径、迁移名及 SHA256 必须同时匹配。摘要只把 CRLF 转为 LF，保留其他所有字节对应的 UTF-8 内容，包括空白和注释。
+CI 仅把下面登记的完整 SQL 识别为已审核的程序化迁移。路径、迁移名及 SHA256 必须同时匹配。摘要只把 CRLF 转为 LF，保留其他所有字节对应的 UTF-8 内容，包括空白和注释。
 
 | Git 路径 | LF 内容 SHA256 |
 | --- | --- |
 | prisma/postgres/migrations/20261015000000_user_center/migration.sql | f2763bf80fe1d86da2faecdb9068be6a9902bf2d11af40dffe76add69b727600 |
 | prisma/postgres/migrations/20261016000000_auth_ops/migration.sql | 0441c416a6375be21928c792b91808263326c477b5559a861fe4dfa69f3847b9 |
+| prisma/postgres/migrations/20261105090000_user_center_sdk_016/migration.sql | a8344cd36ff8cadcf25c520921db4ab49a533f94038eb995ffce47341ea611c9 |
+| prisma/postgres/sdk-production/migrations/20261105213000_sdk_production_namespace/migration.sql | 3d74dd968cac88b3e6590ea0bbf9f5ca229babbe5f80a623d5166aa12ea0c137 |
 
 固定记录在 scripts/ci/staging-core.ts。CI 不根据候选文件自动生成或更新记录，也不按目录、日期、函数名前缀或 dollar quote 语法整体放行。已登记路径的内容只要变化就拒绝，包括追加普通新增 DDL 或注释。其他迁移继续经过原有保守 SQL 检查。
 
@@ -22,6 +24,14 @@ CI 仅把下面两份完整 SQL 识别为已审核的程序化迁移。路径、
 顶层 SQL 创建 auth_ops schema、状态表、运行记录表和索引，开启 RLS、撤销 PUBLIC 权限，并写入未绑定 Cron 的 disabled 初始状态。
 
 七个函数定义清理状态、有限批次、固定 cutoff、任务身份及 Cron 历史核验。UPDATE、DELETE 和 Cron 引用均位于函数体内，迁移不调用清理、不创建或启用 Cron。所有 SECURITY DEFINER 函数固定 search_path 为 pg_catalog，并显式限定对象所在 schema。替换的 public.cleanup_auth_rows 只转到同一迁移建立的 cutoff helper。新增函数撤销 PUBLIC 执行权限。
+
+## 20261105 SDK 两条既有迁移
+
+20261105090000 先扫描 public 中除 Prisma ledger 外的业务基表，有数据即抛出 SDK_TARGET_NOT_EMPTY。仅在空目标中调整 User 字段与约束，将旧 sessions 保留为 legacy_sessions，创建新的 SDK 会话、Account、Verification、维护状态与收据。角色保护触发器和 RLS/撤权按固定对象实现；不授予运行角色提升 ROOT 的权限。迁移在 BEGIN/COMMIT 内执行，不在本轮重写。
+
+20261105213000 是独立生产 namespace 的既有初始化。它严格要求数据库 postgres、维护角色 blog_sdk_prod_migrator、该角色拥有空 feline_sdk_prod；允许的已有对象仅为 Prisma ledger 及其索引。所有业务对象、外键及序列属于新 schema，原 public 业务保持。它显式划分运行角色的列权限和维护表只读权限，不启用 Cron，也不恢复数据。
+
+CI 的 production-replay 仅使用显式、无密码的 loopback 临时服务，要求 CI 标志、专用开关、空 postgres 数据库及不存在的目标角色/schema。它不读取 dotenv 或维护配置，不重放到实际生产库。SDK 0.1.10 升级本身没有新增迁移；这里登记的是此前已交付的两份不可变历史。
 
 ## 保留的门禁及部署边界
 

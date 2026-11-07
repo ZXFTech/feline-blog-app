@@ -14,6 +14,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("@/lib/auth/userAuth", () => ({ requireAuth: mocks.auth }));
 vi.mock("@/lib/logger/Logger", () => ({ default: { error: vi.fn() } }));
 vi.mock("@/db/client", () => ({ default: { $transaction: mocks.transaction } }));
+vi.mock("@/lib/auth/sdk/config", () => ({ getSdkDatabaseSchema: () => "public" }));
 vi.mock("@/lib/checklists/cursor", () => ({
   readChecklistCursor: vi.fn(),
   signChecklistCursor: vi.fn(),

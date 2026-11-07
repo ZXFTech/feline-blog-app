@@ -44,6 +44,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 31  | Blog 空状态与错误恢复修复 | Blog P2 | planned |
 | 32  | Blog 容器间距与窄屏布局修复 | Blog P2 | planned |
 | 33  | Blog 编辑预览与操作修复 | Blog P2 | planned |
+| 34  | User Center SDK 认证重建与单账号数据恢复 | Auth | in-progress |
 
 ## Current product
 
@@ -356,6 +357,39 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
   - [x] 完成本地生命周期、旧命令映射、文档和测试，covers `AC-9`, `AC-10`, `AC-11`, `AC-12`
 - [x] Verify it: `/check verify 本地 PostgreSQL 开发与迁移隔离`
 - [x] Test it: `/test 本地 PostgreSQL 开发与迁移隔离`
+
+## 认证升级：从零接入与单账号数据恢复
+
+### 34. User Center SDK 认证重建与单账号数据恢复 · in-progress · GA
+
+按 2026-11-04 最终确认的方向，采用全新账号体系和 SDK 标准本地会话，统一 Better Auth/Prisma 模型、客户端与连接池。先备份 `zxf_tech@outlook.com` 的业务数据及全部选定共享业务表，再在新认证基础上恢复；接受期间停机，同时开放新博客用户。
+**Done when:** 新用户通过中心认证并确认昵称后成为普通博客用户，指定新账号经维护 CLI 一次性初始化 ROOT；业务备份在新认证完成后恢复到该新账号，数量、归属、引用、计数和序列经过核对，新认证及角色不被旧数据覆盖；开放前完成认证、ROOT、恢复只读校验及隔离环境业务演练，再显式开放并完成目标真实业务冒烟，页面/API权限一致、旧凭据不再认证，各阶段分别留证。
+
+**认证与账号边界：** User/Session/Account/Verification 调整为 SDK 使用的标准模型，复用唯一 PostgreSQL Prisma 迁移链；同一个新 User ID 用于本地认证和博客业务，完成资料前不能获得普通业务访问资格。邮箱采用中心本地快照，昵称由用户确认，新用户默认 USER；仅维护 CLI 可把指定新账号提升 ROOT。
+
+**数据恢复边界：** 不存在旧账号迁移、关联、认领或维护者审核流程。只读备份指定用户的业务及依赖数据，并按用户明确选择纳入无 User 归属的日常/健身、动作库和 Prompt 共享表；新 ROOT 完成认证后，通过显式数据库计划改写业务所有权并恢复。源库、其他旧账号及数据不修改，不恢复密码、旧认证存储或覆盖新角色。
+
+**会话与实施顺序：** 采用 SDK 的平台本地退出和不自动续期语义，不保留旧 JWT、密码登录、逐请求中心 introspection 或强制新密码认证作为兼容要求。按 Tracer Bullet 先打通新认证、资料与安全页面/API，再完成 ROOT 初始化、数据恢复和显式开放。角色、归属、Cookie、错误、恢复幂等及失败不放行均需实际验证。
+
+**本轮边界：** 只设计和更新文档，不开发、不停机、不安装依赖、不备份或恢复实际数据。2026-11-04 已完成架构独立复核、原 7 项修订核对及操作者的完整规格确认；当前仅设计完成，实施未开始。开发代码的独立复审与真实验收未开始。生产部署、迁移、邮件发送和中心资源创建仍需对应授权。条目 11 的旧密码恢复方向在后续实施收口时重新界定。
+
+已确认规格见 [0019](../specs/0019-user-center-sdk-rebuild/index.md)，验收合同见 [verify](../specs/0019-user-center-sdk-rebuild/verify.md)。前期 [评估 0018](../specs/0018-user-center-sdk-feasibility.md) 保留为历史材料，不作为恢复旧账号关联流程的依据。下面登记后续工作，不代表本轮授权执行。
+
+- [x] Design it (spec): `/architect User Center SDK 认证重建与单账号数据恢复`
+- [ ] Build it: `/develop User Center SDK 认证重建与单账号数据恢复`
+      code in `scripts/auth-rebuild/`, `src/lib/auth/sdk/`, `src/app/api/auth/[...all]/`, `src/app/api/account/`, `src/components/Auth/`, `prisma/postgres/schema.prisma`；接线说明见 `docs/auth/user-center-sdk-setup.md`，本地真实认证见 `docs/reviews/2026-11-05-sdk-local-auth-roundtrip.md`，新增线上中心联调见 `docs/auth/user-center-online-local.md` 和 `docs/reviews/2026-11-05-sdk-online-local-auth-roundtrip.md`（SDK/CLI 0.1.6；原本地模式一次登录回调/退出通过；新增 development→production 使用3445/独立54332空业务库，8迁移及最小权限/9项回滚验证通过，独立配置与命令已提供；全量972项及最终34项定向、lint/类型/构建通过，不累加重叠批次；新模式专用Client已填、production声明及SDK ready通过，一次真实授权/回调/会话/退出通过，新库User/Account各1、退出后Session0，资料未提交；两库均保持awaiting_root，无ROOT/恢复/开放，生产配置与旧源保持，完整实施里程碑仍未完成）
+  - [ ] 核验固定制品与配置，准备只读一致快照业务备份及闭包/逻辑引用校验，covers `AC-1`、`AC-7`、`AC-8`、`AC-11`
+      2026-11-05 生产进展见 `docs/reviews/2026-11-05-sdk-production-preparation.md`：指定业务备份已完成，同库新增 feline_sdk_prod 并迁移核验通过，旧 public 保留；1017 项测试、lint/类型及本机与 Vercel 构建通过，正式域名已切换维护状态。真实生产授权被中心以 invalid_client/client not found 拒绝，需补齐正式博客 Client；doctor 仍为 COMBINATION_UNVERIFIED，ROOT/恢复/开放未完成，恢复演练按操作者指令跳过。
+      2026-11-06 正式 Client 已补齐并更新 SDK 专用生产 Secret，新部署本地及 Vercel 构建通过；一次真实 production 登录/回调/刷新/平台退出通过，退出后新 User/Account 各1、Session0、角色USER，旧 public 用户/角色/权限摘要与指定业务数量保持。独立记录见 `docs/reviews/2026-11-06-sdk-production-client-refresh.md`；当前 awaiting_root/revision0，无ROOT、恢复或开放，完整里程碑仍未完成。
+  - [ ] 统一认证模型与权限，打通新认证、资料确认和安全页面/API，停用旧凭据，covers `AC-2` 至 `AC-5`、`AC-10`、`AC-11`
+  - [x] 完成统一维护计划、一次性 ROOT 初始化、状态和幂等控制，covers `AC-6`、`AC-9`、`AC-10`、`AC-11`
+      2026-11-06 已实现严格计划及 apply、完成回放、事务回滚和限定维护身份，正式新账号 ROOT 已由操作者在 /profile 确认。指定单账号最终快照已恢复，数据库 ready/revision3，旧 public 的行版本、用户角色和 ACL 摘要未变。开放后发现会话池耗尽，补齐 Vercel 连接池生命周期、Proxy 配置打包及 Album 账号入口后，正式 HTTP 只读冒烟通过，13 篇文章和公开投影匹配；操作者确认登录浏览器页面正常且可见恢复内容。最终全量1042项通过/35跳过，另2项沙箱端口受限后单独重跑通过，相关lint/526项边界及Vercel构建通过；Windows本地最终build子进程错误未记通过。恢复演练按明确指令未运行，完整GA仍待独立验收与普通账号/并发证据。见 `docs/reviews/2026-11-06-sdk-production-restoration.md`。
+  - [ ] 完成事务恢复、资料历史映射、收据原子绑定和数据校验，明确开放前后验收及显式开放，covers `AC-7` 至 `AC-10`
+  - [ ] 固化全部边界回归、真实认证/存储/恢复证据及过时约定更新，covers `AC-1` 至 `AC-12`
+- [ ] Verify it: `/check verify User Center SDK 认证重建与单账号数据恢复`
+- [ ] Test it: `/test User Center SDK 认证重建与单账号数据恢复`
+- [ ] Review it (fresh model): `/check review User Center SDK 认证重建与单账号数据恢复`
+- [x] Document it: `/document User Center SDK 认证重建与单账号数据恢复`
 
 ## Blog 修复 P1：阅读核心体验
 

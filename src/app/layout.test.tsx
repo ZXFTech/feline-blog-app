@@ -3,6 +3,8 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
   getCurrentUser: vi.fn(),
+  account: vi.fn(),
+  ready: vi.fn(),
   pathname: "/",
   authProvider: vi.fn(
     ({ children }: { children: React.ReactNode; initialUser: unknown }) => children
@@ -11,8 +13,10 @@ const mocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/lib/auth/userAuth", () => ({
-  getCurrentUser: mocks.getCurrentUser,
+  resolveAccountUser: mocks.account,
 }));
+vi.mock("@/lib/auth/sdk/config", () => ({ getSdkConfiguration: () => ({ publicConfig: null }) }));
+vi.mock("@/lib/auth/sdk/business", () => ({ assertBusinessReady: mocks.ready }));
 vi.mock("next/headers", () => ({
   headers: async () => new Headers({ "x-feline-pathname": mocks.pathname }),
 }));
@@ -39,6 +43,11 @@ describe("RootLayout authentication hydration", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mocks.pathname = "/";
+    mocks.ready.mockResolvedValue(undefined);
+    mocks.account.mockImplementation(async () => {
+      const user = await mocks.getCurrentUser();
+      return user ? { status: "success", data: user } : { status: "unauthenticated" };
+    });
   });
 
   it("covers: Album AC-1, skips authentication restoration on the public showcase", async () => {
@@ -68,6 +77,7 @@ describe("RootLayout authentication hydration", () => {
       username: "猫猫",
       email: "cat@example.com",
       role: "USER",
+      authMode: "sdk",
       avatar: null,
       password: "must-not-reach-the-client",
       phone: "13800000000",
@@ -84,6 +94,7 @@ describe("RootLayout authentication hydration", () => {
           email: "cat@example.com",
           role: "USER",
           avatar: null,
+          authMode: "sdk",
         },
       }),
       undefined

@@ -85,7 +85,8 @@ try {
     await targetDb.$transaction(
       async (tx) => {
         await tx.user.createMany({ data: source.users });
-        await tx.session.createMany({ data: source.sessions });
+        // Legacy sessions remain separate and never enter the SDK session delegate.
+        await tx.legacySession.createMany({ data: source.sessions });
         await tx.verificationToken.createMany({ data: source.verificationTokens });
         await tx.blog.createMany({ data: source.blogs });
         await tx.tag.createMany({ data: source.tags });
@@ -142,7 +143,10 @@ async function readSnapshot(db: typeof legacyDb | PostgresClient) {
   // the snapshot shape cannot drift between source and target verification.
   const client = db as typeof legacyDb;
   const users = await client.user.findMany({ orderBy: { id: "asc" } });
-  const sessions = await client.session.findMany({ orderBy: { id: "asc" } });
+  const sessions =
+    db === targetDb
+      ? await targetDb.legacySession.findMany({ orderBy: { id: "asc" } })
+      : await client.session.findMany({ orderBy: { id: "asc" } });
   const verificationTokens = await client.verificationToken.findMany({
     orderBy: [{ identifier: "asc" }, { token: "asc" }],
   });

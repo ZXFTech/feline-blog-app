@@ -13,7 +13,10 @@ import {
 } from "./staging-core";
 
 const execFileAsync = promisify(execFile);
-const migrationRoot = path.join(repositoryRoot, "prisma", "postgres", "migrations");
+export const migrationRoots = [
+  "prisma/postgres/migrations",
+  "prisma/postgres/sdk-production/migrations",
+] as const;
 
 async function git(args: readonly string[]): Promise<string> {
   const result = await execFileAsync("git", [...args], {
@@ -63,7 +66,7 @@ export async function verifyPullRequestMigrations(baseSha: string): Promise<void
     "-z",
     `${baseSha}...HEAD`,
     "--",
-    "prisma/postgres/migrations",
+    ...migrationRoots,
   ]);
   const addedPaths = assertImmutableMigrationChanges(parseNameStatus(output));
   const migrationPaths = new Set(addedPaths.filter((file) => file.endsWith("/migration.sql")));
@@ -74,10 +77,13 @@ export async function verifyPullRequestMigrations(baseSha: string): Promise<void
 }
 
 export async function verifyAllMigrationDirectories(): Promise<void> {
-  const entries = await readdir(migrationRoot, { withFileTypes: true });
-  for (const entry of entries) {
-    if (!entry.isDirectory()) continue;
-    await readFile(path.join(migrationRoot, entry.name, "migration.sql"));
+  for (const relativeRoot of migrationRoots) {
+    const migrationRoot = path.join(repositoryRoot, relativeRoot);
+    const entries = await readdir(migrationRoot, { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isDirectory()) continue;
+      await readFile(path.join(migrationRoot, entry.name, "migration.sql"));
+    }
   }
 }
 

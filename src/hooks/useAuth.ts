@@ -1,95 +1,71 @@
 "use client";
-
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import logger from "@/lib/logger/Logger";
+import { createUserCenterClient } from "@user-center/next-better-auth/client";
 import { useCtxAuth } from "@/providers/AuthProviders";
 
 export function useAuth() {
   const router = useRouter();
-  const { authEnabled, setUser, user, authUnavailable, setAuthUnavailable } = useCtxAuth();
+  const { authEnabled, setUser, user, authUnavailable, setAuthUnavailable, publicConfig } =
+    useCtxAuth();
   const [authLoading, setAuthLoading] = useState(authEnabled);
-
+  const [checkVersion, setCheckVersion] = useState(0);
   useEffect(() => {
     if (!authEnabled) {
       setAuthLoading(false);
       return;
     }
-
+    let active = true;
     setAuthLoading(true);
-    const checkAuth = async function () {
+    void (async () => {
       try {
-        const res = await fetch("/api/auth/me");
-
-        if (res.ok) {
-          setAuthUnavailable(false);
-          const { data } = await res.json();
-          setUser(data?.user ?? null);
+        const response = await fetch("/api/me", { cache: "no-store" });
+        if (response.ok) {
+          const body = await response.json();
+          if (active) {
+            setAuthUnavailable(false);
+            setUser(body.data?.user ?? null);
+          }
         } else {
-          await res.arrayBuffer();
-          setAuthUnavailable(res.status === 503);
-          setUser(null);
+          await response.arrayBuffer();
+          if (active) {
+            setAuthUnavailable(response.status >= 500);
+            setUser(null);
+          }
         }
       } catch {
-        setAuthUnavailable(true);
-        logger.error({ operation: "authSessionRead", code: "AUTH_UNAVAILABLE" });
-        setUser(null);
+        if (active) {
+          setAuthUnavailable(true);
+          setUser(null);
+        }
       } finally {
-        setAuthLoading(false);
+        if (active) setAuthLoading(false);
       }
+    })();
+    return () => {
+      active = false;
     };
-
-    checkAuth();
-  }, [authEnabled, setUser, setAuthUnavailable]);
-
-  const login = async function (email: string, password: string) {
+  }, [authEnabled, setUser, setAuthUnavailable, checkVersion]);
+  async function logout() {
     try {
-      const csrf = await fetch("/api/auth/csrf").then(response => response.json());
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, csrfToken: csrf.data?.csrfToken }),
-      });
-
-      const { data, message } = await res.json();
-      if (res.ok) {
-        setUser(data.user);
-        return { success: true };
-      } else {
-        return { success: false, message: message };
-      }
-    } catch (error) {
-      logger.error("网络错误.", error);
-      return { success: false, message: "网络错误" };
-    }
-  };
-
-  const logout = async function () {
-    try {
-      const csrfResponse = await fetch("/api/auth/csrf");
-      const csrf = await csrfResponse.json();
-      if (!csrfResponse.ok) throw new Error(csrf.message);
-      const response = await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ csrfToken: csrf.data.csrfToken }),
-      });
-      if (!response.ok) throw new Error((await response.json()).message);
+      if (!publicConfig) throw Error("SIGN_OUT_UNCONFIRMED");
+      await createUserCenterClient(publicConfig).signOut();
       setUser(null);
       setAuthUnavailable(false);
       router.push("/login");
-    } catch (error) {
+    } catch {
       setAuthUnavailable(true);
-      throw error;
+      throw Error("SIGN_OUT_UNCONFIRMED");
     }
-  };
-
+  }
   return {
+    authEnabled,
     user,
     authLoading,
     authUnavailable,
-    login,
     logout,
+    canSignOut: publicConfig !== null,
+    retry: () => setCheckVersion((version) => version + 1),
     isAuthenticated: !!user,
     isAdmin: user?.role === "ADMIN",
     isRoot: user?.role === "ROOT",

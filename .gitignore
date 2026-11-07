@@ -44,6 +44,7 @@ yarn-error.log*
 !.env.shadow.example
 !.env.staging.example
 /.feline-blog/
+/.next-online-center/
 /test-results/
 /playwright-report/
 *.pgdump

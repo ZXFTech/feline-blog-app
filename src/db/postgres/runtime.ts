@@ -1,7 +1,8 @@
 import { PrismaPg } from "@prisma/adapter-pg";
 import { Pool } from "pg";
+import { attachDatabasePool } from "@vercel/functions";
 import { PrismaClient } from "../../../generated/prisma-postgres/client";
-import { buildPostgresPoolConfig } from "./config";
+import { getSdkServerConfiguration } from "@/lib/auth/sdk/config";
 
 const globalForPostgres = globalThis as unknown as {
   postgresDb?: PrismaClient;
@@ -12,15 +13,19 @@ let postgresRuntime: { db: PrismaClient; pool: Pool } | undefined;
 
 function getPostgresRuntime(): { db: PrismaClient; pool: Pool } {
   if (postgresRuntime) return postgresRuntime;
+  const sdk = getSdkServerConfiguration();
 
   let pool = globalForPostgres.postgresPool;
   if (!pool) {
-    pool = new Pool(buildPostgresPoolConfig());
+    pool = new Pool(sdk.poolConfig);
+    attachDatabasePool(pool);
     pool.on("error", () => {
       console.info(JSON.stringify({ event: "feline_database", code: "DATABASE_CONNECTION_LOST" }));
     });
   }
-  const db = globalForPostgres.postgresDb ?? new PrismaClient({ adapter: new PrismaPg(pool) });
+  const db =
+    globalForPostgres.postgresDb ??
+    new PrismaClient({ adapter: new PrismaPg(pool, { schema: sdk.databaseSchema }) });
 
   if (process.env.NODE_ENV !== "production") {
     globalForPostgres.postgresPool = pool;

@@ -1,18 +1,67 @@
-import { redirect } from "next/navigation";
-import Link from "next/link";
-import { resolveCurrentUser } from "@/lib/auth/userAuth";
-import AuthFrame from "@/app/auth/user-center/_components/auth-frame";
-import ActionForm from "@/app/auth/user-center/_components/action-form";
-import { publicAuthRoutes } from "@/lib/auth/center/config";
+import { headers } from "next/headers";
+import { redirect, unstable_rethrow } from "next/navigation";
+import { AuthFrame } from "@/components/Auth/AuthFrame";
+import { SdkControls } from "@/components/Auth/SdkAuth";
+import { ProfileSetupForm } from "@/components/Auth/ProfileSetupForm";
+import { getSdkIntegration } from "@/lib/auth/sdk/server";
+import { getSdkConfiguration } from "@/lib/auth/sdk/config";
+import { assertProfileAllowed, readInstallation, SdkHostError } from "@/lib/auth/sdk/business";
+import { emailSnapshotDigest } from "@/lib/auth/sdk/profile-input";
+import type { PublicConfig } from "@user-center/next-better-auth/public";
 export const dynamic = "force-dynamic";
-export const metadata = { title: "账号与安全", robots: { index: false, follow: false }, referrer: "strict-origin" as const };
+export const metadata = { title: "账号与安全", robots: { index: false, follow: false } };
 export default async function Profile() {
-  const result = await resolveCurrentUser();
-  if (result.status === "unauthenticated") redirect("/login");
-  if (result.status !== "success") return <AuthFrame title="账号暂时不可用"><p role="alert">{result.message}</p><Link href="/profile" prefetch={false}>重试</Link><ActionForm endpoint="/api/auth/logout" label="退出当前浏览器" /></AuthFrame>;
-  const user = result.data;
-  return <AuthFrame title="账号与安全"><dl><dt>博客昵称</dt><dd>{user.username}</dd><dt>博客邮箱</dt><dd>{user.email}</dd><dt>博客角色</dt><dd>{user.role}</dd></dl>
-    {user.authMode === "legacy" ? <><h2>绑定用户中心</h2><p>你仍可使用旧账号。绑定前需要重新验证原密码；忘记原密码时请保留原账号，本轮不能通过邮箱自动认领。</p><ActionForm routes={publicAuthRoutes()} endpoint="/api/auth/user-center/bind/start" label="验证旧密码并前往用户中心" fields={[{ name: "password", label: "原博客密码", type: "password" }]} /></> : <><p>此账号仅使用用户中心登录，原博客密码已停用。</p>{"centerEmail" in user ? <p>中心登录邮箱：{user.centerEmail}<br />最近核验于：{user.centerEmailVerifiedAt}</p> : null}</>}
-    <ActionForm endpoint="/api/auth/logout" label="退出当前浏览器" />
-  </AuthFrame>;
+  let data;
+  let publicConfig: PublicConfig | null = null;
+  try {
+    const config = getSdkConfiguration();
+    publicConfig = config.publicConfig;
+    const principal = await getSdkIntegration().getPrincipal(new Headers(await headers()));
+    if (principal.status === "anonymous") redirect("/login");
+    if (principal.status === "mapping-required") redirect("/auth/setup");
+    const state = await readInstallation();
+    assertProfileAllowed(state, principal.identity);
+    data = { config, principal, state };
+  } catch (error) {
+    unstable_rethrow(error);
+    const pending = error instanceof SdkHostError && error.code === "INITIALIZATION_PENDING";
+    return (
+      <AuthFrame title={pending ? "业务初始化中" : "账号暂时不可用"}>
+        <p role="alert">
+          {pending
+            ? "初始化尚未完成，当前账号暂不能查看博客资料。"
+            : "暂时无法核验账号，请稍后重试。"}
+        </p>
+        {publicConfig ? <SdkControls config={publicConfig} mode="logout" /> : null}
+      </AuthFrame>
+    );
+  }
+  const { config, principal, state } = data;
+  const user = principal.user;
+  return (
+    <AuthFrame title="账号与安全">
+      <dl>
+        <dt>用户 ID</dt>
+        <dd>{user.id}</dd>
+        <dt>博客昵称</dt>
+        <dd>{user.username}</dd>
+        <dt>已确认联系邮箱</dt>
+        <dd>{user.email}</dd>
+        <dt>当前认证邮箱</dt>
+        <dd>{principal.identity.profile.email}</dd>
+        <dt>博客角色</dt>
+        <dd>{user.role}</dd>
+      </dl>
+      {state.phase !== "ready" ? <p role="status">业务正在维护，账号和资料仍可检查。</p> : null}
+      {user.email !== principal.identity.profile.email ? (
+        <p>认证邮箱已变化，确认后才会更新博客联系邮箱。</p>
+      ) : null}
+      <ProfileSetupForm
+        email={principal.identity.profile.email}
+        emailDigest={emailSnapshotDigest(principal.identity.profile.email)}
+        action="confirm-email"
+      />
+      <SdkControls config={config.publicConfig} mode="logout" />
+    </AuthFrame>
+  );
 }

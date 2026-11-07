@@ -1,8 +1,4 @@
 {
-  "crons": [
-    {
-      "path": "/api/cron/checklists/purge",
-      "schedule": "0 3 * * *"
-    }
-  ]
+  "installCommand": "pnpm install --frozen-lockfile --ignore-scripts",
+  "buildCommand": "pnpm build"
 }

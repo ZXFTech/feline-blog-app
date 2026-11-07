@@ -1,0 +1,12 @@
+.git
+.feline-blog
+.env*
+**/.env*
+node_modules
+generated
+.next
+.next-online-center
+playwright-report
+test-results
+.agents
+.claude

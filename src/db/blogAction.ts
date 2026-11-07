@@ -2,6 +2,7 @@
 
 import type { TagData } from "@/components/TagEditor";
 import { hasBlogRoles, resolveCurrentUser } from "@/lib/auth/userAuth";
+import { assertBusinessReady } from "@/lib/auth/sdk/business";
 import logger from "@/lib/logger/Logger";
 import { actionResult, type ActionResult } from "@/lib/server/actionResult";
 import { classifyDataError, isKnownPrismaError, safeErrorContext } from "@/lib/server/error";
@@ -91,11 +92,18 @@ export async function getBlogById(id: unknown) {
   const auth = await resolveCurrentUser();
   const userId = auth.status === "success" ? auth.data.id : null;
   try {
+    await assertBusinessReady();
     const blog = await db.blog.findFirst({
       where: { id: blogId, delete: false },
       include: { author: { select: publicAuthorSelect }, tags: tagInclude },
     });
-    if (!blog || !userId) return actionResult.success({ blog, isLiked: false, isFavorite: false, identityUnavailable: auth.status === "temporary_failure" });
+    if (!blog || !userId)
+      return actionResult.success({
+        blog,
+        isLiked: false,
+        isFavorite: false,
+        identityUnavailable: auth.status === "temporary_failure",
+      });
     const isLiked = await db.blogLike.findUnique({ where: { blogId_userId: { userId, blogId } } });
     const isFavorite = await db.blogFavorite.findUnique({
       where: { blogId_userId: { userId, blogId } },
@@ -164,6 +172,7 @@ export async function getBlogList(
     ...(content ? { content: { contains: content, mode: "insensitive" } } : {}),
   };
   try {
+    await assertBusinessReady();
     const blogs = await db.blog.findMany({
       where,
       orderBy: [{ createdAt: searchParams.orderBy }, { id: searchParams.orderBy }],
@@ -183,6 +192,7 @@ export async function getAdjacentBlogs(id: unknown) {
   const blogId = parsePositiveInt(id);
   if (!blogId) return actionResult.failure("invalid_input", "文章 ID 无效");
   try {
+    await assertBusinessReady();
     const current = await db.blog.findFirst({
       where: { id: blogId, delete: false },
       select: { id: true, createdAt: true },

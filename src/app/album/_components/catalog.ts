@@ -260,7 +260,12 @@ export const catalogEntries: readonly CatalogEntry[] = [
       useCases: ["提交操作", "分段操作", "强调导航"],
       importPath:
         "@/components/ui/button · @/components/ui/button-group · @/components/ui/styled-link",
-      sourceFiles: ["ui/button.tsx", "ui/hydration-controls.tsx", "ui/button-group.tsx", "ui/styled-link.tsx"],
+      sourceFiles: [
+        "ui/button.tsx",
+        "ui/hydration-controls.tsx",
+        "ui/button-group.tsx",
+        "ui/styled-link.tsx",
+      ],
       categoryId: "navigation",
       order: 10,
       keywords: ["button", "button group", "styled link", "按钮", "按钮组", "链接", "loading"],
@@ -566,6 +571,23 @@ export const catalogEntries: readonly CatalogEntry[] = [
       ),
     },
     () => import("@/app/album/_components/demos/BlogReadingDemo")
+  ),
+  ready(
+    {
+      ...base,
+      slug: "sdk-auth",
+      nameZh: "账号登录与资料确认",
+      codeName: "SDK Auth",
+      description: "固定本地资料与按钮反馈，不调用认证服务或数据库。",
+      useCases: ["登录反馈", "邮箱确认", "退出未确认"],
+      importPath: "@/components/Auth/SdkAuth",
+      sourceFiles: ["Auth/SdkAuth.tsx", "Auth/ProfileSetupForm.tsx", "Auth/AuthFrame.tsx"],
+      categoryId: "business",
+      order: 80,
+      keywords: ["账号", "认证", "SDK", "资料"],
+      capabilities: capability(["默认"], ["登录", "资料确认"], ["默认", "退出未确认"]),
+    },
+    () => import("@/app/album/_components/demos/SdkAuthDemo")
   ),
   ...pendingFamilies.map(([slug, nameZh, codeName, files, categoryId], index) =>
     pending({

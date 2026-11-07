@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "centers": { "production": "https://auth.zhaosie.com/api/auth" },
+  "runtimes": {
+    "development": {
+      "platformOrigin": "https://blog.user-center.test:3445",
+      "sessionSecretEnv": "LOCAL_ONLINE_SESSION_SECRET",
+      "clients": {
+        "production": {
+          "clientId": "",
+          "clientSecretEnv": "LOCAL_TO_PRODUCTION_CLIENT_SECRET"
+        }
+      },
+      "database": {
+        "urlEnv": "LOCAL_ONLINE_DATABASE_URL",
+        "hostname": "127.0.0.1",
+        "port": 54332,
+        "database": "feline_blog_sdk_online_dev",
+        "username": "blog_sdk_online_runtime"
+      }
+    }
+  },
+  "authBasePath": "/api/auth",
+  "returnTo": {
+    "fallback": "/profile",
+    "allowedPaths": ["/", "/profile", "/todo", "/tomato", "/blog/new", "/checklists"],
+    "allowedPathPrefixes": ["/blog/edit", "/checklists"],
+    "allowedQueryKeys": []
+  },
+  "errorPath": "/auth/error"
+}

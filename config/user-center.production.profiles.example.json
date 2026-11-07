@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "centers": {
+    "production": "https://auth.zhaosie.com/api/auth"
+  },
+  "runtimes": {
+    "production": {
+      "platformOrigin": "https://blog.zhaosie.com",
+      "sessionSecretEnv": "PLATFORM_PRODUCTION_SESSION_SECRET",
+      "clients": {
+        "production": {
+          "clientId": "",
+          "clientSecretEnv": "PRODUCTION_USER_CENTER_CLIENT_SECRET"
+        }
+      },
+      "database": {
+        "urlEnv": "PLATFORM_PRODUCTION_DATABASE_URL",
+        "hostname": "",
+        "port": 5432,
+        "database": "",
+        "username": ""
+      }
+    }
+  },
+  "authBasePath": "/api/auth",
+  "returnTo": {
+    "fallback": "/profile",
+    "allowedPaths": ["/", "/profile", "/todo", "/tomato", "/blog/new", "/checklists"],
+    "allowedPathPrefixes": ["/blog/edit", "/checklists"],
+    "allowedQueryKeys": []
+  },
+  "errorPath": "/auth/error"
+}

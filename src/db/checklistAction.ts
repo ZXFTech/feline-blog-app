@@ -3,6 +3,7 @@
 import { createHash } from "node:crypto";
 import { Prisma } from "../../generated/prisma-postgres/client";
 import db from "@/db/client";
+import { applicationObject } from "@/db/postgres/schema";
 import { requireAuth } from "@/lib/auth/userAuth";
 import { actionResult } from "@/lib/server/actionResult";
 import logger from "@/lib/logger/Logger";
@@ -123,7 +124,7 @@ async function lockOwnedChecklist(tx: Prisma.TransactionClient, id: string, user
   const rows = await tx.$queryRaw<
     Array<{ id: string; revision: number; expiresAt: Date; name: string; themeColor: string }>
   >(
-    Prisma.sql`SELECT "id", "revision", "expiresAt", "name", "themeColor" FROM "Checklist"
+    Prisma.sql`SELECT "id", "revision", "expiresAt", "name", "themeColor" FROM ${applicationObject("Checklist")}
       WHERE "id" = ${id}::uuid AND "userId" = ${userId} AND "deletedAt" IS NULL
       FOR UPDATE`
   );
@@ -132,7 +133,7 @@ async function lockOwnedChecklist(tx: Prisma.TransactionClient, id: string, user
 
 async function lockOwnedDeletedChecklist(tx: Prisma.TransactionClient, id: string, userId: string) {
   const rows = await tx.$queryRaw<Array<{ id: string; revision: number; deletedAt: Date | null }>>(
-    Prisma.sql`SELECT "id", "revision", "deletedAt" FROM "Checklist"
+    Prisma.sql`SELECT "id", "revision", "deletedAt" FROM ${applicationObject("Checklist")}
       WHERE "id" = ${id}::uuid AND "userId" = ${userId} AND "deletedAt" IS NOT NULL
       FOR UPDATE`
   );
@@ -1292,24 +1293,24 @@ export async function purgeExpiredChecklistTrash(limit = 500) {
     const itemLimit = Math.max(1, batch - 201);
     const itemRows = await tx.$queryRaw<Array<{ id: string }>>(
       Prisma.sql`WITH locked_items AS (
-          SELECT item."id" FROM "ChecklistItem" item
-          JOIN "Checklist" parent ON parent."id" = item."checklistId"
+          SELECT item."id" FROM ${applicationObject("ChecklistItem")} item
+          JOIN ${applicationObject("Checklist")} parent ON parent."id" = item."checklistId"
           WHERE item."deletedAt" <= clock_timestamp() - interval '30 days'
             AND parent."deletedAt" IS NULL
           ORDER BY item."deletedAt", item."id"
           FOR UPDATE OF item SKIP LOCKED LIMIT ${itemLimit}
         )
-        DELETE FROM "ChecklistItem" WHERE "id" IN (SELECT "id" FROM locked_items)
+        DELETE FROM ${applicationObject("ChecklistItem")} WHERE "id" IN (SELECT "id" FROM locked_items)
         RETURNING "id"`
     );
     let deleted = itemRows.length;
     if (deleted < batch) {
       const parents = await tx.$queryRaw<Array<{ id: string; childCount: bigint }>>(
         Prisma.sql`SELECT parent."id", count(child."id") AS "childCount"
-          FROM "Checklist" parent
-          LEFT JOIN "ChecklistItem" child ON child."checklistId" = parent."id"
+          FROM ${applicationObject("Checklist")} parent
+          LEFT JOIN ${applicationObject("ChecklistItem")} child ON child."checklistId" = parent."id"
           WHERE parent."id" = (
-            SELECT "id" FROM "Checklist"
+            SELECT "id" FROM ${applicationObject("Checklist")}
             WHERE "deletedAt" <= clock_timestamp() - interval '30 days'
             ORDER BY "deletedAt", "id" FOR UPDATE SKIP LOCKED LIMIT 1
           )
@@ -1323,9 +1324,9 @@ export async function purgeExpiredChecklistTrash(limit = 500) {
     }
     const pending = await tx.$queryRaw<Array<{ pending: boolean }>>(
       Prisma.sql`SELECT EXISTS (
-        SELECT 1 FROM "Checklist" WHERE "deletedAt" <= clock_timestamp() - interval '30 days'
+        SELECT 1 FROM ${applicationObject("Checklist")} WHERE "deletedAt" <= clock_timestamp() - interval '30 days'
         UNION ALL
-        SELECT 1 FROM "ChecklistItem" item JOIN "Checklist" parent ON parent."id" = item."checklistId"
+        SELECT 1 FROM ${applicationObject("ChecklistItem")} item JOIN ${applicationObject("Checklist")} parent ON parent."id" = item."checklistId"
         WHERE item."deletedAt" <= clock_timestamp() - interval '30 days' AND parent."deletedAt" IS NULL
       ) AS pending`
     );

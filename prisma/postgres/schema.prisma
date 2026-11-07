@@ -26,9 +26,18 @@ model User {
   id              String           @id @default(cuid()) @db.VarChar(191)
   email           String           @unique @db.Citext
   phone           String?          @unique @db.Citext
-  username        String           @db.VarChar(191)
+  username        String           @default("") @db.VarChar(191)
+  name            String           @default("") @db.Text
+  emailVerified   Boolean          @default(false)
+  image           String?          @db.Text
+  updatedAt       DateTime         @updatedAt @db.Timestamptz(3)
+  profileCompletedAt DateTime?     @db.Timestamptz(3)
+  profileEmailSnapshot String?     @db.Citext
+  profileEmailConfirmedAt DateTime? @db.Timestamptz(3)
+  businessCreatedAt DateTime?      @db.Timestamptz(3)
+  businessUpdatedAt DateTime?      @db.Timestamptz(3)
   password        String?          @db.VarChar(191)
-  authMode        String           @default("legacy") @db.VarChar(10)
+  authMode        String           @default("sdk") @db.VarChar(10)
   authVersion     Int              @default(0)
   avatar          String?          @db.VarChar(191)
   work            String?          @db.VarChar(191)
@@ -39,6 +48,10 @@ model User {
   Tag             Tag[]
   Todo            Todo[]
   sessions        Session[]
+  legacySessions  LegacySession[]
+  accounts        Account[]
+  rootInstallations AuthInstallState[]
+  restoreRuns     BusinessRestoreRun[]
   blogLikes       BlogLike[]
   blogFavorites   BlogFavorite[]
   pomodoroRecords PomodoroRecord[]
@@ -180,14 +193,97 @@ model ChecklistItem {
   @@index([checklistId])
 }
 
-model Session {
+model LegacySession {
   id           String   @id @default(cuid()) @db.VarChar(191)
   sessionToken String   @unique @db.VarChar(191)
   userId       String   @db.VarChar(191)
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expires      DateTime @db.Timestamptz(3)
 
+  @@map("legacy_sessions")
+}
+
+model Session {
+  id        String @id @db.VarChar(191)
+  token     String @unique @db.Text
+  userId    String @db.VarChar(191)
+  user      User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  ipAddress String? @db.Text
+  userAgent String? @db.Text
+  @@index([userId])
   @@map("sessions")
+}
+
+model Account {
+  id String @id @db.VarChar(191)
+  providerId String @db.Text
+  accountId String @db.Text
+  userId String @db.VarChar(191)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken String? @db.Text
+  refreshToken String? @db.Text
+  idToken String? @db.Text
+  accessTokenExpiresAt DateTime? @db.Timestamptz(3)
+  refreshTokenExpiresAt DateTime? @db.Timestamptz(3)
+  scope String? @db.Text
+  password String? @db.Text
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@unique([providerId, accountId])
+  @@index([userId])
+  @@map("auth_accounts")
+}
+
+model Verification {
+  id String @id @db.VarChar(191)
+  identifier String @db.Text
+  value String @db.Text
+  expiresAt DateTime @db.Timestamptz(3)
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+  @@index([identifier])
+  @@map("auth_verifications")
+}
+
+model AuthInstallState {
+  id String @id @default("primary")
+  phase String @default("awaiting_root")
+  revision Int @default(0)
+  targetGeneration String @default(uuid()) @db.Uuid
+  rootUserId String? @db.VarChar(191)
+  rootUser User? @relation(fields: [rootUserId], references: [id], onDelete: Restrict)
+  rootInitializedAt DateTime? @db.Timestamptz(3)
+  rootIssuer String?
+  rootSubjectDigest String? @db.Char(64)
+  operatorLabel String?
+  bootstrapPlanDigest String? @db.Char(64)
+  restoreRunId String? @unique @db.Uuid
+  restoreRun BusinessRestoreRun? @relation(fields: [restoreRunId], references: [id], onDelete: Restrict)
+  activationPlanDigest String? @db.Char(64)
+  activationEvidenceRef String?
+  activationEvidenceSha256 String? @db.Char(64)
+  activatedAt DateTime? @db.Timestamptz(3)
+  @@index([rootUserId])
+}
+
+model BusinessRestoreRun {
+  id String @id @default(uuid()) @db.Uuid
+  backupId String @db.Uuid
+  manifestSha256 String @db.Char(64)
+  planDigest String @db.Char(64)
+  targetGeneration String @db.Uuid
+  sourceUserId String @db.VarChar(191)
+  targetUserId String @db.VarChar(191)
+  targetUser User @relation(fields: [targetUserId], references: [id], onDelete: Restrict)
+  rowCounts Json @db.JsonB
+  contentDigest String @db.Char(64)
+  completedAt DateTime @db.Timestamptz(3)
+  installation AuthInstallState?
+  @@unique([targetGeneration, manifestSha256])
+  @@index([targetUserId])
 }
 
 model VerificationToken {

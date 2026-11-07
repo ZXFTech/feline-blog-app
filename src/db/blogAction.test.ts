@@ -21,6 +21,7 @@ vi.mock("@/lib/auth/userAuth", () => ({
   hasBlogRoles: mocks.hasBlogRoles,
 }));
 vi.mock("@/lib/logger/Logger", () => ({ default: { error: vi.fn() } }));
+vi.mock("@/lib/auth/sdk/business", () => ({ assertBusinessReady: vi.fn() }));
 vi.mock("@/lib/server/error", async (importOriginal) => {
   const original = await importOriginal<typeof import("@/lib/server/error")>();
   return {

@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "centers": {
+    "development": "https://auth.user-center.test:3000/api/auth"
+  },
+  "runtimes": {
+    "development": {
+      "platformOrigin": "https://blog.user-center.test:3443",
+      "sessionSecretEnv": "PLATFORM_DEVELOPMENT_SESSION_SECRET",
+      "clients": {
+        "development": {
+          "clientId": "",
+          "clientSecretEnv": "LOCAL_TO_DEVELOPMENT_CLIENT_SECRET"
+        }
+      },
+      "database": {
+        "urlEnv": "PLATFORM_DEVELOPMENT_DATABASE_URL",
+        "hostname": "",
+        "port": 5432,
+        "database": "",
+        "username": ""
+      }
+    }
+  },
+  "authBasePath": "/api/auth",
+  "returnTo": {
+    "fallback": "/profile",
+    "allowedPaths": ["/", "/profile", "/todo", "/tomato", "/blog/new", "/checklists"],
+    "allowedPathPrefixes": ["/blog/edit", "/checklists"],
+    "allowedQueryKeys": []
+  },
+  "errorPath": "/auth/error"
+}

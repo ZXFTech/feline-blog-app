@@ -3,10 +3,18 @@ import { describe, expect, it } from "vitest";
 import { assertImmutableMigrationChanges } from "./migration-check";
 import { assertSafeMigrationSql } from "./staging-core";
 
-const reviewed = ["20261015000000_user_center", "20261016000000_auth_ops"].map((name) => ({
+const reviewed = [
+  "20261015000000_user_center",
+  "20261016000000_auth_ops",
+  "20261105090000_user_center_sdk_016",
+].map((name) => ({
   name,
   path: "prisma/postgres/migrations/" + name + "/migration.sql",
 }));
+reviewed.push({
+  name: "20261105213000_sdk_production_namespace",
+  path: "prisma/postgres/sdk-production/migrations/20261105213000_sdk_production_namespace/migration.sql",
+});
 
 function migrationSql(file: string): string {
   return readFileSync(new URL("../../" + file, import.meta.url), "utf8");

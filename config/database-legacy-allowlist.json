@@ -6,6 +6,14 @@
   "legacyGenerated": ["src/db/legacy-mysql/client.ts"],
   "legacyDriver": ["src/db/legacy-mysql/client.ts"],
   "postgresDriver": [
+    "scripts/ci/sdk-production-replay.ts",
+    "scripts/auth-rebuild/backup.ts",
+    "scripts/auth-rebuild/maintenance-store.ts",
+    "scripts/auth-rebuild/source-cutoff.ts",
+    "scripts/auth-rebuild/migrate-sdk-local.ts",
+    "scripts/auth-rebuild/verify-sdk-local-storage.ts",
+    "scripts/auth-rebuild/online-postgres.ts",
+    "scripts/auth-rebuild/online-migration.ts",
     "e2e/oauth-post.spec.ts",
     "e2e/email-otp.spec.ts",
     "e2e/user-center.spec.ts",
@@ -26,6 +34,7 @@
     "scripts/database/migrate-legacy-to-postgres.ts",
     "scripts/database/reset-checklists.ts",
     "src/db/postgres/config.ts",
-    "src/db/postgres/runtime.ts"
+    "src/db/postgres/runtime.ts",
+    "src/db/postgres/runtime.test.ts"
   ]
 }

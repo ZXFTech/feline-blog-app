@@ -6,9 +6,9 @@ export const sourceEmail = "zxf_tech@outlook.com";
 export const sdkVersion = "0.1.6";
 export const releaseFiles = {
   "user-center-next-better-auth-0.1.6.tgz":
-    "71d123c06eafa96f44af0271a6cb1d272bfdd73d0bd9a9e4fd93859c01e62686",
-  "user-center-cli-0.1.6.tgz": "4042cdee4e090abdcfdf5cf6989976ab9c3d833667acefeb0b4493ec5ecc8f35",
-  "release-manifest.json": "9d4a2ee9f84e0e6e1a7834c45a744d0f112e63d24e638638369848cf51eaaef7",
+    "71d123c06eafa96f44af0271a6cb1d272bfdd73d0bd9a9e4fd93859c01e62686", // ggignore: verified public 0.1.6 release SHA-256, not a credential.
+  "user-center-cli-0.1.6.tgz": "4042cdee4e090abdcfdf5cf6989976ab9c3d833667acefeb0b4493ec5ecc8f35", // ggignore: verified public 0.1.6 release SHA-256, not a credential.
+  "release-manifest.json": "9d4a2ee9f84e0e6e1a7834c45a744d0f112e63d24e638638369848cf51eaaef7", // ggignore: verified public 0.1.6 release SHA-256, not a credential.
 } as const;
 
 // The source User is deliberately a business projection, never a whole auth row.

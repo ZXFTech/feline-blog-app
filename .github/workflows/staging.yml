@@ -194,7 +194,7 @@ jobs:
               },
             });
             return String(data.id);
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: steps.select.outputs.current == 'true'
         with:
           name: checkpoint-selected
@@ -289,7 +289,7 @@ jobs:
       - name: Remove ephemeral database files
         if: always()
         run: rm -f .env.staging
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: checkpoint-migrated
@@ -299,7 +299,7 @@ jobs:
             migration-result.json
           retention-days: 30
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: checkpoint-migration-failed
@@ -423,7 +423,7 @@ jobs:
               deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
               description: 'result:deploy:failed', auto_inactive: false,
             });
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: checkpoint-deployed
@@ -433,7 +433,7 @@ jobs:
             candidate.json
           retention-days: 30
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: checkpoint-deploy-failed
@@ -486,14 +486,14 @@ jobs:
           pnpm ci:checkpoint phase checkpoint.json candidate-public-smoke succeeded
       - if: failure()
         run: pnpm ci:checkpoint phase checkpoint.json candidate-public-smoke failed SMOKE_FAILED || true
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: checkpoint-candidate-public
           path: checkpoint.json
           retention-days: 30
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: checkpoint-candidate-public-failed
@@ -588,14 +588,14 @@ jobs:
               deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
               description: 'result:promote:failed', auto_inactive: false,
             });
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: checkpoint-promoted
           path: checkpoint.json
           retention-days: 30
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: checkpoint-promote-failed
@@ -661,14 +661,14 @@ jobs:
           pnpm ci:checkpoint phase checkpoint.json stable-public-smoke succeeded
       - if: failure()
         run: pnpm ci:checkpoint phase checkpoint.json stable-public-smoke failed SMOKE_FAILED || true
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: success()
         with:
           name: checkpoint-stable
           path: checkpoint.json
           retention-days: 30
           if-no-files-found: error
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: failure()
         with:
           name: checkpoint-stable-failed
@@ -774,7 +774,7 @@ jobs:
               deployment_id: Number(process.env.DEPLOYMENT_ID), state: 'failure',
               description: 'result:restore:failed', auto_inactive: false,
             });
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: checkpoint-restored
@@ -843,7 +843,7 @@ jobs:
           pnpm ci:checkpoint phase checkpoint.json recovery-public-smoke succeeded
       - if: failure()
         run: pnpm ci:checkpoint phase checkpoint.json recovery-public-smoke failed RESTORE_FAILED || true
-      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         if: always()
         with:
           name: checkpoint-recovery

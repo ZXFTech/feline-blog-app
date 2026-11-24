@@ -145,6 +145,25 @@ Remove-Item Env:STAGING_MIGRATOR_TIMEOUTS_ALLOW_WRITE
 
 刷新只适用于可信开发工作站。它通过 `app_exporter` 打开 read only repeatable read snapshot，将应用表数据流式恢复到已重放本地 migration 的临时数据库，核对外键、sequence 和逐表行数后再切换 `feline_blog_dev`。
 
+私有表复制适用于已明确配置并授权的独立 staging `public` schema。复制包含全部作者的 `BlogDraft` 和 `BlogPublishReceipt`，包括未发布正文与标签、删除标记，以及文章删除后保留的发布回执。本地 volume 因此包含私有内容。刷新成功会用 staging 快照整体替换本地草稿和发布回执。
+
+两张私有表保留 RLS。导出角色仍为只读 `NOBYPASSRLS`，只通过 `BlogDraft_exporter_read` 和 `BlogPublishReceipt_exporter_read` 两条明确的 `SELECT USING (true)` 策略完整读取。工具会拒绝未知 RLS 表、关闭 RLS、缺失或过滤策略、适用于导出角色的 restrictive 读取策略，以及额外权限、角色成员关系或对象所有权；仅行数相同不足以证明导出完整。
+
+含 SDK 认证表的 `public` 会触发上述保护并拒绝整库快照。旧单账号恢复命令的来源仍是原始 `public` 历史库。SDK 生产发布应先由迁移身份应用 `feline_sdk_prod` 的草稿迁移，再发布依赖这两张表的应用。
+
+在 staging 首次部署包含这两张表的 migration 后，或导出策略需要修复时，通过既有角色配置入口安装策略，然后验证：
+
+```powershell
+$env:STAGING_ROLE_SETUP_ALLOW_WRITE = "true"
+pnpm db:staging:exporter:setup
+Remove-Item Env:STAGING_ROLE_SETUP_ALLOW_WRITE
+pnpm db:staging:exporter:verify
+```
+
+Setup 只替换这两条由工具管理的导出策略，并在同一事务中配置读取授权，不改变其他策略、产品 runtime 权限或匿名客户端授权。常规 setup 不轮换密码。测试使用 `pnpm db:local:test` 的隔离 Docker 数据和账号，不需要复制真实 staging 内容。
+
+Refresh、exporter setup 和 staging deploy 共用 staging 协调锁，冲突返回 `RECOVERY_REQUIRED`。导出先锁表，再建立用于策略校验、计数和 dump 的同一快照，并持锁到导出结束。表锁不能阻止角色属性变更，直接绕过工具的管理员操作属于受信任管理边界，刷新期间应避免执行。
+
 刷新前先停止 `pnpm dev`，避免活动连接阻止数据库切换。成功后运行：
 
 ```powershell

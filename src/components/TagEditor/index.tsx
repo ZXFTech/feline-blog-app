@@ -3,11 +3,11 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { NeuSurface } from "@/components/ui/neu-surface";
-import Tag from "../Tag";
+import Tag from "@/components/Tag";
 import { InputField } from "@/components/ui/input-field";
-import ColorPanel from "../ColorPanel";
-import { Tag as ITag } from "../../../generated/prisma-postgres/client";
-import Icon from "../Icon";
+import ColorPanel from "@/components/ColorPanel";
+import type { Tag as ITag } from "../../../generated/prisma-postgres/client";
+import Icon from "@/components/Icon";
 import { cn } from "@/lib/utils";
 
 export type TagData = MakeOptional<ITag, "id" | "createdAt" | "updatedAt" | "userId">;
@@ -45,7 +45,7 @@ const TagEditor = ({
 }: Props) => {
   const [visible, setVisible] = useState(defaultOpen);
   const [tagValue, setTagValue] = useState<string>("");
-  const [tagColor, setTagColor] = useState<string>("");
+  const [tagColor, setTagColor] = useState<string>("currentColor");
   const [highlight, setHighlight] = useState<boolean>(false);
 
   const [shake, setShake] = useState<boolean>(false);
@@ -79,7 +79,7 @@ const TagEditor = ({
   const tagContentInput = useRef<HTMLInputElement & HTMLTextAreaElement>(null);
 
   const resetState = () => {
-    setTagColor("");
+    setTagColor("currentColor");
     setTagValue("");
     setShake(false);
     setHighlight(false);
@@ -145,12 +145,12 @@ const TagEditor = ({
       ) : null}
       <div>
         <Button
+          aria-label={visible ? "收起标签编辑" : "编辑标签"}
           className="p-1!"
           style={{ lineHeight: 0 }}
           onClick={() => {
             if (visible) {
               resetState();
-              setTagColor("");
             }
             setVisible((prev) => !prev);
           }}
@@ -163,10 +163,16 @@ const TagEditor = ({
           />
         </Button>
       </div>
-      <div ref={ref} className={cn("overflow-hidden transition-[height] duration-500 h-0")}>
+      <div
+        ref={ref}
+        inert={!visible}
+        aria-hidden={!visible || undefined}
+        className={cn("overflow-hidden transition-[height] duration-500 h-0")}
+      >
         {allowCreate ? (
           <div className={cn("flex flex-wrap items-center justify-end")}>
             <InputField
+              aria-label="标签名称"
               style={{ color: tagColor }}
               className={`bg-red-500! mr-1 my-2 font-medium! ${
                 highlight && "border-red-600!"
@@ -187,9 +193,8 @@ const TagEditor = ({
               onColorPicked={(value) => setTagColor(value)}
               colorFilter={{ i: 5, j: 3 }}
               color={tagColor}
-              setColor={setTagColor}
             />
-            <Button materialIcon="check" onClick={updateTags}></Button>
+            <Button aria-label="确认标签" materialIcon="check" onClick={updateTags}></Button>
           </div>
         ) : null}
         <NeuSurface elevation="inset" className="flex gap-1 flex-wrap items-start">

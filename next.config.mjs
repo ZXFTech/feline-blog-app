@@ -9,7 +9,7 @@ const nextConfig = {
   outputFileTracingIncludes: {
     "/*": ["./config/user-center.production.profiles.json"],
   },
-  logging: { incomingRequests: false, browserToTerminal: false },
+  logging: { incomingRequests: false, browserToTerminal: false, serverFunctions: false },
   images: {
     remotePatterns: [
       {

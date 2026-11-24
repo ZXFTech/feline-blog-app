@@ -1,40 +1,33 @@
-import { message } from "@/lib/message";
 import BlogEditor from "@/components/BlogList/BlogEditor";
-import { getBlogById } from "@/db/blogAction";
+import { getBlogEditorData } from "@/db/blogDraftAction";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import Content from "@/components/Content";
+import { getAllTags } from "@/db/tagAction";
+import { BlogEditorRecovery } from "@/components/BlogList/BlogEditorRecovery";
 
 interface Props {
-  params: Promise<{ id: number }>;
+  params: Promise<{ id: string }>;
 }
-
+export const metadata: Metadata = { title: "编辑文章", robots: { index: false, follow: false } };
 const Edit = async ({ params }: Props) => {
   const { id } = await params;
-  if (!id) {
-    message.error("未找到博客");
-    redirect("/blog");
-  }
-
-  const result = await getBlogById(Number(id));
-  if (result.status !== "success") redirect("/blog");
-  const { blog } = result.data;
-  if (!blog) {
-    message.error("未找到博客");
-    redirect("/blog");
-  }
-  const formattedBlog = {
-    ...blog,
-    tags: blog.tags.map((item) => item.tag),
-  };
-
-  // blog state
-
-  return (
-    <div>
+  const result = await getBlogEditorData(id);
+  if (result.status === "unauthenticated") redirect("/login");
+  if (result.status !== "success")
+    return (
       <Content>
-        <BlogEditor blog={formattedBlog} />
+        <BlogEditorRecovery status={result.status} />
       </Content>
-    </div>
+    );
+  const options = await getAllTags();
+  return (
+    <Content>
+      <BlogEditor
+        seed={result.data}
+        optionTags={options.status === "success" ? options.data : []}
+      />
+    </Content>
   );
 };
 

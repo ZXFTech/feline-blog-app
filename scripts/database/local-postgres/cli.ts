@@ -1,3 +1,4 @@
+import path from "node:path";
 import { safeFailure, DatabaseToolError } from "./errors";
 import {
   cleanChildEnvironment,
@@ -47,13 +48,18 @@ async function runDevelopmentServer(): Promise<void> {
   if (!pnpmEntrypoint) throw new DatabaseToolError("CONFIG_CONFLICT", "Run dev through pnpm.");
   const runtimeEnvironment = { ...development };
   delete runtimeEnvironment.DATABASE_URL;
-  await runCommand(process.execPath, [pnpmEntrypoint, "exec", "next", "dev", "--turbopack"], {
-    cwd: repositoryRoot,
-    env: cleanChildEnvironment([runtimeEnvironment]),
-    inherit: true,
-    code: "CONFIG_CONFLICT",
-    phase: "next-development",
-  });
+  const nativeEntrypoint = path.extname(pnpmEntrypoint).toLowerCase() === ".exe";
+  await runCommand(
+    nativeEntrypoint ? pnpmEntrypoint : process.execPath,
+    [...(nativeEntrypoint ? [] : [pnpmEntrypoint]), "exec", "next", "dev", "--turbopack"],
+    {
+      cwd: repositoryRoot,
+      env: cleanChildEnvironment([runtimeEnvironment]),
+      inherit: true,
+      code: "CONFIG_CONFLICT",
+      phase: "next-development",
+    }
+  );
 }
 
 function valueAfter(args: readonly string[], flag: string): string | undefined {

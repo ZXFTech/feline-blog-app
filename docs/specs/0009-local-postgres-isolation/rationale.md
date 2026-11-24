@@ -80,3 +80,13 @@ Three databases are deliberate. Prisma owns the shadow database and may clear it
 The gradual command cutover is safer than replacing every command at once. A thin local application and migration path can be proven first. The old names then become aliases over the same protected implementation, so there is only one target selection policy to maintain.
 
 The full staging copy is the engineer's explicit choice. The design compensates with a read only exporter, no persistent dump, non CI enforcement, committed project identity, a temporary restore target, active connection refusal, and explicit destruction. A sanitized seed would have been safer, but it would not satisfy the chosen local data fidelity.
+
+## 2026-10-25 private RLS copy decision
+
+Spec 0016 added RLS protected drafts and publication receipts. The earlier blanket refusal of application RLS correctly stopped snapshot restore rather than silently omitting private rows. The engineer explicitly authorized copying both tables, retaining RLS, and continuing implementation and verification.
+
+Fixing the existing snapshot path preserves the established whole database replacement and recovery contract. A second export pipeline or a direct replacement of the refresh tool would duplicate locks, credentials and recovery for just two tables. Excluding private rows would reduce local exposure but would contradict the chosen complete local reproduction. Giving the exporter BYPASSRLS would simplify pg_dump but extend its privilege to future private tables without another decision.
+
+Named SELECT policies on exactly these tables preserve the separate read only exporter and make the expanded access reviewable. Policy catalog checks are required because matching row counts alone cannot detect the same source filter being applied to both counting and dumping. Role setup owns these environment specific policies so it also supports a role created after migrations without changing migration checksums. Private content now joins the sensitive local volume; whole database refresh replaces local unpublished work rather than merging it.
+
+An independent read only design review found no unrecorded data scope or value sources. It identified two concurrency clarifications and an ownership verification check. The contract now fixes lock acquisition before snapshot evidence, shares the existing staging management lock through source export, and separately verifies object ownership even when the exporter revoked its own DML. Direct privileged administration remains a trusted boundary. These refine the chosen mechanism without extending the authorized copy scope.

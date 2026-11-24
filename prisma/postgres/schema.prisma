@@ -45,6 +45,8 @@ model User {
   createdAt       DateTime         @default(now()) @db.Timestamptz(3)
   updateAt        DateTime         @updatedAt @db.Timestamptz(3)
   Blog            Blog[]
+  blogDrafts      BlogDraft[]
+  blogPublishReceipts BlogPublishReceipt[]
   Tag             Tag[]
   Todo            Todo[]
   sessions        Session[]
@@ -309,6 +311,40 @@ model Blog {
   favoriteCount Int            @default(0)
   likes         BlogLike[]
   favorites     BlogFavorite[]
+  draft         BlogDraft?
+}
+
+model BlogDraft {
+  id                  String    @id @db.Uuid
+  authorId            String    @db.VarChar(191)
+  author              User      @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  blogId              Int?      @unique
+  blog                Blog?     @relation(fields: [blogId], references: [id], onDelete: Cascade)
+  title               String    @db.VarChar(191)
+  content             String    @db.Text
+  tags                Json      @default("[]") @db.JsonB
+  revision            Int       @default(1)
+  publishedRevision   Int       @default(0)
+  lastSaveRequestId   String    @db.Uuid
+  lastSavePayloadHash String    @db.Char(64)
+  createdAt           DateTime  @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime  @default(now()) @db.Timestamptz(3)
+  deletedAt           DateTime? @db.Timestamptz(3)
+
+  @@index([authorId, updatedAt(sort: Desc), id])
+}
+
+model BlogPublishReceipt {
+  draftId          String   @db.Uuid
+  publishRequestId String   @db.Uuid
+  authorId         String   @db.VarChar(191)
+  author           User     @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  revision         Int
+  blogId           Int
+  createdAt        DateTime @default(now()) @db.Timestamptz(3)
+
+  @@id([draftId, publishRequestId])
+  @@index([authorId])
 }
 
 model Tag {

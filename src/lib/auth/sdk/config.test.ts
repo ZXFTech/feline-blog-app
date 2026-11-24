@@ -1,5 +1,6 @@
 // @vitest-environment node
 import { afterEach, expect, it, vi } from "vitest";
+import { validateReturnTo } from "@user-center/next-better-auth/public";
 const io = vi.hoisted(() => ({ read: vi.fn(), stat: vi.fn() }));
 vi.mock("node:fs", () => ({ readFileSync: io.read, statSync: io.stat }));
 afterEach(() => {
@@ -70,8 +71,11 @@ it("loads the selected production bundle when Proxy has no runtime config file",
   vi.stubEnv("USER_CENTER_RUNTIME_ENVIRONMENT", "production");
   vi.stubEnv("USER_CENTER_TARGET_ENVIRONMENT", "production");
   const { getSdkConfiguration } = await import("./config");
-  expect(getSdkConfiguration().manifest.issuer).toBe("https://auth.zhaosie.com/api/auth");
-  expect(getSdkConfiguration().environment).toMatchObject({
+  const { manifest, environment } = getSdkConfiguration();
+  expect(manifest.issuer).toBe("https://auth.zhaosie.com/api/auth");
+  expect(validateReturnTo("/blog/drafts", manifest)).toBe("/blog/drafts");
+  expect(() => validateReturnTo("/blog/drafts/private", manifest)).toThrow("INVALID_RETURN_TO");
+  expect(environment).toMatchObject({
     runtimeEnvironment: "production",
     targetEnvironment: "production",
   });

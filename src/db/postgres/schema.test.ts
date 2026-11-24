@@ -7,7 +7,7 @@ import { applicationObject } from "./schema";
 beforeEach(() => {
   config.schema = "feline_sdk_prod";
 });
-it.each(["users", "Checklist", "ChecklistItem", "feline_sdk_lock_installation"] as const)(
+it.each(["users", "Blog", "Checklist", "ChecklistItem", "feline_sdk_lock_installation"] as const)(
   "qualifies %s in the selected production namespace",
   (name) => {
     expect(applicationObject(name).sql).toBe(`"feline_sdk_prod"."${name}"`);

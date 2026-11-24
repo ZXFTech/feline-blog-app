@@ -18,7 +18,8 @@ import {
 } from "./local";
 import { runPrisma } from "./migrate";
 import { runCommand } from "./process";
-import { stagingClient, stagingValues } from "./staging";
+import { acquireStagingLock, assertExporterSafety, stagingClient, stagingValues } from "./staging";
+import { assertCopyRls, beginCopySnapshot, privateCopyTables } from "./rls-copy";
 
 export interface InventoryTable {
   schema: string;
@@ -70,13 +71,16 @@ async function inventory(client: Client): Promise<InventoryTable[]> {
     rls: number;
     triggers: number;
     large_objects: number;
-  }>(`SELECT
+  }>(
+    `SELECT
       (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'p') AS partitioned,
       (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'f') AS foreign_tables,
       (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'm') AS materialized_views,
-      (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relrowsecurity) AS rls,
+      (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relrowsecurity AND c.relname <> ALL($1::text[])) AS rls,
       (SELECT count(*)::int FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace WHERE n.nspname = 'public' AND NOT t.tgisinternal) AS triggers,
-      (SELECT count(*)::int FROM pg_largeobject_metadata) AS large_objects`);
+      (SELECT count(*)::int FROM pg_largeobject_metadata) AS large_objects`,
+    [privateCopyTables]
+  );
   const unsafe = unsupported.rows[0];
   if (!unsafe || Object.values(unsafe).some((value) => Number(value) > 0)) {
     throw new DatabaseToolError(
@@ -84,6 +88,7 @@ async function inventory(client: Client): Promise<InventoryTable[]> {
       "The database contains an unsupported application object."
     );
   }
+  await assertCopyRls(client);
   const tables = await client.query<{
     schema: string;
     name: string;
@@ -202,6 +207,7 @@ async function streamDumpRestore(options: {
       "--data-only",
       "--no-owner",
       "--no-acl",
+      "--enable-row-security",
       "--snapshot",
       options.snapshot,
       ...tableArguments,
@@ -501,6 +507,7 @@ export async function refreshLocalFromStaging(): Promise<void> {
     const candidateName = `feline_blog_refresh_${operationId}`;
     const previousName = `feline_blog_previous_${operationId}`;
     let source: Client | undefined;
+    let releaseSourceLock: (() => Promise<void>) | undefined;
     try {
       const locked = await admin.query<{ locked: boolean }>(
         "SELECT pg_try_advisory_lock(hashtextextended($1, 0)) AS locked",
@@ -532,7 +539,9 @@ export async function refreshLocalFromStaging(): Promise<void> {
       );
 
       source = await stagingClient(staging, "POSTGRES_EXPORTER_URL", "app_exporter");
-      await source.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
+      releaseSourceLock = await acquireStagingLock(source);
+      await beginCopySnapshot(source);
+      await assertExporterSafety(source);
       const snapshotResult = await source.query<{ snapshot: string }>(
         "SELECT pg_export_snapshot() AS snapshot"
       );
@@ -614,6 +623,8 @@ export async function refreshLocalFromStaging(): Promise<void> {
         tables: sourceInventory,
       });
       await source.query("ROLLBACK");
+      await releaseSourceLock();
+      releaseSourceLock = undefined;
       await source.end();
       source = undefined;
       const validate = await connect(candidateAdminUrl);
@@ -685,6 +696,7 @@ export async function refreshLocalFromStaging(): Promise<void> {
       await ledgerState(admin, operationId, "complete", undefined, { rowCounts: sourceInventory });
     } catch (error) {
       await source?.query("ROLLBACK").catch(() => undefined);
+      await releaseSourceLock?.();
       await source?.end().catch(() => undefined);
       await recoverOperation(admin, operationId).catch(() => undefined);
       throw error;

@@ -9,6 +9,7 @@ import { cleanChildEnvironment, readEnvironmentFile, requireValue } from "./env"
 import { DatabaseToolError } from "./errors";
 import { localMigrationFiles, quoteIdentifier } from "./local";
 import { runPrisma } from "./migrate";
+import { assertCopyRls, reconcileExporterPolicies } from "./rls-copy";
 import {
   classifyStagingMigrationTarget,
   classifyStagingTarget,
@@ -147,7 +148,7 @@ async function withStagingPrismaEnvironment<T>(
   }
 }
 
-async function withStagingLock<T>(client: Client, action: () => Promise<T>): Promise<T> {
+async function acquireStagingLock(client: Client): Promise<() => Promise<void>> {
   const key = `${targets.stagingProjectRef}:staging-operation`;
   const result = await client.query<{ locked: boolean }>(
     "SELECT pg_try_advisory_lock(hashtextextended($1, 0)) AS locked",
@@ -159,12 +160,19 @@ async function withStagingLock<T>(client: Client, action: () => Promise<T>): Pro
       "Another staging database operation is active."
     );
   }
-  try {
-    return await action();
-  } finally {
+  return async () => {
     await client
       .query("SELECT pg_advisory_unlock(hashtextextended($1, 0))", [key])
       .catch(() => undefined);
+  };
+}
+
+async function withStagingLock<T>(client: Client, action: () => Promise<T>): Promise<T> {
+  const release = await acquireStagingLock(client);
+  try {
+    return await action();
+  } finally {
+    await release();
   }
 }
 
@@ -529,12 +537,29 @@ export async function reconcileStagingMigrations(
 
 async function assertExporterSafety(client: Client): Promise<void> {
   const unsafe = await client.query<{
-    rls_tables: number;
+    unsafe_role: number;
+    memberships: number;
+    owned_objects: number;
+    schema_writes: number;
+    sequence_writes: number;
+    unreadable_tables: number;
     executable_functions: number;
     writable_tables: number;
   }>(`SELECT
+      (SELECT CASE WHEN current_user <> 'app_exporter' OR NOT rolcanlogin OR rolsuper
+        OR rolcreatedb OR rolcreaterole OR rolinherit OR rolbypassrls OR rolreplication
+        THEN 1 ELSE 0 END FROM pg_roles WHERE rolname = current_user) AS unsafe_role,
+      (SELECT count(*)::int FROM pg_auth_members m JOIN pg_roles r ON r.oid = m.member
+        WHERE r.rolname = current_user) AS memberships,
       (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
-        WHERE n.nspname = 'public' AND c.relkind = 'r' AND c.relrowsecurity) AS rls_tables,
+        WHERE n.nspname = 'public' AND c.relowner = (SELECT oid FROM pg_roles WHERE rolname = current_user)) AS owned_objects,
+      CASE WHEN has_schema_privilege(current_user, 'public', 'CREATE') THEN 1 ELSE 0 END AS schema_writes,
+      (SELECT count(*)::int FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
+        WHERE n.nspname = 'public' AND c.relkind = 'S' AND (
+          has_sequence_privilege(current_user, c.oid, 'USAGE') OR
+          has_sequence_privilege(current_user, c.oid, 'UPDATE'))) AS sequence_writes,
+      (SELECT count(*)::int FROM pg_tables WHERE schemaname = 'public'
+        AND NOT has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'SELECT')) AS unreadable_tables,
       (SELECT count(*)::int FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
         LEFT JOIN pg_depend d ON d.classid = 'pg_proc'::regclass
           AND d.objid = p.oid AND d.deptype = 'e'
@@ -547,24 +572,46 @@ async function assertExporterSafety(client: Client): Promise<void> {
           has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'DELETE') OR
           has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'TRUNCATE') OR
           has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'REFERENCES') OR
+          has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'MAINTAIN') OR
           has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'TRIGGER')
         )) AS writable_tables`);
   const row = unsafe.rows[0];
-  if (!row || row.rls_tables > 0 || row.executable_functions > 0 || row.writable_tables > 0) {
+  const checks = [
+    "unsafe_role",
+    "memberships",
+    "owned_objects",
+    "schema_writes",
+    "sequence_writes",
+    "unreadable_tables",
+    "executable_functions",
+    "writable_tables",
+  ] as const;
+  const failedCheck = row ? checks.find((check) => row[check] !== 0) : "catalog";
+  if (failedCheck) {
     throw new DatabaseToolError(
       "ROLE_MISMATCH",
-      "The staging exporter has an unsafe effective capability."
+      "The staging exporter has an unsafe effective capability.",
+      `exporter-${failedCheck}`
     );
   }
+  await assertCopyRls(client, true);
 }
 
 async function grantExporterReadAccess(client: Client): Promise<void> {
-  await client.query("GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_exporter");
-  await client.query("GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO app_exporter");
-  await client.query("REVOKE USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public FROM app_exporter");
-  await client.query(
-    "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO app_exporter"
-  );
+  await client.query("BEGIN");
+  try {
+    await client.query("GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_exporter");
+    await client.query("GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO app_exporter");
+    await client.query("REVOKE USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public FROM app_exporter");
+    await client.query(
+      "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO app_exporter"
+    );
+    await reconcileExporterPolicies(client);
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
+  }
 }
 
 export async function verifyStagingExporter(): Promise<void> {
@@ -572,15 +619,6 @@ export async function verifyStagingExporter(): Promise<void> {
   const exporter = await stagingClient(values, "POSTGRES_EXPORTER_URL", "app_exporter");
   try {
     await assertExporterSafety(exporter);
-    const unreadable = await exporter.query<{ count: number }>(`SELECT count(*)::int AS count
-      FROM pg_tables WHERE schemaname = 'public'
-      AND NOT has_table_privilege(current_user, format('%I.%I', schemaname, tablename), 'SELECT')`);
-    if ((unreadable.rows[0]?.count || 0) > 0) {
-      throw new DatabaseToolError(
-        "ROLE_MISMATCH",
-        "The staging exporter cannot read every application table."
-      );
-    }
   } finally {
     await exporter.end();
   }
@@ -629,8 +667,12 @@ export async function setupStagingExporter(rotate: boolean): Promise<void> {
           rolcreaterole: boolean;
           rolinherit: boolean;
           rolbypassrls: boolean;
+          rolreplication: boolean;
+          memberships: boolean;
         }>(
-          "SELECT rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolbypassrls FROM pg_roles WHERE rolname = 'app_exporter'"
+          `SELECT rolsuper, rolcreatedb, rolcreaterole, rolinherit, rolbypassrls, rolreplication,
+            EXISTS(SELECT 1 FROM pg_auth_members m WHERE m.member = r.oid) AS memberships
+            FROM pg_roles r WHERE rolname = 'app_exporter'`
         );
         const row = role.rows[0];
         if (
@@ -639,7 +681,9 @@ export async function setupStagingExporter(rotate: boolean): Promise<void> {
           row.rolcreatedb ||
           row.rolcreaterole ||
           row.rolinherit ||
-          row.rolbypassrls
+          row.rolbypassrls ||
+          row.rolreplication ||
+          row.memberships
         ) {
           throw new DatabaseToolError(
             "ROLE_MISMATCH",
@@ -902,6 +946,7 @@ export async function probeStagingMigration(
 }
 
 export {
+  acquireStagingLock,
   applyDesiredMigratorTimeouts,
   assertExporterSafety,
   assertEffectiveMigrationTimeouts,

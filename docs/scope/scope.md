@@ -43,7 +43,7 @@ _这些是帮助你保持开发顺序的建议，不是强制流程。你可以�
 | 30  | Blog 目录与阅读进度修复 | Blog P1 | done |
 | 31  | Blog 空状态与错误恢复修复 | Blog P2 | planned |
 | 32  | Blog 容器间距与窄屏布局修复 | Blog P2 | planned |
-| 33  | Blog 编辑预览与操作修复 | Blog P2 | planned |
+| 33  | Blog 编辑预览与操作修复 | Blog P2 | in-progress |
 | 34  | User Center SDK 认证重建与单账号数据恢复 | Auth | in-progress |
 
 ## Current product
@@ -456,12 +456,15 @@ code in `src/app/globals.css`, `src/components/ui/`, `src/components/Checklist/`
 
 - [ ] Build it: `/develop Blog 容器间距与窄屏布局修复`
 
-### 33. Blog 编辑预览与操作修复 · needs a decision
+### 33. Blog 编辑预览与操作修复 · in-progress
 
 在条目 28 的正文展示规则确定后，让作者预览与发布结果一致，并收口编辑器中含义不清或没有实际行为的操作。需要先明确保存与提交的区别及反馈。
 **Done when:** 编辑预览与公开详情使用一致的正文和代码展示规则；退出编辑保持单一导航语义；保存和提交按已确认的含义真实生效，未实现操作不伪装为可用；提交期间防止重复操作，失败后能继续编辑并重试；窄屏及全屏下输入、预览和操作均可达，作者保存后能在公开详情看到一致结果。
 
-- [ ] Design it (spec): `/architect Blog 编辑预览与操作修复`
+- [x] Design it (spec): [0016](../specs/0016-blog-editor-drafts/index.md)
+- [x] Build it: 私有草稿、发布回执、草稿列表与 Album，适配当前 SDK 会话及两条 PostgreSQL 迁移链。
+- [x] Verify it: [验收步骤](../specs/0016-blog-editor-drafts/verify.md)。当前 SDK 的 Chromium 和 WebKit 博客回归 53 项通过，WebKit 的原生离开提示按计划跳过并由 Chromium 覆盖。两条迁移链与隔离 Docker 复制和恢复回归通过。
+- [x] Test it: 当前分支的类型、lint、生产构建和 Vitest 通过。1182 项 Vitest 通过，其中包含 6 项草稿数据库集成测试。35 项按现有环境条件跳过。
 
 ## Deferred
 

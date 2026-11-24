@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import MarkdownEditor from "@/components/MarkdownEditor";
 
 vi.mock("@/db/tagAction", () => ({
@@ -8,6 +8,17 @@ vi.mock("@/db/tagAction", () => ({
 }));
 
 describe("MarkdownEditor preview", () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      "ResizeObserver",
+      class {
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      }
+    );
+  });
+  afterEach(() => vi.unstubAllGlobals());
   // covers: AC-2, AC-4, AC-11. Tag options are the only server boundary here.
   it("renders the supplied content with shared anchors, GFM and exact parsed code", async () => {
     const { container } = render(
@@ -59,5 +70,32 @@ describe("MarkdownEditor preview", () => {
     await user.click(screen.getByRole("button", { name: /关闭预览/ }));
     await user.click(screen.getByRole("button", { name: /预览/ }));
     expect(container.querySelector(".preview-part pre > code")?.textContent).toBe("\tnew  \n\n");
+  });
+
+  it("keeps fullscreen when a nested layer has consumed Escape, then lets the next Escape exit", async () => {
+    const user = userEvent.setup();
+    render(
+      <MarkdownEditor
+        blog={{ title: "预览", content: "保留正文" }}
+        handleSubmit={() => {}}
+        onTitleChange={() => {}}
+        onContentChange={() => {}}
+        onTagChange={() => {}}
+      />
+    );
+    await user.click(screen.getByRole("button", { name: "全屏" }));
+    expect(screen.getByRole("dialog", { name: "文章编辑器" })).toBeVisible();
+    const consumeEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") event.preventDefault();
+    };
+    document.addEventListener("keydown", consumeEscape, true);
+    try {
+      await user.keyboard("{Escape}");
+    } finally {
+      document.removeEventListener("keydown", consumeEscape, true);
+    }
+    expect(screen.getByRole("dialog", { name: "文章编辑器" })).toBeVisible();
+    await user.keyboard("{Escape}");
+    expect(screen.getByRole("region", { name: "文章编辑器" })).toBeVisible();
   });
 });

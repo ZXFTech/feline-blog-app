@@ -40,6 +40,68 @@ async function connect(url: URL) {
   return client;
 }
 
+async function assertDraftAuthority(owner: Client, ownerUrl: URL) {
+  const { rows } = await owner.query<{
+    table_name: "BlogDraft" | "BlogPublishReceipt";
+    has_rls: boolean;
+    actor: string;
+    permission: string;
+    granted: boolean;
+  }>(`SELECT c.relname AS table_name, c.relrowsecurity AS has_rls, actor, permission,
+      has_table_privilege(actor, c.oid, permission) AS granted
+    FROM pg_class c
+    CROSS JOIN unnest(ARRAY['blog_sdk_prod_runtime', 'anon', 'authenticated', 'service_role']) actor
+    CROSS JOIN unnest(ARRAY['SELECT', 'INSERT', 'UPDATE', 'DELETE', 'TRUNCATE', 'REFERENCES', 'TRIGGER']) permission
+    WHERE c.relnamespace = 'feline_sdk_prod'::regnamespace
+      AND c.relname IN ('BlogDraft', 'BlogPublishReceipt')`);
+  const runtimePermissions = {
+    BlogDraft: ["SELECT", "INSERT", "UPDATE"],
+    BlogPublishReceipt: ["SELECT", "INSERT"],
+  };
+  if (
+    rows.length !== 56 ||
+    rows.some(
+      ({ table_name, has_rls, actor, permission, granted }) =>
+        !has_rls ||
+        granted !==
+          (actor === "blog_sdk_prod_runtime" && runtimePermissions[table_name].includes(permission))
+    )
+  )
+    throw Error("CI_NAMESPACE_DRAFT_AUTHORITY_FAILED");
+
+  const runtimeUrl = new URL(ownerUrl);
+  runtimeUrl.username = "blog_sdk_prod_runtime";
+  const runtime = await connect(runtimeUrl);
+  try {
+    await runtime.query(`BEGIN;
+      INSERT INTO feline_sdk_prod.users (id, email, "updateAt", "updatedAt")
+        VALUES ('draft-replay-user', 'draft-replay@example.test', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+      INSERT INTO feline_sdk_prod."BlogDraft"
+        (id, "authorId", title, content, "lastSaveRequestId", "lastSavePayloadHash")
+        VALUES ('00000000-0000-4000-8000-000000000001', 'draft-replay-user', '', '',
+          '00000000-0000-4000-8000-000000000002', repeat('a', 64));
+      UPDATE feline_sdk_prod."BlogDraft" SET revision = 2, "publishedRevision" = 2
+        WHERE id = '00000000-0000-4000-8000-000000000001';
+      INSERT INTO feline_sdk_prod."BlogPublishReceipt"
+        ("draftId", "publishRequestId", "authorId", revision, "blogId")
+        VALUES ('00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000003', 'draft-replay-user', 2, 1);`);
+    const proof = await runtime.query<{ revision: number; published: number }>(`SELECT
+        draft.revision, receipt.revision AS published
+      FROM feline_sdk_prod."BlogDraft" draft
+      JOIN feline_sdk_prod."BlogPublishReceipt" receipt ON receipt."draftId" = draft.id
+      WHERE draft."authorId" = 'draft-replay-user'`);
+    if (proof.rows[0]?.revision !== 2 || proof.rows[0].published !== 2)
+      throw Error("CI_NAMESPACE_DRAFT_DML_FAILED");
+  } finally {
+    try {
+      await runtime.query("ROLLBACK");
+    } finally {
+      await runtime.end();
+    }
+  }
+}
+
 export async function replaySdkProduction() {
   const adminUrl = ciReplayTarget(process.env);
   const root = "prisma/postgres/sdk-production/migrations";
@@ -144,12 +206,14 @@ export async function replaySdkProduction() {
       !authority.account_unique
     )
       throw Error("CI_NAMESPACE_CONTRACT_FAILED");
+    await assertDraftAuthority(owner, ownerUrl);
     return {
       code: "CI_NAMESPACE_REPLAY_PASSED",
       migrations: files.length,
       phase: state.phase,
       users: 0,
       authorityWritesDenied: true,
+      privateDraftAccessVerified: true,
     };
   } finally {
     await owner.end();

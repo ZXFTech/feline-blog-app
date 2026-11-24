@@ -208,6 +208,10 @@ const REVIEWED_PROCEDURAL_MIGRATIONS: Readonly<Record<string, { name: string; sh
     name: "20261105090000_user_center_sdk_016",
     sha256: "a8344cd36ff8cadcf25c520921db4ab49a533f94038eb995ffce47341ea611c9",
   },
+  "prisma/postgres/migrations/20261124090000_blog_editor_drafts/migration.sql": {
+    name: "20261124090000_blog_editor_drafts",
+    sha256: "8492a38b499697b43fdefb45266fe941a8528fbd410a8e5ea2a8443f8d34d03a",
+  },
   "prisma/postgres/sdk-production/migrations/20261105213000_sdk_production_namespace/migration.sql":
     {
       name: "20261105213000_sdk_production_namespace",

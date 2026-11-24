@@ -1,108 +1,220 @@
+/* eslint-disable @next/next/no-html-link-for-pages -- The explicit exit preserves a real href while flushing pending drafts. */
 "use client";
 
-import { ChangeEventHandler, useEffect, useState } from "react";
+import {
+  type ChangeEventHandler,
+  type MouseEventHandler,
+  type ReactNode,
+  useLayoutEffect,
+  useId,
+  useRef,
+  useState,
+} from "react";
+import { Dialog as DialogPrimitive } from "@base-ui/react/dialog";
+import { Dialog } from "@/components/ui/dialog";
+import { NeuPanel } from "@/components/ui/neu-panel";
 import { NeuSurface } from "@/components/ui/neu-surface";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { BlogMarkdown } from "@/components/Blog/BlogMarkdown";
-import Link from "next/link";
 import { InputField } from "@/components/ui/input-field";
-import { getOptionTagsById } from "@/db/tagAction";
-import TagEditor, { TagData } from "@/components/TagEditor";
+import TagEditor, { type TagData } from "@/components/TagEditor";
+import { cn } from "@/lib/utils";
 
 interface Props {
   handleSubmit: () => void;
   loading?: boolean;
   blog: { title: string; content: string; tags?: TagData[] };
-  id?: number;
   onTitleChange: ChangeEventHandler<HTMLInputElement>;
   onContentChange: ChangeEventHandler<HTMLTextAreaElement>;
   onTagChange: (tags: TagData[]) => void;
+  onCompositionChange?: (composing: boolean) => void;
+  onExit?: MouseEventHandler<HTMLAnchorElement>;
+  optionTags?: TagData[];
+  status?: ReactNode;
+  children?: ReactNode;
+  composing?: boolean;
+  dialogOpen?: boolean;
 }
 
-const MarkdownEditor = ({
+// Presentation only. Production actions and Album's memory adapter live outside.
+export default function MarkdownEditor({
   handleSubmit,
   blog,
-  id,
   onTitleChange,
   onContentChange,
   onTagChange,
-  loading,
-}: Props) => {
-  // 编辑页面状态 state
+  onCompositionChange,
+  onExit,
+  optionTags = [],
+  loading = false,
+  status,
+  children,
+  composing = false,
+  dialogOpen = false,
+}: Props) {
   const [preview, setPreview] = useState(false);
+  const instanceId = useId();
+  const titleId = `${instanceId}-title`;
+  const contentId = `${instanceId}-content`;
   const [fullScreen, setFullScreen] = useState(false);
-  const [optionTags, setOptionTags] = useState<TagData[]>([]);
-
-  useEffect(() => {
-    getOptionTagsById("blog", id).then((res) => {
-      if (res.status === "success") setOptionTags(res.data);
-    });
-  }, [id]);
-
+  const [wide, setWide] = useState(true);
+  const [host, setHost] = useState<HTMLDivElement | null>(null);
+  const [frame, setFrame] = useState<HTMLDivElement | null>(null);
+  const fullscreenButton = useRef<HTMLButtonElement>(null);
+  const inputPane = useRef<HTMLDivElement>(null);
+  const previewPane = useRef<HTMLDivElement>(null);
+  const scrollPositions = useRef({ input: 0, preview: 0 });
+  useLayoutEffect(() => {
+    if (!frame) return;
+    const observer = new ResizeObserver((entries) => setWide(entries[0].contentRect.width >= 768));
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [frame]);
+  useLayoutEffect(() => {
+    const input = inputPane.current?.querySelector("textarea");
+    if (input) input.scrollTop = scrollPositions.current.input;
+    if (previewPane.current) previewPane.current.scrollTop = scrollPositions.current.preview;
+  }, [preview, wide, fullScreen]);
   return (
-    <div
-      className={`flex flex-col px-3! gap-2.5 transition-all duration-200 ease-in-out ${
-        fullScreen ? "fixed z-99999999 top-0 bottom-0 left-0 right-0 " : "h-[calc(100vh-9rem))]"
-      }`}
-    >
-      <div className="top-panel mx-0! mt-1! flex justify-between items-center">
-        <div className="left">
-          <Link href="/blog" className="hover:no-underline!">
-            <Button materialIcon="arrow_back_ios">退出编辑</Button>
-          </Link>
-        </div>
-        <div className="right flex wrap">
-          <Button
-            materialIcon={fullScreen ? "fullScreen_exit" : "fullScreen"}
-            onClick={() => setFullScreen((prev) => !prev)}
-          >
-            {`${fullScreen ? "退出全屏" : "全屏"}`}
-          </Button>
-          <Button
-            materialIcon={preview ? "visibility_off" : "visibility"}
-            onClick={() => setPreview((prev) => !prev)}
-          >
-            {preview ? "关闭预览" : "预览"}
-          </Button>
-          <Button materialIcon="save">保存</Button>
-          <Button loading={loading} materialIcon="drive_folder_upload" onClick={handleSubmit}>
-            提交
-          </Button>
-        </div>
-      </div>
-      {/* TITLE */}
-      <InputField
-        disabled={loading}
-        className="bg-black/3 rounded-lg font-medium focus:bg-white/10 focus:outline-none block w-full text-3xl! p-3 disabled:bg-gray-500/20 disabled:opacity-60"
-        type="text"
-        placeholder="无标题"
-        value={blog.title}
-        onChange={onTitleChange as ChangeEventHandler}
-      />
-      <TagEditor setValue={onTagChange} value={blog.tags || []} options={optionTags} />
-      <div className="full-screen-content flex grow mb-1 relative">
-        <InputField
-          multiline
-          disabled={loading}
-          className={`p-3 transition-all duration-400 ease-in-out ${
-            preview ? "w-[49%]" : "w-full"
-          } h-full resize-none! bg-black/3 focus:outline-none rounded-md focus:bg-white/10 hide-scrollbar disabled:bg-gray-500/20 disabled:opacity-60`}
-          placeholder="输入 Markdown 内容..."
-          value={blog.content}
-          onChange={onContentChange as ChangeEventHandler}
-        />
-        <NeuSurface
-          className={`preview-part m-0! min-w-0 overflow-auto hide-scrollbar text-left! transition-all! duration-400! ease-in-out! absolute right-0 top-0 bottom-0 ${
-            preview
-              ? "p-[var(--spacing-panel-inset-default)]! ml-3! grow! w-full md:w-[49%]"
-              : "w-0 p-0! overflow-hidden! border-none! "
-          }`}
-        >
-          <BlogMarkdown content={blog.content} />
-        </NeuSurface>
-      </div>
+    <div ref={setHost} className="blog-editor-host min-w-0 p-0">
+      <Dialog
+        open={fullScreen}
+        onOpenChange={(open, event) => {
+          // A nested Radix dialog can close synchronously before this listener runs.
+          // Its consumed native event must not also dismiss the fullscreen editor.
+          if (dialogOpen || (event.reason === "escape-key" && event.event.defaultPrevented))
+            event.cancel();
+          else setFullScreen(open);
+        }}
+        modal={!dialogOpen}
+        disablePointerDismissal
+      >
+        {host ? (
+          <DialogPrimitive.Portal container={host} keepMounted>
+            <DialogPrimitive.Popup
+              render={<NeuPanel />}
+              ref={setFrame}
+              hidden={false}
+              role={fullScreen ? "dialog" : "region"}
+              aria-label="文章编辑器"
+              initialFocus={fullscreenButton}
+              finalFocus={fullscreenButton}
+              className={cn("blog-editor-frame min-w-0", fullScreen && "blog-editor-fullscreen")}
+              data-fullscreen={fullScreen}
+            >
+              <div className="flex shrink-0 flex-wrap items-center justify-between gap-[var(--spacing-panel-gap-default)] p-0">
+                <a
+                  href="/blog/drafts"
+                  onClick={(event) => {
+                    if (loading) event.preventDefault();
+                    else onExit?.(event);
+                  }}
+                  aria-disabled={loading || undefined}
+                  className={buttonVariants()}
+                  data-slot="button"
+                >
+                  退出编辑
+                </a>
+                <div className="flex flex-wrap items-center gap-[var(--spacing-panel-gap-default)] p-0">
+                  <Button
+                    ref={fullscreenButton}
+                    aria-pressed={fullScreen}
+                    onClick={() => setFullScreen((value) => !value)}
+                  >
+                    {fullScreen ? "退出全屏" : "全屏"}
+                  </Button>
+                  <Button aria-pressed={preview} onClick={() => setPreview((value) => !value)}>
+                    {preview ? (wide ? "关闭预览" : "编辑") : "预览"}
+                  </Button>
+                  <Button
+                    variant="primary"
+                    loading={loading}
+                    disabled={composing}
+                    onClick={handleSubmit}
+                  >
+                    提交
+                  </Button>
+                </div>
+              </div>
+              <div
+                className="shrink-0 p-0"
+                onCompositionStart={() => onCompositionChange?.(true)}
+                onCompositionEnd={() => onCompositionChange?.(false)}
+              >
+                <label htmlFor={titleId} className="sr-only">
+                  文章标题
+                </label>
+                <InputField
+                  id={titleId}
+                  disabled={loading}
+                  className="text-xl font-semibold"
+                  placeholder="无标题"
+                  value={blog.title}
+                  onChange={onTitleChange}
+                />
+              </div>
+              <fieldset
+                className="min-w-0 shrink-0 border-0 p-0"
+                disabled={loading}
+                inert={loading}
+                onCompositionStart={() => onCompositionChange?.(true)}
+                onCompositionEnd={() => onCompositionChange?.(false)}
+              >
+                <legend className="sr-only">文章标签</legend>
+                <TagEditor
+                  setValue={onTagChange}
+                  value={(blog.tags ?? []).map((tag) => ({ ...tag }))}
+                  options={optionTags}
+                />
+              </fieldset>
+              <div className="shrink-0 min-w-0 [overflow-wrap:anywhere] p-0">
+                {status ?? <p role="status">修改后自动保存草稿，提交后公开。</p>}
+              </div>
+              <div className="blog-editor-panes min-w-0 p-0" data-preview={preview}>
+                <div
+                  className="blog-editor-input min-w-0 min-h-0 p-[var(--spacing-panel-inset-default)]"
+                  ref={inputPane}
+                  inert={!wide && preview}
+                  aria-hidden={(!wide && preview) || undefined}
+                  onCompositionStart={() => onCompositionChange?.(true)}
+                  onCompositionEnd={() => onCompositionChange?.(false)}
+                >
+                  <label htmlFor={contentId} className="sr-only">
+                    Markdown 正文
+                  </label>
+                  <InputField
+                    id={contentId}
+                    multiline
+                    disabled={loading}
+                    className="h-full min-h-0 resize-none field-sizing-fixed"
+                    placeholder="输入 Markdown 内容..."
+                    value={blog.content}
+                    onChange={onContentChange}
+                    onScroll={(event) => {
+                      scrollPositions.current.input = event.currentTarget.scrollTop;
+                    }}
+                  />
+                </div>
+                <NeuSurface
+                  elevation="inset-sm"
+                  ref={previewPane}
+                  inert={!preview}
+                  aria-hidden={!preview || undefined}
+                  onScroll={(event) => {
+                    scrollPositions.current.preview = event.currentTarget.scrollTop;
+                  }}
+                  className="preview-part min-w-0 min-h-0 overflow-auto p-[var(--spacing-panel-inset-default)]"
+                >
+                  <BlogMarkdown content={blog.content} />
+                </NeuSurface>
+              </div>
+              {children}
+            </DialogPrimitive.Popup>
+          </DialogPrimitive.Portal>
+        ) : (
+          <p role="status">正在准备编辑器…</p>
+        )}
+      </Dialog>
     </div>
   );
-};
-
-export default MarkdownEditor;
+}

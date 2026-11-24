@@ -192,11 +192,12 @@ async function run() {
     fs.existsSync(path.join(canonical, name, "migration.sql"))
   );
   const placeholders = names.filter((name) => !complete.includes(name));
-  // An existing empty placeholder is retained in the working tree. Copy every real migration byte for byte.
+  // Some local worktrees retain an empty placeholder. Copy every real migration byte for byte.
   if (
-    JSON.stringify(placeholders) !== '["20261026000000_center_only_environment"]' ||
-    complete.length !== 8 ||
-    !complete.includes("20261105090000_user_center_sdk_016")
+    placeholders.some((name) => name !== "20261026000000_center_only_environment") ||
+    complete.length !== 9 ||
+    !complete.includes("20261105090000_user_center_sdk_016") ||
+    complete.at(-1) !== "20261124090000_blog_editor_drafts"
   )
     reject("MIGRATION_CHAIN_CHANGED");
   const migrations = complete.map((name) => {

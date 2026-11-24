@@ -30,7 +30,7 @@ function AlertDialogOverlay({
     <AlertDialogPrimitive.Overlay
       data-slot="alert-dialog-overlay"
       className={cn(
-        "data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 duration-100 fixed inset-0 z-50",
+        "motion-safe:data-open:animate-in motion-safe:data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 duration-100 fixed inset-0 z-50",
         DIALOG_BACKDROP_CLASS_NAME,
         className
       )}
@@ -54,7 +54,7 @@ function AlertDialogContent({
         data-size={size}
         className={cn(
           DIALOG_SURFACE_CLASS_NAME,
-          "data-open:animate-in data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 gap-6 ring-1 duration-100 data-[size=default]:max-w-xs data-[size=default]:p-[var(--spacing-panel-inset-comfortable)] data-[size=sm]:max-w-xs data-[size=sm]:p-6 data-[size=default]:sm:max-w-lg group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid -translate-x-1/2 -translate-y-1/2",
+          "motion-safe:data-open:animate-in motion-safe:data-closed:animate-out data-closed:fade-out-0 data-open:fade-in-0 data-closed:zoom-out-95 data-open:zoom-in-95 ring-foreground/10 gap-6 ring-1 duration-100 data-[size=default]:max-w-xs data-[size=default]:p-[var(--spacing-panel-inset-comfortable)] data-[size=sm]:max-w-xs data-[size=sm]:p-6 data-[size=default]:sm:max-w-lg group/alert-dialog-content fixed top-1/2 left-1/2 z-50 grid -translate-x-1/2 -translate-y-1/2",
           className
         )}
         {...props}

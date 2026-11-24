@@ -80,5 +80,7 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm lint
       - run: pnpm test:ci
+        env:
+          BLOG_DRAFT_TEST_DATABASE_URL: postgresql://postgres@127.0.0.1:5432/feline_ci_verify
       - run: pnpm auth:sdk:test-env
       - run: pnpm build

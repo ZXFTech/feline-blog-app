@@ -1,8 +1,8 @@
-import { RefObject, useEffect, useMemo, useRef, useState } from "react";
+import { type RefObject, useEffect, useMemo, useRef, useState } from "react";
 import { NeuSurface } from "@/components/ui/neu-surface";
 import colors from "tailwindcss/colors";
 import { Button } from "@/components/ui/button";
-import Floating from "../Floating";
+import Floating from "@/components/Floating";
 
 type TailwindColors = typeof colors;
 type ColorKeys = keyof TailwindColors;
@@ -10,14 +10,13 @@ type ColorKeys = keyof TailwindColors;
 interface Props {
   onColorPicked: (targetColor: string) => void;
   color: string;
-  setColor: (color: string) => void;
   colorFilter?: {
     i: number;
     j: number;
   };
 }
 
-const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0 } }: Props) => {
+const ColorPanel = ({ onColorPicked, color, colorFilter = { i: 0, j: 0 } }: Props) => {
   const [visible, setVisible] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -26,18 +25,14 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
     if (!visible) return;
 
     const handleClickOutside = (event: MouseEvent) => {
-      event.preventDefault();
       const target = event.target as Node;
       if (panelRef.current?.contains(target)) {
         return;
       }
       if (buttonRef.current?.contains(target)) {
-        // 如果 点击的是 toggle 按钮, 同步取消颜色, 因为是点击的按钮关闭的 panel, 等同于没有选颜色, 点击的空白部分关闭的 panel
-        setColor("");
         return;
       }
-      setVisible?.(false);
-      setColor("");
+      setVisible(false);
     };
 
     // 用 mousedown 比 click 更可靠
@@ -46,9 +41,7 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [visible, setVisible, setColor]);
-
-  useEffect(() => {}, []);
+  }, [visible]);
 
   const colorListMap = useMemo<{ name: string; color: string }[][]>(() => {
     return Object.keys(colors as TailwindColors)
@@ -65,6 +58,8 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
   return (
     <div className="relative">
       <Button
+        aria-label="选择标签颜色"
+        aria-expanded={visible}
         ref={buttonRef}
         className="inline-block"
         style={{ color }}
@@ -79,7 +74,7 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
       >
         <NeuSurface
           ref={panelRef}
-          className="overflow-auto hide-scrollbar flex justify-center items-center h-45 w-90 bg-linear-to-b from-black/30 to-white/20"
+          className="overflow-auto hide-scrollbar flex justify-center items-start h-45 w-90 max-w-[calc(100vw-2*var(--spacing-panel-inset-default))] p-[var(--spacing-panel-inset-default)] bg-linear-to-b from-black/30 to-white/20"
         >
           <div className="flex flex-wrap">
             {colorListMap.map((list, i) =>
@@ -87,22 +82,20 @@ const ColorPanel = ({ onColorPicked, color, setColor, colorFilter = { i: 0, j: 0
                 <div className="flex flex-col" key={list.map((item) => item.name).join("")}>
                   {list.map((item, j) =>
                     j >= colorFilter.j ? (
-                      <div
-                        onMouseEnter={() => {
-                          onColorPicked(item.color);
-                          setColor(item.color);
-                        }}
-                        onMouseLeave={() => onColorPicked("")}
-                        className="h-4 w-4 m-0.5 cursor-pointer"
+                      <button
+                        type="button"
+                        aria-label={`选择 ${item.name} 颜色`}
+                        className="h-4 w-4 m-0.5 cursor-pointer focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
                         onClick={() => {
                           onColorPicked(item.color);
-                          setVisible!(false);
+                          setVisible(false);
+                          buttonRef.current?.focus({ preventScroll: true });
                         }}
                         key={item.name}
                         style={{
                           background: item.color,
                         }}
-                      ></div>
+                      ></button>
                     ) : null
                   )}
                 </div>

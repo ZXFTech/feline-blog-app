@@ -42,6 +42,7 @@
     "test": "vitest run && pnpm db:boundaries",
     "test:ci": "vitest run --maxWorkers=2 && pnpm db:boundaries",
     "test:e2e": "playwright test",
+    "test:e2e:blog-drafts": "node e2e/blog-draft-runner.mjs",
     "prisma:generate": "pnpm prisma:generate:legacy && pnpm prisma:generate:postgres",
     "prisma:generate:legacy": "prisma generate --config ./prisma.config.mjs",
     "prisma:generate:postgres": "prisma generate --config ./prisma.postgres.config.ts",

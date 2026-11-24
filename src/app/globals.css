@@ -1700,3 +1700,55 @@ html[dir="rtl"],
 .checklist-form-fill[data-empty="true"] [data-testid="checklist-item-scroll"] {
   height: auto;
 }
+
+.blog-editor-frame {
+  container-type: inline-size;
+  height: calc(100dvh - var(--spacing-content-top) - var(--spacing-content-bottom));
+  min-height: 20rem;
+  overflow: auto;
+}
+.blog-editor-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  height: 100dvh;
+  min-height: 0;
+  border-radius: 0;
+  background: var(--background);
+  overscroll-behavior: contain;
+}
+/* The Content container needs to sit above the fixed navbar while the editor is fullscreen. */
+.content-container:has(.blog-editor-fullscreen) {
+  position: relative;
+  z-index: 1000;
+}
+body:has(.blog-editor-fullscreen) [data-slot="alert-dialog-overlay"] {
+  z-index: 1001;
+}
+body:has(.blog-editor-fullscreen) [data-slot="alert-dialog-content"] {
+  z-index: 1002;
+}
+.blog-editor-panes {
+  display: grid;
+  flex: 1;
+  min-height: 12rem;
+  gap: var(--spacing-panel-gap-default);
+  grid-template-columns: minmax(0, 1fr);
+}
+.blog-editor-panes .preview-part {
+  display: none;
+}
+.blog-editor-panes[data-preview="true"] .blog-editor-input {
+  display: none;
+}
+.blog-editor-panes[data-preview="true"] .preview-part {
+  display: block;
+}
+@container (min-width: 768px) {
+  .blog-editor-panes[data-preview="true"] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .blog-editor-panes[data-preview="true"] .blog-editor-input {
+    display: block;
+  }
+}

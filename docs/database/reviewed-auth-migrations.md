@@ -8,6 +8,7 @@ CI 仅把下面登记的完整 SQL 识别为已审核的程序化迁移。路径
 | prisma/postgres/migrations/20261016000000_auth_ops/migration.sql | 0441c416a6375be21928c792b91808263326c477b5559a861fe4dfa69f3847b9 |
 | prisma/postgres/migrations/20261105090000_user_center_sdk_016/migration.sql | a8344cd36ff8cadcf25c520921db4ab49a533f94038eb995ffce47341ea611c9 |
 | prisma/postgres/sdk-production/migrations/20261105213000_sdk_production_namespace/migration.sql | 3d74dd968cac88b3e6590ea0bbf9f5ca229babbe5f80a623d5166aa12ea0c137 |
+| prisma/postgres/migrations/20261124090000_blog_editor_drafts/migration.sql | 8492a38b499697b43fdefb45266fe941a8528fbd410a8e5ea2a8443f8d34d03a |
 
 固定记录在 scripts/ci/staging-core.ts。CI 不根据候选文件自动生成或更新记录，也不按目录、日期、函数名前缀或 dollar quote 语法整体放行。已登记路径的内容只要变化就拒绝，包括追加普通新增 DDL 或注释。其他迁移继续经过原有保守 SQL 检查。
 
@@ -32,6 +33,10 @@ CI 仅把下面登记的完整 SQL 识别为已审核的程序化迁移。路径
 20261105213000 是独立生产 namespace 的既有初始化。它严格要求数据库 postgres、维护角色 blog_sdk_prod_migrator、该角色拥有空 feline_sdk_prod；允许的已有对象仅为 Prisma ledger 及其索引。所有业务对象、外键及序列属于新 schema，原 public 业务保持。它显式划分运行角色的列权限和维护表只读权限，不启用 Cron，也不恢复数据。
 
 CI 的 production-replay 仅使用显式、无密码的 loopback 临时服务，要求 CI 标志、专用开关、空 postgres 数据库及不存在的目标角色/schema。它不读取 dotenv 或维护配置，不重放到实际生产库。SDK 0.1.10 升级本身没有新增迁移；这里登记的是此前已交付的两份不可变历史。
+
+## 20261124 Blog 草稿
+
+公开链追加两张私有表、约束、索引及 RLS。固定角色确实存在时，程序块撤销 Data API 权限并按目标数据库授予应用所需操作。运行角色可读取、新增和更新草稿，可读取和新增回执。生产命名空间链使用固定的 `blog_sdk_prod_runtime` 和显式 schema 名称，由普通迁移检查覆盖。
 
 ## 保留的门禁及部署边界
 

@@ -14,6 +14,8 @@
     "scripts/auth-rebuild/verify-sdk-local-storage.ts",
     "scripts/auth-rebuild/online-postgres.ts",
     "scripts/auth-rebuild/online-migration.ts",
+    "e2e/blog-draft-fixture.ts",
+    "e2e/blog-draft-runner.mjs",
     "e2e/oauth-post.spec.ts",
     "e2e/email-otp.spec.ts",
     "e2e/user-center.spec.ts",
@@ -34,6 +36,7 @@
     "scripts/database/migrate-legacy-to-postgres.ts",
     "scripts/database/reset-checklists.ts",
     "src/db/postgres/config.ts",
+    "src/db/blogDraft.integration.test.ts",
     "src/db/postgres/runtime.ts",
     "src/db/postgres/runtime.test.ts"
   ]

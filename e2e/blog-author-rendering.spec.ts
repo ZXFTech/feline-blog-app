@@ -1,24 +1,15 @@
 import { expect, test, type Locator } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
 
-import db from "../src/db/postgres/runtime";
-import { blogMarkdownSample } from "../src/app/album/_components/fixtures/blog-markdown";
+import { blogMarkdownSample } from "@/app/album/_components/fixtures/blog-markdown";
+import {
+  isDraftFixtureEnabled,
+  newDraftFixtureContext,
+  openDraftFixtureDatabase,
+  signInDraftFixture,
+} from "./blog-draft-fixture";
 
-const account = {
-  email: process.env.E2E_USER_EMAIL ?? "",
-  password: process.env.E2E_USER_PASSWORD ?? "",
-};
-const configuredTarget = process.env.POSTGRES_DATABASE_URL;
-const target = configuredTarget ? new URL(configuredTarget) : null;
-const localTarget =
-  target &&
-  ["localhost", "127.0.0.1", "[::1]"].includes(target.hostname) &&
-  target.pathname === "/feline_blog_dev" &&
-  process.env.POSTGRES_ENVIRONMENT === "local";
-
-test.skip(!account.email || !account.password, "需要安全测试账号");
-test.skip(!localTarget || !process.env.JWT_SECRET, "需要安全本地 PostgreSQL 与现有 JWT 配置");
-// Login requests contain credentials. Keep them out of retained traces.
+test.skip(!isDraftFixtureEnabled, "需要独立的 SDK 草稿测试环境");
 test.use({ trace: "off" });
 test.setTimeout(90_000);
 
@@ -62,39 +53,29 @@ async function contentSnapshot(root: Locator) {
   }));
 }
 
-test.afterAll(async () => {
-  await db.$disconnect();
-});
-
-// covers: AC-2, AC-4, AC-6, AC-10, AC-11, AC-13. Uses only the guarded local DB.
+// covers: AC-2, AC-4, AC-6, AC-10, AC-11, AC-13.
 test("作者预览、提交、公开服务端正文与编辑重读保持一致", async ({ page, browser }, testInfo) => {
   await page.setViewportSize(
     testInfo.project.name === "mobile" ? { width: 390, height: 844 } : { width: 1280, height: 800 }
   );
-  const author = await db.user.findUnique({
-    where: { email: account.email.toLowerCase() },
-    select: { id: true, role: true },
-  });
-  expect(author?.role).toBe("ROOT");
-  if (!author) throw new Error("安全测试作者不存在");
+  const author = await signInDraftFixture(page.context(), "author");
+  const db = openDraftFixtureDatabase();
   const marker = `blog-render-${testInfo.project.name}-${Date.now()}`;
   const initialContent = `${blogMarkdownSample}\n\n## 重复锚点\n\n## 重复锚点\n`;
   let blogId: number | undefined;
   let submittedContent: string | undefined;
-  const anonymous = await browser.newContext({
-    baseURL: "http://localhost:3000",
+  const anonymous = await newDraftFixtureContext(browser, {
     viewport: page.viewportSize() ?? undefined,
   });
   try {
-    const login = await page.request.post("/api/auth/login", { data: account });
-    expect(login.status()).toBe(200);
     await page.goto("/blog/new");
     await expect(page).toHaveURL(/\/blog\/new$/);
     // SSR inputs may become visible before the editor has hydrated in WebKit.
     // Confirm an actual editor interaction before entering author data.
     await page.getByRole("button", { name: /预览/, exact: false }).click();
-    await expect(page.getByRole("button", { name: /关闭预览/ })).toBeVisible();
-    await page.getByRole("button", { name: /关闭预览/ }).click();
+    const editorTab = page.getByRole("button", { name: /^(关闭预览|编辑)$/ });
+    await expect(editorTab).toBeVisible();
+    await editorTab.click();
     await page.getByPlaceholder("无标题").fill(marker);
     const input = page.getByPlaceholder("输入 Markdown 内容...");
     await input.fill(initialContent);
@@ -188,29 +169,28 @@ test("作者预览、提交、公开服务端正文与编辑重读保持一致",
       )
     );
   } finally {
-    await anonymous.close();
-    // This marker and author identify only this run's disposable article, even
-    // when a submission succeeded before its redirect could be observed.
-    const cleanupWhere = {
-      authorId: author.id,
-      OR: [
-        { title: marker },
-        ...(blogId && submittedContent !== undefined
-          ? [{ id: blogId, content: submittedContent }]
-          : []),
-      ],
-    };
-    const rows = await db.blog.findMany({
-      where: cleanupWhere,
-      select: { id: true },
-    });
-    if (rows.length) {
-      const ids = rows.map((row) => row.id);
+    try {
+      // Keep repeated runs independent if a submission succeeds before its redirect.
+      const cleanupWhere = {
+        authorId: author.id,
+        OR: [
+          { title: marker },
+          ...(blogId && submittedContent !== undefined
+            ? [{ id: blogId, content: submittedContent }]
+            : []),
+        ],
+      };
+      const rows = await db.blog.findMany({ where: cleanupWhere, select: { id: true } });
+      const ids = rows.map(({ id }) => id);
       await db.$transaction([
+        db.blogPublishReceipt.deleteMany({ where: { authorId: author.id, blogId: { in: ids } } }),
+        db.blogDraft.deleteMany({ where: { authorId: author.id, title: marker } }),
         db.tagsOnBlogs.deleteMany({ where: { blogId: { in: ids } } }),
         db.blog.deleteMany({ where: { ...cleanupWhere, id: { in: ids } } }),
       ]);
+      expect(await db.blog.count({ where: cleanupWhere })).toBe(0);
+    } finally {
+      await Promise.all([anonymous.close(), db.$disconnect()]);
     }
-    expect(await db.blog.count({ where: cleanupWhere })).toBe(0);
   }
 });

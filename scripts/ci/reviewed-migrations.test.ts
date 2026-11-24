@@ -117,3 +117,22 @@ describe("unreviewed migration SQL", () => {
     ).toThrow(/unclassified|rejected/i);
   });
 });
+
+describe("draft migrations", () => {
+  const name = "20261124090000_blog_editor_drafts";
+  const publicPath = `prisma/postgres/migrations/${name}/migration.sql`;
+  const namespacePath = `prisma/postgres/sdk-production/migrations/${name}/migration.sql`;
+
+  it("accepts only the reviewed public role setup at its registered path", () => {
+    const sql = migrationSql(publicPath);
+    expect(() => assertSafeMigrationSql(sql.replace(/\r?\n/g, "\r\n"), name, publicPath)).not.toThrow();
+    expect(() => assertSafeMigrationSql(sql, name, namespacePath)).toThrow(/unclassified/i);
+    expect(() =>
+      assertSafeMigrationSql(sql.replace("'service_role'", "'different_role'"), name, publicPath)
+    ).toThrow(/reviewed.*checksum/i);
+  });
+
+  it("accepts the production migration under the standard additive SQL rules", () => {
+    expect(() => assertSafeMigrationSql(migrationSql(namespacePath), name, namespacePath)).not.toThrow();
+  });
+});

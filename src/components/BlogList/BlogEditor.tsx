@@ -1,90 +1,50 @@
 "use client";
 
-import MarkdownEditor from "@/components/MarkdownEditor";
-import { createBlog, updateBlogById } from "@/db/blogAction";
-import { toast as message } from "@/components/ProMessage";
+import { BlogEditorSession } from "@/components/BlogList/BlogEditorSession";
+import {
+  getBlogDraft,
+  getBlogEditorData,
+  publishBlogDraft,
+  saveBlogDraft,
+} from "@/db/blogDraftAction";
+import type { DraftAdapter } from "@/lib/blog/draft-controller";
+import type { BlogEditorSeed } from "@/types/blog-draft";
+import type { TagData } from "@/components/TagEditor";
+import { useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useState, ChangeEventHandler } from "react";
-import { TagData } from "@/components/TagEditor";
-import { CombinedBlog } from "@/types/blog";
 
-const BlogEditor = ({ blog }: { blog?: CombinedBlog }) => {
+const adapter: DraftAdapter = {
+  save: saveBlogDraft,
+  publish: publishBlogDraft,
+  load: (draftId, blogId) => (blogId === null ? getBlogDraft(draftId) : getBlogEditorData(blogId)),
+  onSaved(draftId) {
+    if (window.location.pathname !== "/blog/new") return;
+    const url = new URL(window.location.href);
+    if (url.searchParams.get("draft") === draftId) return;
+    url.searchParams.set("draft", draftId);
+    window.history.replaceState(window.history.state, "", url);
+  },
+};
+export default function BlogEditor({
+  seed,
+  optionTags = [],
+}: {
+  seed: BlogEditorSeed;
+  optionTags?: TagData[];
+}) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
-  // blog state
-  const [blogData, setBlogData] = useState({
-    id: blog?.id,
-    title: blog?.title || "",
-    content: blog?.content || "",
-    tags: blog?.tags || [],
-  });
-
-  const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      let result;
-      if (blog?.id) {
-        // 更新
-        result = await updateBlogById(Number(blog?.id), {
-          title: blogData.title.trim() ? blogData.title.trim() : "无标题",
-          content: blogData.content,
-          tags: blogData.tags,
-        });
-      } else {
-        // 新增
-        result = await createBlog({
-          title: blogData.title.trim() ? blogData.title.trim() : "无标题",
-          content: blogData.content,
-          tags: blogData.tags,
-        });
-      }
-
-      if (result.status !== "success") {
-        message.error(result.message);
-        return;
-      }
-      message.success(blog?.id ? "更新成功!" : "创建成功!");
-      setBlogData({
-        id: undefined,
-        title: "",
-        content: "",
-        tags: [],
-      });
-
-      router.push(`/blog/${result.data.blogId}`);
-    } catch (error) {
-      message.error("创建失败!" + error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onTagChange = (tags: TagData[]) => {
-    setBlogData({
-      ...blogData,
-      tags,
-    });
-  };
-
-  const onContentChange: ChangeEventHandler<HTMLTextAreaElement> = (value) =>
-    setBlogData((prev) => ({
-      ...prev,
-      content: value.target.value.replaceAll(/(?<!\s\s)\n/g, "  \n"),
-    }));
-  const onTitleChange: ChangeEventHandler<HTMLInputElement> = (e) =>
-    setBlogData((prev) => ({ ...prev, title: e.target.value }));
-
+  const navigate = useCallback(
+    (href: string) => {
+      router.push(href);
+    },
+    [router]
+  );
   return (
-    <MarkdownEditor
-      blog={blogData}
-      id={blog?.id}
-      onContentChange={onContentChange}
-      onTitleChange={onTitleChange}
-      handleSubmit={handleSubmit}
-      loading={loading}
-      onTagChange={onTagChange}
+    <BlogEditorSession
+      seed={seed}
+      adapter={adapter}
+      optionTags={optionTags}
+      onNavigate={navigate}
     />
   );
-};
-
-export default BlogEditor;
+}

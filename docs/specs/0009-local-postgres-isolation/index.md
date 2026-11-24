@@ -1,7 +1,7 @@
 # 0009. Local PostgreSQL development and migration isolation
 
 **Date**: 2026-09-19
-**Status**: In Progress
+**Status**: Accepted
 
 ## Summary
 
@@ -30,6 +30,7 @@ Daily development will use a PostgreSQL container on the developer machine inste
 - **AC-10**: `.env.development.example`, `.env.shadow.example`, and `.env.staging.example` document every required value without secrets. The corresponding real files and all transient database artifacts are ignored by Git.
 - **AC-11**: Existing PostgreSQL command names remain as temporary aliases that print a deprecation notice and route through the same target checks. No alias can restore the former implicit staging development path.
 - **AC-12**: `pnpm test` covers configuration parsing, target classification, allowlist checks, shared operation locks, command orchestration, redaction, and rejection paths without Docker or staging. `pnpm db:local:test` uses a unique internal Docker project with generated credentials and deterministic fixtures to prove database and role isolation, migration replay, snapshot consistency, restore validation, switch recovery, and protected operation rejection.
+- **AC-13**: The complete staging copy includes every row of `public.BlogDraft` and `public.BlogPublishReceipt`, including unpublished work, deletion markers, and receipts without a surviving article. Both tables retain RLS. `app_exporter` remains a separate read only `NOBYPASSRLS` role with explicit full row `SELECT` policies on these two tables only. Missing or filtered exporter policies, applicable restrictive read policies, disabled RLS on these tables, unknown RLS tables, stronger exporter attributes, memberships, ownership or effective writes reject the copy before any switch. Disposable Docker tests prove complete multi author copying and rejection paths without contacting staging.
 
 ## Decision
 
@@ -52,6 +53,8 @@ The local connection may omit TLS only when the environment is `local`, the host
 **Implementation skills**: `docker-compose-orchestration` (`manutej/luxor-claude-marketplace`, `.agents/skills/docker-compose-orchestration/`) · `infra-postgres` (`clickhouse/agent-skills`, `.agents/skills/infra-postgres/`) · `prisma-cli-migrate-dev` (`prisma/cursor-plugin`, `.agents/skills/prisma-cli-migrate-dev/`) · `prisma-cli-migrate-deploy` (`prisma/cursor-plugin`, `.agents/skills/prisma-cli-migrate-deploy/`) · `prisma-cli-migrate-status` (`prisma/cursor-plugin`, `.agents/skills/prisma-cli-migrate-status/`) · `prisma-database-setup-postgresql` (`prisma/cursor-plugin`, `.agents/skills/prisma-database-setup-postgresql/`) · `prisma-orm-v7-skills` (`gocallum/nextjs16-agent-skills`, `.agents/skills/prisma-orm-v7-skills/`)
 
 `infra-postgres` is a reference for local PostgreSQL operating concerns only. Its `clickhousectl` workflow is not part of this build because it does not satisfy the confirmed Compose, database, role, and command contracts.
+
+The private copy extension also follows `supabase-postgres-best-practices` (`supabase/agent-skills`, `.agents/skills/supabase-postgres-best-practices/`) for RLS and least privilege. It reuses the existing Prisma migration workflow and introduces no separate Supabase migration history.
 
 ## Feature design
 
@@ -194,7 +197,29 @@ No browser or HTTP API is added. These commands are the feature interface.
 
 ### Export and restore contract
 
-The supported application inventory is every ordinary table with `relkind = 'r'` in schema `public`, except `_prisma_migrations`. Source and migrated target inventories must match exactly before the dump starts. The command refuses partitioned tables, foreign tables, materialized views, large objects, application row level security, and application owned extensions until a later spec defines their copy semantics. It also refuses any effective `EXECUTE` privilege that lets `app_exporter` call an application schema function. This is deliberate fail closed behavior, not silent omission.
+The supported application inventory is every ordinary table with `relkind = 'r'` in schema `public`, except `_prisma_migrations`. Source and migrated target inventories must match exactly before the dump starts. The command refuses partitioned tables, foreign tables, materialized views, large objects, user defined application triggers, and application RLS outside the two table contract below. It also refuses any effective `EXECUTE` privilege that lets `app_exporter` call an application schema function. This is deliberate fail closed behavior, not silent omission.
+
+#### Private draft copy contract, confirmed 2026-10-25
+
+The engineer authorized copying staging drafts and publication receipts to the trusted local workstation while retaining RLS. The fixed RLS allowlist is `public.BlogDraft` and `public.BlogPublishReceipt`. Both ordinary tables must have RLS enabled whenever they exist. No author filter, deletion filter, receipt expiry, content masking or exclusion is applied during this development copy. Product routes and actions retain spec 0016 author checks and the existing runtime policies.
+
+Exporter role setup owns two policies, `BlogDraft_exporter_read` and `BlogPublishReceipt_exporter_read`. On existing allowlisted tables it installs each as `AS PERMISSIVE FOR SELECT TO app_exporter USING (true)`, with no `WITH CHECK`. The guarded setup runs through the existing staging role setup gate and table owner connection, in one transaction with read grants. It may replace only these named policies, never unrelated policies, RLS flags, runtime policies or client grants. Policy creation is role setup, not a rewrite of an already applied migration. Rerun exporter setup after deploying a migration that introduces either table. Tables absent before that migration need no policy yet.
+
+Exporter verification inspects `pg_roles`, `pg_auth_members`, effective table, sequence, schema and function permissions, and `pg_policy`. It requires the exact login role, no stronger attributes or memberships, the named permissive SELECT policy with exactly the exporter role and constant true condition, and no applicable restrictive SELECT or ALL policy, including PUBLIC policies. Unknown RLS tables and disabled RLS on either allowlisted table fail. Source refresh discovers table names before its transaction, then acquires ACCESS SHARE locks before the first repeatable read snapshot query. It checks role and policy evidence, counts rows and exports that same snapshot while retaining the table locks. A policy changed while lock acquisition waits must be checked in its new state. Catalog failure or incomplete evidence fails closed, even if a filtered source and target count could otherwise match.
+
+Refresh holds the existing `${stagingProjectRef}:staging-operation` advisory lock on its source session from before snapshot preparation until export completes and the snapshot transaction ends. Exporter setup and staging deploy use that same lock, so the controlled management commands cannot change role attributes, memberships or grants during export. Table locks protect table policy changes; they do not protect role changes. Direct administrator operations that bypass these tools remain within the trusted management boundary and must not run concurrently with refresh. The implementation does not claim to constrain a privileged administrator. Lock refusal returns RECOVERY_REQUIRED; failure or connection loss releases the lock through cleanup or PostgreSQL session termination.
+
+`pg_dump` uses `--enable-row-security` with the existing exported snapshot and explicit full application inventory. The verified policies make its permitted row set complete. Target `pg_restore` continues to use only the local administrator, which supports COPY into RLS tables without disabling RLS; the data only archive never imports source policies or grants. The candidate retains RLS and runtime permissions from migrations. Source counts and restored counts include both private tables. A mismatch or export failure discards or retains the rejected candidate under the existing recovery rules and preserves current dev before the commit point.
+
+Refresh replaces the whole local database. Local unpublished drafts and local receipts are replaced by the staging snapshot on successful switch, with no merge, upload or automatic synchronization. Existing copy gates, connection fencing, sensitive volume handling, stream cleanup and rollback rules remain in force. This authorization defines tool behavior; implementation verification uses disposable local fixtures and does not itself trigger a real staging export, remote role change or deployment.
+
+| Copy value | Source |
+| --- | --- |
+| Supported private RLS tables and owned policy names | Fixed two table allowlist above, encoded once in shared copy tooling |
+| Complete exporter visibility | Exact policy expressions, policy roles and applicable restrictive policies from `pg_policy`, verified role attributes and effective privileges |
+| Exported private content and receipt identity | All rows in the same staging snapshot, without product list filters |
+| Local RLS and runtime policies after restore | Ordered local migration history, never source archive ACLs or schema |
+| Fate of local unpublished work | Existing whole database replacement commit point, no merge |
 
 The source connection begins a read only repeatable read transaction and calls `pg_export_snapshot()`. It discovers the inventory and computes all source row counts while that transaction remains open. The dump receives the exported snapshot identifier. Target counts compare with this captured manifest, never with a later live staging query.
 
@@ -206,7 +231,7 @@ Restore uses this algorithm:
 2. Compare local migration file checksums with staging `_prisma_migrations`. Require matching applied names, matching checksums, non null completion, no rollback marker, and no failed row. Use Prisma schema diff to prove the candidate and staging application schemas are compatible before data export.
 3. Require all candidate application tables to be empty after migrations. If migration SQL left seed rows, truncate the supported application inventory in the candidate because staging is the chosen complete data source.
 4. Capture each candidate foreign key name and `pg_get_constraintdef` definition, then drop those foreign keys. Refuse user defined application triggers. Keep check, unique, exclusion, and not null constraints active during restore.
-5. Run custom format, data only `pg_dump` with explicit table selections, snapshot, no owner, and no ACL. Stream to single worker `pg_restore` as `local_admin` inside one target transaction. Never restore schema, ownership, grants, comments, security labels, or `_prisma_migrations`.
+5. Run custom format, data only `pg_dump` with `--enable-row-security`, explicit table selections, snapshot, no owner, and no ACL, after the private copy contract passes. Stream to single worker `pg_restore` as `local_admin` inside one target transaction. Never restore schema, ownership, grants, comments, security labels, or `_prisma_migrations`.
 6. Recreate every captured foreign key from its exact migrated definition. PostgreSQL validates existing rows while adding it. Any validation failure rejects the candidate.
 7. Discover sequences owned by supported table columns through catalog dependencies. Do not copy staging sequence state because sequence changes do not share the table snapshot. Set each target sequence from the restored column maximum with the correct empty table `is_called` state, then run a rolled back insert probe for every generated key path to prove no collision.
 8. Compare every target table row count with the snapshot manifest, run Prisma schema diff against the clean verify database, then proceed to the fenced switch.
@@ -293,6 +318,7 @@ The example files use placeholders and safe local defaults. They never contain t
 - Lifecycle: stop and restart with data retained, then destroy with missing and valid confirmations, verifies **AC-9**.
 - Offline unit suite: run `pnpm test` without Docker and without database credentials, verifies **AC-10**, **AC-11**, **AC-12**.
 - Docker integration suite: run the disposable project twice and confirm idempotent setup, isolated roles and databases, and no staging network access, verifies **AC-1**, **AC-3**, **AC-12**.
+- Private copy: use the actual nonowner `NOBYPASSRLS` exporter with multiple authors, an unpublished draft, a deletion marker, a receipt whose article is absent, and a concurrent post snapshot save; prove exact content and identifiers, snapshot counts, retained target RLS and runtime access. Reject missing, filtered and PUBLIC restrictive policies, disabled and unknown RLS, exporter writes and stronger attributes before switching, verifies **AC-5**, **AC-7**, **AC-12**, **AC-13**.
 - Shared worktrees: start conflicting operations from two worktrees against one Compose project and confirm the maintenance database lock serializes them, verifies **AC-4**, **AC-6**, **AC-12**.
 
 ## Build plan
@@ -306,6 +332,7 @@ The Tracer Bullet order first proves one real local application and migration pa
 5. Add `db:staging:status` and `db:staging:deploy`. Require the direct allowlisted staging identity, actual connected role checks, verified TLS, process only deployment gate, migration checksum reporting, and rejection of every development or destructive Prisma subcommand on staging, satisfies **AC-7**, **AC-8**.
 6. Add `db:local:down` and guarded `db:local:destroy`. Verify Docker context, labels, mounts, and exact confirmation. Implement the complete compatibility mapping, update database documentation, and remove wording that says daily development uses staging, satisfies **AC-9**, **AC-10**, **AC-11**.
 7. Add offline unit tests for every parser, environment override, classifier, allowlist, gate, lock, ledger transition, redactor, safe error mapper, argument forwarder, and compatibility entry. Add the unique internal Compose harness for roles, migrations, snapshot concurrency, cyclic foreign keys, seeds, sequences, connection races, process death, shared worktrees, persistence, and destruction without staging access, satisfies **AC-1**, **AC-3**, **AC-4**, **AC-5**, **AC-6**, **AC-7**, **AC-8**, **AC-9**, **AC-12**.
+8. Extend the existing snapshot path with the fixed private RLS contract, owner managed exporter policies and pre export visibility checks. Prove a complete streamed copy through the real restricted exporter in the disposable harness, then cover rejection and recovery and update the operating guide, satisfies **AC-5**, **AC-7**, **AC-12**, **AC-13**.
 
 ## Migration plan
 

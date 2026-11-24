@@ -90,8 +90,10 @@ export async function migrateOnlineDatabase() {
     );
     const placeholders = directories.filter((name) => !names.includes(name));
     if (
-      names.length !== 8 ||
-      JSON.stringify(placeholders) !== '["20261026000000_center_only_environment"]'
+      names.length !== 9 ||
+      !names.includes("20261105090000_user_center_sdk_016") ||
+      names.at(-1) !== "20261124090000_blog_editor_drafts" ||
+      placeholders.some((name) => name !== "20261026000000_center_only_environment")
     )
       throw Error("ONLINE_LOCAL_MIGRATION_CHAIN_CHANGED");
     assertSnapshotEntries(names, fs.readdirSync(snapshot));

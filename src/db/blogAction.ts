@@ -1,90 +1,16 @@
 "use server";
 
-import type { TagData } from "@/components/TagEditor";
-import { hasBlogRoles, resolveCurrentUser } from "@/lib/auth/userAuth";
+import { resolveCurrentUser } from "@/lib/auth/userAuth";
 import { assertBusinessReady } from "@/lib/auth/sdk/business";
 import logger from "@/lib/logger/Logger";
-import { actionResult, type ActionResult } from "@/lib/server/actionResult";
+import { actionResult } from "@/lib/server/actionResult";
 import { classifyDataError, isKnownPrismaError, safeErrorContext } from "@/lib/server/error";
-import { parsePositiveInt, parseString } from "@/lib/server/validation";
+import { parsePositiveInt } from "@/lib/server/validation";
 import { Prisma } from "../../generated/prisma-postgres/client";
 import db from "@/db/client";
 
 const publicAuthorSelect = { id: true, username: true, avatar: true } as const;
 const tagInclude = { include: { tag: true } } as const;
-
-function parseTags(tags: unknown): TagData[] | null {
-  if (!Array.isArray(tags)) return null;
-  const parsed: TagData[] = [];
-  const seen = new Set<string>();
-  for (const value of tags) {
-    if (!value || typeof value !== "object") return null;
-    const record = value as Record<string, unknown>;
-    const content = parseString(record.content, { label: "标签", max: 50 });
-    const color = parseString(record.color, { label: "颜色", max: 50 });
-    if (!content || !color) return null;
-    if (!seen.has(content)) parsed.push({ content, color });
-    seen.add(content);
-  }
-  return parsed;
-}
-
-function parseBlogInput(input: unknown) {
-  if (!input || typeof input !== "object") return null;
-  const record = input as Record<string, unknown>;
-  const title = parseString(record.title, { label: "标题", max: 191 });
-  const content = parseString(record.content, {
-    label: "正文",
-    max: Number.MAX_SAFE_INTEGER,
-    trim: false,
-    allowEmpty: true,
-  });
-  const tags = parseTags(record.tags ?? []);
-  return title && content !== null && tags ? { title, content, tags } : null;
-}
-
-async function upsertTags(tx: Prisma.TransactionClient, userId: string, tags: TagData[]) {
-  return Promise.all(
-    tags.map((tag) =>
-      tx.tag.upsert({
-        where: { userId_content: { userId, content: tag.content } },
-        update: { color: tag.color },
-        create: { userId, content: tag.content, color: tag.color },
-      })
-    )
-  );
-}
-
-export async function createBlog(input: unknown): Promise<ActionResult<{ blogId: number }>> {
-  const auth = await hasBlogRoles();
-  if (auth.status !== "success") return auth;
-  const parsed = parseBlogInput(input);
-  if (!parsed) return actionResult.failure("invalid_input", "文章内容无效");
-  try {
-    const result = await db.$transaction(async (tx) => {
-      const tags = await upsertTags(tx, auth.data.id, parsed.tags);
-      return tx.blog.create({
-        data: {
-          title: parsed.title,
-          content: parsed.content,
-          authorId: auth.data.id,
-          tags: {
-            create: tags.map((tag) => ({
-              assignedBy: auth.data.id,
-              tag: { connect: { id: tag.id } },
-            })),
-          },
-        },
-      });
-    });
-    return actionResult.success({ blogId: result.id });
-  } catch (error) {
-    logger.error(safeErrorContext("createBlog", error, { userId: auth.data.id }));
-    return (
-      classifyDataError(error) ?? actionResult.failure("temporary_failure", "暂时无法创建文章")
-    );
-  }
-}
 
 export async function getBlogById(id: unknown) {
   const blogId = parsePositiveInt(id);
@@ -114,50 +40,6 @@ export async function getBlogById(id: unknown) {
       safeErrorContext("getBlogById", error, { resourceId: blogId, ...(userId ? { userId } : {}) })
     );
     return actionResult.failure("temporary_failure", "暂时无法读取文章");
-  }
-}
-
-export async function updateBlogById(
-  id: unknown,
-  input: unknown
-): Promise<ActionResult<{ blogId: number }>> {
-  const auth = await hasBlogRoles();
-  if (auth.status !== "success") return auth;
-  const blogId = parsePositiveInt(id);
-  const parsed = parseBlogInput(input);
-  if (!blogId || !parsed) return actionResult.failure("invalid_input", "文章内容无效");
-  try {
-    const result = await db.$transaction(async (tx) => {
-      const existing = await tx.blog.findFirst({
-        where: { id: blogId, authorId: auth.data.id, delete: false },
-      });
-      if (!existing) return null;
-      const tags = await upsertTags(tx, auth.data.id, parsed.tags);
-      return tx.blog.update({
-        where: { id: blogId },
-        data: {
-          title: parsed.title,
-          content: parsed.content,
-          tags: {
-            deleteMany: {},
-            create: tags.map((tag) => ({
-              assignedBy: auth.data.id,
-              tag: { connect: { id: tag.id } },
-            })),
-          },
-        },
-      });
-    });
-    return result
-      ? actionResult.success({ blogId: result.id })
-      : actionResult.failure("not_found", "文章不存在");
-  } catch (error) {
-    logger.error(
-      safeErrorContext("updateBlogById", error, { userId: auth.data.id, resourceId: blogId })
-    );
-    return (
-      classifyDataError(error) ?? actionResult.failure("temporary_failure", "暂时无法更新文章")
-    );
   }
 }
 

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { NeuSurface } from "@/components/ui/neu-surface";
 import { InputField } from "@/components/ui/input-field";
 import { debounce } from "@/utils/rateLimiting";
-import { PermissionAccess } from "../Auth/PermissionAccess";
+import { PermissionAccess } from "@/components/Auth/PermissionAccess";
 
 export const BlogListOperationBar = () => {
   const router = useRouter();
@@ -44,7 +44,7 @@ export const BlogListOperationBar = () => {
   return (
     <div className="flex flex-col gap-4 mb-4 sticky right-0 left-0 top-0 z-100">
       <NeuSurface elevation="flat" className="flex flex-row flex-wrap items-center justify-between">
-        <div className="flex flex-row gap-2">
+        <div className="flex min-w-0 flex-wrap gap-2">
           <InputField onChange={(e) => debounceUpdate("content", e.target.value)} />
           <Button
             materialIcon={`${
@@ -57,13 +57,12 @@ export const BlogListOperationBar = () => {
               {orderBy === "desc" ? "按时间正序" : "按时间倒序"}
             </span>
           </Button>
-          {/* <Link href="/blog/new" className="hover:no-underline!"> */}
           <PermissionAccess>
             <Button materialIcon="add_box" onClick={() => router.push("/blog/new")}>
               <span className="font-medium tracking-wider">新建</span>
             </Button>
+            <Button onClick={() => router.push("/blog/drafts")}>我的草稿</Button>
           </PermissionAccess>
-          {/* </Link> */}
         </div>
       </NeuSurface>
     </div>

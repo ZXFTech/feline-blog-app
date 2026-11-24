@@ -230,6 +230,7 @@ async function ensureDatabase(client: Client, database: string): Promise<void> {
 async function reconcileDatabasePrivileges(adminUrl: string, database: string): Promise<void> {
   const client = await connect(adminUrl, database);
   try {
+    await client.query("BEGIN");
     await client.query(
       `CREATE SCHEMA IF NOT EXISTS public AUTHORIZATION ${quoteIdentifier(targets.migratorRole)}`
     );
@@ -242,6 +243,19 @@ async function reconcileDatabasePrivileges(adminUrl: string, database: string): 
       await client.query(
         `GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${quoteIdentifier(targets.runtimeRole)}`
       );
+      const privateTables = await client.query<{ draft: boolean; receipt: boolean }>(
+        `SELECT to_regclass('public."BlogDraft"') IS NOT NULL AS draft,
+                to_regclass('public."BlogPublishReceipt"') IS NOT NULL AS receipt`
+      );
+      const runtimeRole = quoteIdentifier(targets.runtimeRole);
+      if (privateTables.rows[0]?.draft) {
+        await client.query(`REVOKE DELETE ON public."BlogDraft" FROM ${runtimeRole}`);
+      }
+      if (privateTables.rows[0]?.receipt) {
+        await client.query(
+          `REVOKE UPDATE, DELETE ON public."BlogPublishReceipt" FROM ${runtimeRole}`
+        );
+      }
       await client.query(
         `GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${quoteIdentifier(targets.runtimeRole)}`
       );
@@ -252,6 +266,10 @@ async function reconcileDatabasePrivileges(adminUrl: string, database: string): 
         `ALTER DEFAULT PRIVILEGES FOR ROLE ${quoteIdentifier(targets.migratorRole)} IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO ${quoteIdentifier(targets.runtimeRole)}`
       );
     }
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => undefined);
+    throw error;
   } finally {
     await client.end();
   }

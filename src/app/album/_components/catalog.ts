@@ -147,7 +147,7 @@ const pendingFamilies: ReadonlyArray<readonly [string, string, string, string, C
       "blog",
       "博客组件",
       "Blog / BlogList / RightSideBar",
-      "Blog/AdjacentBlogs.tsx|Blog/BlogOperationBar.tsx|BlogList/BlogEditor.tsx|BlogList/blogList.tsx|BlogList/BlogListOperationBar.tsx|BlogList/ListItem.tsx|RightSideBar/BlogEditBar.tsx",
+      "Blog/AdjacentBlogs.tsx|Blog/BlogOperationBar.tsx|Blog/BlogRecovery.tsx|Blog/BlogStatus.tsx|BlogList/BlogEditor.tsx|BlogList/blogList.tsx|BlogList/BlogListOperationBar.tsx|BlogList/ListItem.tsx|RightSideBar/BlogEditBar.tsx",
       "business",
     ],
     [
@@ -176,13 +176,6 @@ const pendingFamilies: ReadonlyArray<readonly [string, string, string, string, C
       "用户与权限",
       "Profile / Auth",
       "Profile/ProfileCard.tsx|Profile/UserMenu.tsx|Auth/PermissionAccess.tsx|Auth/ProtectedRoute.tsx",
-      "business",
-    ],
-    [
-      "editors",
-      "编辑器",
-      "MarkdownEditor / TagEditor",
-      "MarkdownEditor/index.tsx|TagEditor/index.tsx",
       "business",
     ],
     [
@@ -575,6 +568,35 @@ export const catalogEntries: readonly CatalogEntry[] = [
   ready(
     {
       ...base,
+      slug: "blog-editor",
+      nameZh: "Blog 草稿与编辑器",
+      codeName: "BlogEditorSession / MarkdownEditor / BlogDraftsView",
+      description:
+        "私有草稿状态、失败重试、冲突载入、预览、全屏及确认删除，使用固定本地快照与内存适配器。",
+      useCases: ["文章编辑", "私有草稿", "冲突恢复"],
+      importPath: "@/components/BlogList/BlogEditorSession · @/components/BlogList/BlogDraftsView",
+      sourceFiles: [
+        "BlogList/BlogEditorSession.tsx",
+        "BlogList/BlogDraftsView.tsx",
+        "BlogList/BlogDrafts.tsx",
+        "BlogList/BlogEditorRecovery.tsx",
+        "MarkdownEditor/index.tsx",
+        "TagEditor/index.tsx",
+      ],
+      categoryId: "business",
+      order: 40,
+      keywords: ["blog", "编辑器", "草稿", "冲突", "保存", "全屏"],
+      capabilities: capability(
+        ["默认内边距"],
+        ["编辑与预览", "草稿列表"],
+        ["未保存", "保存中", "已保存", "保存失败", "冲突", "结果不明", "确认删除", "空列表"]
+      ),
+    },
+    () => import("@/app/album/_components/demos/BlogEditorDemo")
+  ),
+  ready(
+    {
+      ...base,
       slug: "sdk-auth",
       nameZh: "账号登录与资料确认",
       codeName: "SDK Auth",
@@ -627,6 +649,7 @@ export function getCatalogEntry(
     "badge-tag": "feedback-status",
     "progress-toast": "feedback-status",
     "theme-switcher": "feedback-status",
+    editors: "blog-editor",
   };
   const resolvedSlug = slug ? (aliases[slug] ?? slug) : slug;
   return entries.find((entry) => entry.slug === resolvedSlug);

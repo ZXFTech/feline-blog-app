@@ -45,9 +45,17 @@ async function runPrisma(
   if (!pnpmEntrypoint) {
     throw new DatabaseToolError("CONFIG_CONFLICT", "Run this command through pnpm.");
   }
+  const nativeEntrypoint = path.extname(pnpmEntrypoint).toLowerCase() === ".exe";
   return await runCommand(
-    process.execPath,
-    [pnpmEntrypoint, "exec", "prisma", ...args, "--config", "./prisma.postgres.config.ts"],
+    nativeEntrypoint ? pnpmEntrypoint : process.execPath,
+    [
+      ...(nativeEntrypoint ? [] : [pnpmEntrypoint]),
+      "exec",
+      "prisma",
+      ...args,
+      "--config",
+      "./prisma.postgres.config.ts",
+    ],
     {
       cwd: repositoryRoot,
       env: environment,

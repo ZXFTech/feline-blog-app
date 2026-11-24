@@ -1,6 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { spawn } from "node:child_process";
-import { mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,7 +18,13 @@ import {
 import { runPrisma } from "./migrate";
 import { fence, inventory, recoverOperation, repairSequences, streamDumpRestore } from "./refresh";
 import { runCommand } from "./process";
-import { assertExporterSafety } from "./staging";
+import {
+  acquireStagingLock,
+  assertExporterSafety,
+  grantExporterReadAccess,
+  withStagingLock,
+} from "./staging";
+import { assertCopyRls, beginCopySnapshot, reconcileExporterPolicies } from "./rls-copy";
 
 let currentPhase = "startup";
 
@@ -217,6 +223,42 @@ async function prepareFixtures(client: Client, withRows: boolean): Promise<void>
   }
 }
 
+async function prepareCopyDatabase(
+  adminUrl: string,
+  migratorPassword: string,
+  port: string,
+  database: string
+): Promise<void> {
+  const admin = await connect(adminUrl);
+  try {
+    await admin.query(`CREATE DATABASE "${database}" OWNER local_admin`);
+    await admin.query(`REVOKE CONNECT ON DATABASE "${database}" FROM PUBLIC`);
+    await admin.query(`GRANT CONNECT, CREATE, TEMPORARY ON DATABASE "${database}" TO app_migrator`);
+  } finally {
+    await admin.end();
+  }
+  await reconcileDatabasePrivileges(adminUrl, database);
+  const owner = await connect(url(targets.migratorRole, migratorPassword, port, database));
+  try {
+    // Exercise the supported public copy topology without importing any SDK auth tables.
+    for (const migration of [
+      "20260919000000_init_connection_probe",
+      "20260919070056_migrate_legacy_models",
+      "20260919070822_verify_legacy_schema",
+      "20260920090000_add_checklist_core_loop",
+      "20261124090000_blog_editor_drafts",
+    ]) {
+      const sql = await readFile(
+        path.join(repositoryRoot, "prisma", "postgres", "migrations", migration, "migration.sql"),
+        "utf8"
+      );
+      await owner.query(sql);
+    }
+  } finally {
+    await owner.end();
+  }
+}
+
 async function foreignKeys(client: Client) {
   return (
     await client.query<{
@@ -230,6 +272,144 @@ async function foreignKeys(client: Client) {
       JOIN pg_namespace n ON n.oid = c.relnamespace
       WHERE n.nspname = 'public' AND con.contype = 'f' ORDER BY c.relname, con.conname`)
   ).rows;
+}
+
+async function privateCopyRows(client: Client): Promise<unknown> {
+  return {
+    drafts: (await client.query('SELECT * FROM public."BlogDraft" ORDER BY id')).rows,
+    receipts: (
+      await client.query(
+        'SELECT * FROM public."BlogPublishReceipt" ORDER BY "draftId", "publishRequestId"'
+      )
+    ).rows,
+  };
+}
+
+async function seedPrivateCopy(client: Client, runId: string): Promise<string> {
+  const authors = [`copy-${runId}-a`, `copy-${runId}-b`];
+  for (const author of authors) {
+    await client.query(
+      `INSERT INTO public.users (id, email, username, password, "updateAt")
+        VALUES ($1, $2, 'copy fixture', 'non-login-test-fixture', now())`,
+      [author, `${author}@example.invalid`]
+    );
+  }
+  const firstDraft = randomUUID();
+  for (const [index, draftId] of [firstDraft, randomUUID(), randomUUID()].entries()) {
+    const deleted = index === 2;
+    await client.query(
+      `INSERT INTO public."BlogDraft" (id, "authorId", title, content, tags, revision,
+        "lastSaveRequestId", "lastSavePayloadHash", "deletedAt")
+        VALUES ($1, $2, $3, $4, $5::jsonb, 3, $6, $7, $8)`,
+      [
+        draftId,
+        authors[index % 2],
+        deleted ? "" : `private ${index}`,
+        deleted ? "" : `unpublished ${index}\n\n\`\`\`ts\nconst raw = '中文';\n\`\`\`\n`,
+        JSON.stringify(deleted ? [] : [{ content: `private-tag-${index}`, color: "#123456" }]),
+        randomUUID(),
+        "a".repeat(64),
+        deleted ? new Date() : null,
+      ]
+    );
+  }
+  await client.query(
+    `INSERT INTO public."BlogPublishReceipt" ("draftId", "publishRequestId", "authorId", revision, "blogId")
+      VALUES ($1, $2, $3, 2, 2100000000)`,
+    [randomUUID(), randomUUID(), authors[1]]
+  );
+  return firstDraft;
+}
+
+async function exercisePrivateCopyDenials(owner: Client, exporter: Client): Promise<void> {
+  await owner.query('DROP POLICY "BlogDraft_exporter_read" ON public."BlogDraft"');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await reconcileExporterPolicies(owner);
+  await owner.query('ALTER POLICY "BlogDraft_exporter_read" ON public."BlogDraft" USING (false)');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await reconcileExporterPolicies(owner);
+  await owner.query('ALTER POLICY "BlogDraft_exporter_read" ON public."BlogDraft" TO PUBLIC');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await reconcileExporterPolicies(owner);
+
+  await owner.query(
+    'CREATE POLICY copy_restrictive ON public."BlogDraft" AS RESTRICTIVE FOR SELECT TO PUBLIC USING (false)'
+  );
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query('DROP POLICY copy_restrictive ON public."BlogDraft"');
+  await owner.query('ALTER TABLE public."BlogDraft" DISABLE ROW LEVEL SECURITY');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await expectTool(() => inventory(owner), "SNAPSHOT_FAILED");
+  await owner.query('ALTER TABLE public."BlogDraft" ENABLE ROW LEVEL SECURITY');
+
+  await owner.query('GRANT INSERT ON public."BlogDraft" TO app_exporter');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query('REVOKE INSERT ON public."BlogDraft" FROM app_exporter');
+  await owner.query('GRANT MAINTAIN ON public."BlogDraft" TO app_exporter');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query('REVOKE MAINTAIN ON public."BlogDraft" FROM app_exporter');
+  await owner.query('GRANT USAGE ON SEQUENCE public."Blog_id_seq" TO app_exporter');
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query('REVOKE USAGE ON SEQUENCE public."Blog_id_seq" FROM app_exporter');
+  await owner.query("ALTER ROLE app_exporter BYPASSRLS");
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query("ALTER ROLE app_exporter NOBYPASSRLS");
+  await owner.query("CREATE ROLE copy_unexpected_membership NOLOGIN");
+  await owner.query("GRANT copy_unexpected_membership TO app_exporter");
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query("REVOKE copy_unexpected_membership FROM app_exporter");
+  await owner.query("DROP ROLE copy_unexpected_membership");
+  await owner.query('ALTER TABLE public."BlogDraft" OWNER TO app_exporter');
+  await owner.query(
+    'REVOKE INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public."BlogDraft" FROM app_exporter'
+  );
+  await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  await owner.query('ALTER TABLE public."BlogDraft" OWNER TO app_migrator');
+  await owner.query('GRANT SELECT ON public."BlogDraft" TO app_exporter');
+  await assertExporterSafety(exporter);
+
+  await expectPg(() => exporter.query('DELETE FROM public."BlogDraft" WHERE false'), "42501");
+  await expectPg(
+    () => exporter.query('UPDATE public."BlogPublishReceipt" SET revision = revision WHERE false'),
+    "42501"
+  );
+  await expectPg(() => exporter.query('TRUNCATE public."BlogDraft"'), "42501");
+  await expectPg(() => exporter.query("CREATE TABLE public.copy_forbidden (id integer)"), "42501");
+  await exporter.query("SET row_security = off");
+  await expectPg(() => exporter.query('SELECT * FROM public."BlogDraft"'), "42501");
+  await exporter.query("SET row_security = on");
+}
+
+async function exerciseSnapshotPolicyRace(owner: Client, exporter: Client): Promise<void> {
+  const pid = (await exporter.query<{ pid: number }>("SELECT pg_backend_pid() AS pid")).rows[0]
+    ?.pid;
+  await owner.query("BEGIN");
+  await owner.query('ALTER POLICY "BlogDraft_exporter_read" ON public."BlogDraft" USING (false)');
+  const waitingSnapshot = beginCopySnapshot(exporter);
+  try {
+    let blocked = false;
+    for (let attempt = 0; attempt < 40; attempt += 1) {
+      const state = await owner.query<{ blocked: boolean }>(
+        "SELECT wait_event_type = 'Lock' AS blocked FROM pg_stat_activity WHERE pid = $1",
+        [pid]
+      );
+      if (state.rows[0]?.blocked) {
+        blocked = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 25));
+    }
+    assert(blocked, "Snapshot did not wait for the concurrent policy change.");
+  } finally {
+    await owner.query("COMMIT");
+    await waitingSnapshot;
+  }
+  try {
+    await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
+  } finally {
+    await exporter.query("ROLLBACK");
+    await reconcileExporterPolicies(owner);
+  }
 }
 
 async function oid(admin: Client, database: string): Promise<number> {
@@ -457,8 +637,15 @@ volumes:
     }
 
     currentPhase = "privileges";
+    await reconcileDatabasePrivileges(adminUrl, targets.developmentDatabase);
     const runtimeUrl = url(targets.runtimeRole, runtimePassword, port, targets.developmentDatabase);
     const runtime = await connect(runtimeUrl);
+    await expectPg(() => runtime.query('DELETE FROM public."BlogDraft"'), "42501");
+    await expectPg(() => runtime.query('DELETE FROM public."BlogPublishReceipt"'), "42501");
+    await expectPg(
+      () => runtime.query('UPDATE public."BlogPublishReceipt" SET revision = revision'),
+      "42501"
+    );
     await runtime.query("BEGIN");
     const probeId = randomUUID();
     await runtime.query(
@@ -501,24 +688,79 @@ volumes:
     await expectPg(() => migrator.query("CREATE DATABASE forbidden_migrator"), "42501");
     await migrator.end();
 
-    currentPhase = "snapshot-restore";
-    const source = await connect(
+    currentPhase = "sdk-private-copy-denial";
+    const sdkDatabase = await connect(
       url(targets.adminRole, adminPassword, port, targets.developmentDatabase)
     );
-    const target = await connect(
-      url(targets.adminRole, adminPassword, port, targets.verifyDatabase)
+    try {
+      await expectTool(() => assertCopyRls(sdkDatabase), "SNAPSHOT_FAILED");
+      await expectTool(() => inventory(sdkDatabase), "SNAPSHOT_FAILED");
+    } finally {
+      await sdkDatabase.end();
+    }
+
+    currentPhase = "snapshot-fixture-migrations";
+    const copySourceDatabase = `feline_blog_copy_source_${id}`;
+    const copyTargetDatabase = `feline_blog_copy_target_${id}`;
+    await prepareCopyDatabase(adminUrl, migratorPassword, port, copySourceDatabase);
+    await prepareCopyDatabase(adminUrl, migratorPassword, port, copyTargetDatabase);
+    currentPhase = "snapshot-fixtures";
+    const sourceAdmin = await connect(
+      url(targets.adminRole, adminPassword, port, copySourceDatabase)
     );
-    const writer = await connect(
-      url(targets.adminRole, adminPassword, port, targets.developmentDatabase)
+    const target = await connect(url(targets.adminRole, adminPassword, port, copyTargetDatabase));
+    const writer = await connect(url(targets.adminRole, adminPassword, port, copySourceDatabase));
+    const exporterPassword = password();
+    await sourceAdmin.query(
+      `CREATE ROLE app_exporter LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD '${exporterPassword}'`
     );
-    await prepareFixtures(source, true);
+    await sourceAdmin.query(`GRANT CONNECT ON DATABASE "${copySourceDatabase}" TO app_exporter`);
+    await sourceAdmin.query("GRANT USAGE ON SCHEMA public TO app_exporter");
+    const sourceOwner = await connect(
+      url(targets.migratorRole, migratorPassword, port, copySourceDatabase)
+    );
+    await prepareFixtures(sourceOwner, true);
+    await grantExporterReadAccess(sourceOwner);
+    await grantExporterReadAccess(sourceOwner);
+    await sourceOwner.end();
     await prepareFixtures(target, false);
-    await source.query("BEGIN TRANSACTION ISOLATION LEVEL REPEATABLE READ READ ONLY");
+    const firstDraft = await seedPrivateCopy(sourceAdmin, id);
+    const source = await connect(url("app_exporter", exporterPassword, port, copySourceDatabase));
+    currentPhase = "private-copy-permissions";
+    await exercisePrivateCopyDenials(sourceAdmin, source);
+    currentPhase = "private-copy-policy-race";
+    await exerciseSnapshotPolicyRace(sourceAdmin, source);
+    currentPhase = "private-copy-coordination";
+    const releaseStaging = await acquireStagingLock(source);
+    try {
+      await expectTool(
+        () => withStagingLock(sourceAdmin, async () => undefined),
+        "RECOVERY_REQUIRED"
+      );
+    } finally {
+      await releaseStaging();
+    }
+    await withStagingLock(sourceAdmin, async () => undefined);
+    currentPhase = "snapshot-restore";
+    await beginCopySnapshot(source);
+    await assertExporterSafety(source);
     const snapshot = (
       await source.query<{ snapshot: string }>("SELECT pg_export_snapshot() AS snapshot")
     ).rows[0]?.snapshot;
     assert(snapshot, "PostgreSQL did not export a snapshot.");
     const manifest = await inventory(source);
+    const privateSnapshot = JSON.stringify(await privateCopyRows(source));
+    await writer.query("SET statement_timeout = '250ms'");
+    await expectPg(
+      () =>
+        writer.query('ALTER POLICY "BlogDraft_exporter_read" ON public."BlogDraft" USING (false)'),
+      "57014"
+    );
+    await writer.query("RESET statement_timeout");
+    await writer.query(
+      "UPDATE public.\"BlogDraft\" SET content = 'post snapshot edit', revision = revision + 1 WHERE id = $1",
+      [firstDraft]
+    );
     const raceNonce = `snapshot-${id}`;
     await writer.query(
       `INSERT INTO public."_app_postgres_connection_probe" (id, nonce, value, "updatedAt") VALUES (gen_random_uuid(), $1, 'race', now())`,
@@ -532,13 +774,13 @@ volumes:
     }
     await streamDumpRestore({
       sourceUrl: url(
-        targets.adminRole,
-        adminPassword,
+        "app_exporter",
+        exporterPassword,
         port,
-        targets.developmentDatabase,
+        copySourceDatabase,
         "host.docker.internal"
       ),
-      targetUrl: url(targets.adminRole, adminPassword, port, targets.verifyDatabase),
+      targetUrl: url(targets.adminRole, adminPassword, port, copyTargetDatabase),
       certificate: "",
       snapshot,
       tables: manifest,
@@ -551,6 +793,25 @@ volumes:
       );
     }
     await repairSequences(target, manifest);
+    assert(
+      JSON.stringify(await privateCopyRows(target)) === privateSnapshot,
+      "Private content or receipt identifiers differ from the snapshot."
+    );
+    await assertCopyRls(target);
+    await target.query("BEGIN");
+    await target.query("SET LOCAL ROLE app_runtime");
+    assert(
+      JSON.stringify(await privateCopyRows(target)) === privateSnapshot,
+      "Migrated runtime RLS policies were lost."
+    );
+    await target.query("ROLLBACK");
+    for (const role of ["anon", "authenticated"]) {
+      await sourceAdmin.query(`CREATE ROLE ${role} NOLOGIN`);
+      await target.query(`SET ROLE ${role}`);
+      await expectPg(() => target.query('SELECT * FROM public."BlogDraft"'), "42501");
+      await expectPg(() => target.query('SELECT * FROM public."BlogPublishReceipt"'), "42501");
+      await target.query("RESET ROLE");
+    }
     assert(
       JSON.stringify(await inventory(target)) === JSON.stringify(manifest),
       "Restored counts differ from the snapshot manifest."
@@ -583,7 +844,7 @@ volumes:
             targets.adminRole,
             adminPassword,
             port,
-            targets.developmentDatabase,
+            copySourceDatabase,
             "host.docker.internal"
           ),
           targetUrl: url(targets.adminRole, adminPassword, port, "missing_restore_target"),
@@ -612,7 +873,7 @@ volumes:
             "missing_dump_source",
             "host.docker.internal"
           ),
-          targetUrl: url(targets.adminRole, adminPassword, port, targets.verifyDatabase),
+          targetUrl: url(targets.adminRole, adminPassword, port, copyTargetDatabase),
           certificate: "",
           snapshot: "missing-snapshot",
           tables: manifest,
@@ -625,11 +886,11 @@ volumes:
       JSON.stringify(await refreshContainers()) === JSON.stringify(containersBeforeFailure),
       "Failed dump left disposable child containers behind."
     );
-    await Promise.all([source.end(), target.end(), writer.end()]);
+    await Promise.all([source.end(), sourceAdmin.end(), target.end(), writer.end()]);
 
     currentPhase = "unsupported-objects";
     const unsupported = await connect(
-      url(targets.adminRole, adminPassword, port, targets.developmentDatabase)
+      url(targets.adminRole, adminPassword, port, copySourceDatabase)
     );
     await unsupported.query(
       "CREATE TABLE public.unsupported_partition (id integer) PARTITION BY RANGE (id)"
@@ -656,6 +917,12 @@ volumes:
     await unsupported.query("CREATE TABLE public.unsupported_rls (value integer)");
     await unsupported.query("ALTER TABLE public.unsupported_rls ENABLE ROW LEVEL SECURITY");
     await expectTool(() => inventory(unsupported), "SNAPSHOT_FAILED");
+    const unknownRlsExporter = await connect(
+      url("app_exporter", exporterPassword, port, copySourceDatabase)
+    );
+    await unsupported.query("GRANT SELECT ON public.unsupported_rls TO app_exporter");
+    await expectTool(() => assertExporterSafety(unknownRlsExporter), "ROLE_MISMATCH");
+    await unknownRlsExporter.end();
     await unsupported.query("DROP TABLE public.unsupported_rls");
 
     await unsupported.query(
@@ -675,19 +942,10 @@ volumes:
     await expectTool(() => inventory(unsupported), "SNAPSHOT_FAILED");
     await unsupported.query("SELECT lo_unlink($1)", [largeObject]);
 
-    const exporterPassword = password();
     await unsupported.query(
       "CREATE FUNCTION public.unsupported_exporter_function() RETURNS integer LANGUAGE sql AS $$ SELECT 1 $$"
     );
-    await unsupported.query(
-      `CREATE ROLE app_exporter LOGIN NOSUPERUSER NOCREATEDB NOCREATEROLE NOINHERIT NOBYPASSRLS PASSWORD '${exporterPassword}'`
-    );
-    await unsupported.query(
-      `GRANT CONNECT ON DATABASE "${targets.developmentDatabase}" TO app_exporter`
-    );
-    const exporter = await connect(
-      url("app_exporter", exporterPassword, port, targets.developmentDatabase)
-    );
+    const exporter = await connect(url("app_exporter", exporterPassword, port, copySourceDatabase));
     await expectTool(() => assertExporterSafety(exporter), "ROLE_MISMATCH");
     await exporter.end();
     await unsupported.query("DROP FUNCTION public.unsupported_exporter_function()");
@@ -723,22 +981,8 @@ volumes:
        VALUES ($1, 'refresh', 'owner', 'feline-blog-app', $2, $3, 'process', 'validated')`,
       [reconnectId, repositoryRoot, project]
     );
-    const reconnect = new Promise<string>((resolve) => {
-      setTimeout(() => {
-        void connect(runtimeUrl).then(
-          async (client) => {
-            await client.end();
-            resolve("connected");
-          },
-          (error: unknown) =>
-            resolve(
-              typeof error === "object" && error && "code" in error ? String(error.code) : "unknown"
-            )
-        );
-      }, 50);
-    });
     await fence(admin, reconnectId, [targets.developmentDatabase]);
-    assert((await reconnect) === "42501", "A runtime connection entered after the fence.");
+    await expectPg(async () => (await connect(runtimeUrl)).end(), "42501");
     await admin.query(
       `GRANT CONNECT ON DATABASE "${targets.developmentDatabase}" TO app_runtime, app_migrator`
     );
@@ -800,8 +1044,11 @@ volumes:
     );
     await persistence.end();
     await admin.end();
-    await runCommand("docker", ["restart", container], { cwd: repositoryRoot });
+    currentPhase = "persistence-stop";
+    await runCommand("docker", [...base, "stop"], { cwd: repositoryRoot });
+    currentPhase = "persistence-start";
     await runCommand("docker", [...base, "up", "--detach", "--wait"], { cwd: repositoryRoot });
+    currentPhase = "persistence-read";
     port = await composePort(base);
     adminUrl = url(targets.adminRole, adminPassword, port, targets.maintenanceDatabase);
     admin = await connectEventually(adminUrl);
@@ -812,7 +1059,7 @@ volumes:
       `SELECT count(*)::text AS count FROM public."_app_postgres_connection_probe" WHERE nonce = $1`,
       [persistNonce]
     );
-    assert(persistedCount.rows[0]?.count === "1", "Compose down did not preserve data.");
+    assert(persistedCount.rows[0]?.count === "1", "Stopping and starting Compose lost data.");
     await persisted.query(`DELETE FROM public."_app_postgres_connection_probe" WHERE nonce = $1`, [
       persistNonce,
     ]);
@@ -1038,6 +1285,8 @@ volumes:
         project,
         migrationsReplayed: (await localMigrationFiles()).length,
         snapshotConsistent: true,
+        privateRlsCopyValidated: true,
+        restrictedExporterValidated: true,
         restoreValidated: true,
         privilegesIsolated: true,
         fenceValidated: true,

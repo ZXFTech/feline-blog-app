@@ -56,7 +56,15 @@ export async function prepare(releaseDirectory: string): Promise<void> {
     sessionSecretEnv: "PLATFORM_SESSION_SECRET",
     returnTo: {
       fallback: "/profile",
-      allowedPaths: ["/", "/profile", "/todo", "/tomato", "/blog/new", "/checklists"],
+      allowedPaths: [
+        "/",
+        "/profile",
+        "/todo",
+        "/tomato",
+        "/blog/new",
+        "/blog/drafts",
+        "/checklists",
+      ],
       allowedPathPrefixes: ["/blog/edit", "/checklists"],
       allowedQueryKeys: [],
     },

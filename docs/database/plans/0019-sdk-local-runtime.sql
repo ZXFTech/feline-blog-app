@@ -51,6 +51,8 @@ GRANT SELECT,INSERT,UPDATE,DELETE ON public."Blog",public."Tag",public."Todo",
   public."DailyStat",public."WorkoutItem",public."WorkoutSet",public."Exercise",
   public."Prompt",public."PomodoroRecord",public."Checklist",public."ChecklistItem"
   TO blog_sdk_runtime;
+GRANT SELECT,INSERT,UPDATE ON public."BlogDraft" TO blog_sdk_runtime;
+GRANT SELECT,INSERT ON public."BlogPublishReceipt" TO blog_sdk_runtime;
 DO $sequences$
 DECLARE s record;
 BEGIN

@@ -89,6 +89,7 @@ describe("database operation safety", () => {
           ],
         };
       }
+      if (sql.includes("pg_policy")) return { rows: [] };
       if (sql.includes("ORDER BY c.relname")) {
         return {
           rows: [
@@ -236,22 +237,42 @@ describe("database operation safety", () => {
     expect(statements.some((sql) => sql.includes("DROP DATABASE"))).toBe(false);
   });
 
-  it.each(["rls_tables", "executable_functions", "writable_tables"])(
-    "covers: AC-7 rejects exporter capability %s",
-    async (capability) => {
-      const client = fakeClient(() => ({
-        rows: [{ rls_tables: 0, executable_functions: 0, writable_tables: 0, [capability]: 1 }],
-      }));
+  it.each([
+    "unsafe_role",
+    "memberships",
+    "owned_objects",
+    "schema_writes",
+    "sequence_writes",
+    "unreadable_tables",
+    "executable_functions",
+    "writable_tables",
+  ])("covers: AC-7 rejects exporter capability %s", async (capability) => {
+    const client = fakeClient(() => ({
+      rows: [{ [capability]: 1 }],
+    }));
 
-      await expect(assertExporterSafety(client)).rejects.toMatchObject({ code: "ROLE_MISMATCH" });
-    }
-  );
+    await expect(assertExporterSafety(client)).rejects.toMatchObject({ code: "ROLE_MISMATCH" });
+  });
 
   it("covers: AC-7 ignores extension-owned functions when checking exporter safety", async () => {
     let statement = "";
     const client = fakeClient((sql) => {
+      if (sql.includes("pg_policy")) return { rows: [] };
       statement = sql;
-      return { rows: [{ rls_tables: 0, executable_functions: 0, writable_tables: 0 }] };
+      return {
+        rows: [
+          {
+            unsafe_role: 0,
+            memberships: 0,
+            owned_objects: 0,
+            schema_writes: 0,
+            sequence_writes: 0,
+            unreadable_tables: 0,
+            executable_functions: 0,
+            writable_tables: 0,
+          },
+        ],
+      };
     });
 
     await expect(assertExporterSafety(client)).resolves.toBeUndefined();
@@ -270,11 +291,29 @@ describe("database operation safety", () => {
     await grantExporterReadAccess(client);
 
     expect(statements).toEqual([
+      "BEGIN",
       "GRANT SELECT ON ALL TABLES IN SCHEMA public TO app_exporter",
       "GRANT SELECT ON ALL SEQUENCES IN SCHEMA public TO app_exporter",
       "REVOKE USAGE, UPDATE ON ALL SEQUENCES IN SCHEMA public FROM app_exporter",
       "ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO app_exporter",
+      expect.stringContaining("pg_policy"),
+      expect.stringContaining("c.relname = ANY"),
+      "COMMIT",
     ]);
+  });
+
+  it("rolls back read grants when private policy setup fails", async () => {
+    const statements: string[] = [];
+    const client = fakeClient((sql) => {
+      statements.push(sql);
+      if (sql.includes("pg_policy")) return { rows: [{ name: "BlogDraft", enabled: false }] };
+      return { rows: [] };
+    });
+    await expect(grantExporterReadAccess(client)).rejects.toMatchObject({
+      code: "SNAPSHOT_FAILED",
+    });
+    expect(statements.at(-1)).toBe("ROLLBACK");
+    expect(statements).not.toContain("COMMIT");
   });
 
   it("covers: AC-7 requires a strict staging CA", () => {

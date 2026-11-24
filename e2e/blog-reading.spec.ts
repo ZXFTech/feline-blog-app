@@ -1,19 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
 import { writeFile } from "node:fs/promises";
-import db from "../src/db/postgres/runtime";
+import { isDraftFixtureEnabled, openDraftFixtureDatabase } from "./blog-draft-fixture";
 
-const target = process.env.POSTGRES_DATABASE_URL
-  ? new URL(process.env.POSTGRES_DATABASE_URL)
-  : null;
-const safeLocal =
-  target &&
-  ["localhost", "127.0.0.1", "[::1]"].includes(target.hostname) &&
-  target.pathname === "/feline_blog_dev" &&
-  process.env.POSTGRES_ENVIRONMENT === "local";
-test.skip(
-  !safeLocal || !process.env.E2E_USER_EMAIL || !process.env.E2E_USER_PASSWORD,
-  "需要安全本地数据库和测试作者账号"
-);
+test.skip(!isDraftFixtureEnabled, "需要独立的 SDK 草稿测试环境");
 test.use({ trace: "off" });
 test.setTimeout(90_000);
 
@@ -32,10 +21,12 @@ const longContent =
 let ids: number[] = [];
 let marker = "";
 let authorId = "";
+let db: ReturnType<typeof openDraftFixtureDatabase>;
 
 test.beforeAll(async ({}, info) => {
+  db = openDraftFixtureDatabase();
   const author = await db.user.findUnique({
-    where: { email: process.env.E2E_USER_EMAIL!.toLowerCase() },
+    where: { email: "author@drafts.example.test" },
     select: { id: true, role: true },
   });
   expect(author?.role).toBe("ROOT");
